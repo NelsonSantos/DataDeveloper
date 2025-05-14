@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+        x:Class="DataDeveloper.Views.ConnectionDialog"
+        Width="400" Height="300"
+        Title="Conectar ao Servidor">
+    <Window.DataContext>
+        <vm:ConnectionDialogViewModel />
+    </Window.DataContext>
+
+    <StackPanel Margin="20" Spacing="10">
+        <TextBox Watermark="Servidor" Text="{Binding Server, Mode=TwoWay}" />
+        <TextBox Watermark="Banco de Dados" Text="{Binding Database, Mode=TwoWay}" />
+        <TextBox Watermark="Usuário" Text="{Binding User, Mode=TwoWay}" />
+        <TextBox Watermark="Senha" PasswordChar="*" Text="{Binding Password, Mode=TwoWay}" />
+        <Button Content="Conectar" Command="{Binding ConfirmCommand}" HorizontalAlignment="Center"/>
+    </StackPanel>
+</Window>
