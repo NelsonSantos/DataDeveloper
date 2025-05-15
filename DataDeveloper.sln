@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper", "DataDeveloper\DataDeveloper.csproj", "{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.DataGrid", "DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj", "{908E652D-5A5F-4C6A-96C2-451311CC38CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{908E652D-5A5F-4C6A-96C2-451311CC38CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{908E652D-5A5F-4C6A-96C2-451311CC38CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{908E652D-5A5F-4C6A-96C2-451311CC38CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{908E652D-5A5F-4C6A-96C2-451311CC38CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

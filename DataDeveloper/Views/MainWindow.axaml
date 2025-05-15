@@ -3,9 +3,9 @@
         xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:repeaters="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.ItemsRepeater"
         xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         xmlns:helpers="clr-namespace:DataDeveloper.Helpers"
+        xmlns:controls="clr-namespace:MyApp.Controls;assembly=DataDeveloper.DataGrid"
         x:Class="DataDeveloper.Views.MainWindow"
         Title="Data Developer"
         Width="1000" Height="700">
@@ -53,54 +53,67 @@
                 helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}" 
                 />
 
+            <controls:SkiaDataGridControl
+                VerticalAlignment="Stretch"
+                HorizontalAlignment="Stretch"
+                Grid.Row="2" Grid.Column="1"
+                Width="400"
+                Height="300"
+                Headers="{Binding MyHeaders}"
+                Data="{Binding MyData}" />
+            
+            
+            <TreeDataGrid Grid.Row="2" Grid.Column="1"
+                      Source="{Binding Source}" />
+            
             <!-- <DataGrid Grid.Row="2" Grid.Column="1" -->
             <!--           AutoGenerateColumns="True" -->
             <!--           IsReadOnly="True" -->
             <!--           ItemsSource="{Binding ResultView}" /> -->
             
-            <ScrollViewer Grid.Row="2" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="Yellow">
-                <StackPanel>
-
-                    <!-- Cabeçalho das colunas -->
-                    <repeaters:ItemsRepeater ItemsSource="{Binding Columns}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="Gray" BorderThickness="0,0,1,1" Padding="6" MinWidth="120">
-                                    <TextBlock Text="{Binding}" FontWeight="Bold" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </repeaters:ItemsRepeater>
-
-                    <!-- Linhas da consulta -->
-                    <repeaters:ItemsRepeater ItemsSource="{Binding QueryResults}">
-                        <repeaters:ItemsRepeater.ItemTemplate>
-                            <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border BorderBrush="Gray" BorderThickness="0,0,1,1" Padding="6" MinWidth="120">
-                                                <TextBlock Text="{Binding Value}" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </DataTemplate>
-                        </repeaters:ItemsRepeater.ItemTemplate>
-                    </repeaters:ItemsRepeater>
-
-                </StackPanel>
-            </ScrollViewer>            
+            <!-- <ScrollViewer Grid.Row="2" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="Yellow"> -->
+            <!--     <StackPanel> -->
+            <!-- -->
+            <!--         ~1~ Cabeçalho das colunas @1@ -->
+            <!--         <repeaters:ItemsRepeater ItemsSource="{Binding Columns}"> -->
+            <!--             <ItemsControl.ItemsPanel> -->
+            <!--                 <ItemsPanelTemplate> -->
+            <!--                     <StackPanel Orientation="Horizontal" /> -->
+            <!--                 </ItemsPanelTemplate> -->
+            <!--             </ItemsControl.ItemsPanel> -->
+            <!--             <ItemsControl.ItemTemplate> -->
+            <!--                 <DataTemplate> -->
+            <!--                     <Border BorderBrush="Gray" BorderThickness="0,0,1,1" Padding="6" MinWidth="120"> -->
+            <!--                         <TextBlock Text="{Binding}" FontWeight="Bold" /> -->
+            <!--                     </Border> -->
+            <!--                 </DataTemplate> -->
+            <!--             </ItemsControl.ItemTemplate> -->
+            <!--         </repeaters:ItemsRepeater> -->
+            <!-- -->
+            <!--         ~1~ Linhas da consulta @1@ -->
+            <!--         <repeaters:ItemsRepeater ItemsSource="{Binding QueryResults}"> -->
+            <!--             <repeaters:ItemsRepeater.ItemTemplate> -->
+            <!--                 <DataTemplate> -->
+            <!--                     <ItemsControl ItemsSource="{Binding}"> -->
+            <!--                         <ItemsControl.ItemsPanel> -->
+            <!--                             <ItemsPanelTemplate> -->
+            <!--                                 <StackPanel Orientation="Horizontal" /> -->
+            <!--                             </ItemsPanelTemplate> -->
+            <!--                         </ItemsControl.ItemsPanel> -->
+            <!--                         <ItemsControl.ItemTemplate> -->
+            <!--                             <DataTemplate> -->
+            <!--                                 <Border BorderBrush="Gray" BorderThickness="0,0,1,1" Padding="6" MinWidth="120"> -->
+            <!--                                     <TextBlock Text="{Binding Value}" /> -->
+            <!--                                 </Border> -->
+            <!--                             </DataTemplate> -->
+            <!--                         </ItemsControl.ItemTemplate> -->
+            <!--                     </ItemsControl> -->
+            <!--                 </DataTemplate> -->
+            <!--             </repeaters:ItemsRepeater.ItemTemplate> -->
+            <!--         </repeaters:ItemsRepeater> -->
+            <!-- -->
+            <!--     </StackPanel> -->
+            <!-- </ScrollViewer>             -->
     </Grid>
     
     <!-- <DockPanel VerticalAlignment="Stretch" Background="Aqua"> -->
