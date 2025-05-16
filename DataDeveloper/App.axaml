@@ -1,17 +1,26 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:DataDeveloper"
+             xmlns:viewmodels="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
              x:Class="DataDeveloper.App"
              RequestedThemeVariant="Dark"
              >
     <Application.DataTemplates>
         <local:ViewLocator/>
+        <DataTemplate DataType="{x:Type viewmodels:SqlEditorViewModel}">
+            <views:SqlEditorView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:ConnectionDataViewModel}">
+            <views:ConnectionData />
+        </DataTemplate>
     </Application.DataTemplates>
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
+        <DockFluentTheme />
+        <!-- <Style Selector="DockControl"> -->
+        <!--     <Setter Property="(ControlRecyclingDataTemplate.ControlRecycling)" Value="{StaticResource ControlRecyclingKey}" /> -->
+        <!-- </Style> -->
     </Application.Styles>
-
 </Application>
