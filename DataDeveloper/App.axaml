@@ -15,12 +15,16 @@
             <views:ConnectionData />
         </DataTemplate>
     </Application.DataTemplates>
+    <Application.Resources>
+        <ControlRecycling x:Key="ControlRecyclingKey" />
+    </Application.Resources>    
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
         <DockFluentTheme />
-        <!-- <Style Selector="DockControl"> -->
-        <!--     <Setter Property="(ControlRecyclingDataTemplate.ControlRecycling)" Value="{StaticResource ControlRecyclingKey}" /> -->
-        <!-- </Style> -->
+        <Style Selector="DockControl">
+            <Setter Property="(ControlRecyclingDataTemplate.ControlRecycling)" Value="{StaticResource ControlRecyclingKey}" />
+        </Style>
     </Application.Styles>
 </Application>

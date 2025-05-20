@@ -1,4 +1,3 @@
-using Dock.Model.ReactiveUI.Controls;
 using Dock.Model.Core;
 using System;
 using System.Collections.Generic;
@@ -6,13 +5,12 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Reactive;
 using System.Reflection.Metadata;
+using System.Windows.Input;
 using Avalonia.Controls;
 using Dapper;
-using Dock.Model.Controls;
-using Dock.Model.ReactiveUI;
+using DataDeveloper.Views;
 using Microsoft.Data.SqlClient;
 using ReactiveUI;
-using Document = Dock.Model.ReactiveUI.Controls.Document;
 
 namespace DataDeveloper.ViewModels;
 
@@ -21,27 +19,6 @@ public class MainWindowViewModel : ViewModelBase
     
     public IDockable Layout { get; set; }
     
-    private string _queryText = "select top 100 * from Test1";
-    public string QueryText
-    {
-        get => _queryText;
-        set => this.RaiseAndSetIfChanged(ref _queryText, value);
-    }
-
-    // private DataView? _resultView;
-    // public DataView? ResultView
-    // {
-    //     get =>  _resultView;
-    //     set => this.RaiseAndSetIfChanged(ref _resultView, value);
-    // }
-
-    private ObservableCollection<RecordManager> _resultView = new();
-    public ObservableCollection<RecordManager> ResultView
-    {
-        get => _resultView;
-        set => this.RaiseAndSetIfChanged(ref _resultView, value);
-    }
-
     public ObservableCollection<string> TableNames { get; } = new();
     
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
@@ -77,6 +54,12 @@ public class MainWindowViewModel : ViewModelBase
         ExecuteCommand = ReactiveCommand.Create(ExecuteQuery);
 
         CreateLayout();
+
+        this.NewWindowCommand = ReactiveCommand.Create(() =>
+        {
+            var newWindow = new MainWindow();
+            newWindow.Show();
+        });
     }
     
     private void CreateLayout()
@@ -110,7 +93,8 @@ public class MainWindowViewModel : ViewModelBase
 
     public ObservableCollection<IEnumerable<object>> MyData { get; } = new() { new[] {"A", "B"}, new[] {"C", "D"} };
     public ObservableCollection<string> MyHeaders { get; } = new()  { "Field1", "Field2" };
-    
+    public ICommand NewWindowCommand { get; }
+
     private void ExecuteQuery()
     {
         try
@@ -118,7 +102,7 @@ public class MainWindowViewModel : ViewModelBase
             using var conn = new SqlConnection(_connection.ConnectionString);
             conn.Open();
 
-            var data  = conn.ExecuteReader(QueryText, commandType: CommandType.Text);
+            var data  = conn.ExecuteReader(/*QueryText*/"", commandType: CommandType.Text);
 
             MyHeaders.Clear();
             
@@ -140,117 +124,5 @@ public class MainWindowViewModel : ViewModelBase
         {
             Console.WriteLine("Erro ao executar query: " + ex.Message);
         }
-    }
-}
-
-public class SqlEditorViewModel : Document
-{
-}
-
-public class ConnectionDataViewModel : Tool
-{
-}
-
-public class ResultViewModel : Tool
-{
-}
-
-public class DockFactory : Factory
-{
-    public override IRootDock CreateLayout()
-    {
-        var document = new SqlEditorViewModel
-        {
-            Id = "SqlEditor",
-            Title = "Editor SQL AAAAAA",
-        };
-
-        var treeTool = new ConnectionDataViewModel
-        {
-            Id = "Tables",
-            Title = "Tabelas",
-            CanClose = false,
-            CanFloat = false,
-        };
-
-        var outputTool = new ResultViewModel
-        {
-            Id = "Output",
-            Title = "Resultados",
-            CanClose = false,
-            CanFloat = false,
-        };
-
-        var documentDock = new DocumentDock
-        {
-            Id = "Documents",
-            Title = "Documentos",
-            ActiveDockable = document,
-            VisibleDockables = CreateList<IDockable>( document ),
-        };
-
-        var left = new ToolDock
-        {
-            Id = "Left",
-            Title = "Left",
-            ActiveDockable = treeTool,
-            VisibleDockables = CreateList<IDockable>( treeTool ),
-            Alignment = Alignment.Left,
-            CanClose = false,
-            CanFloat = false,
-            Proportion = 0.25,
-        };
-
-        var bottom = new ToolDock
-        {
-            Id = "Bottom",
-            Title = "Bottom",
-            ActiveDockable = outputTool,
-            VisibleDockables = CreateList<IDockable>( outputTool ),
-            Alignment = Alignment.Bottom,
-            CanClose = false,
-            CanFloat = false,
-            Proportion = 0.25, 
-        };
-
-        var windowLayoutContent = new ProportionalDock
-        {
-            Orientation = Orientation.Vertical,
-            CanClose = false,
-            VisibleDockables = CreateList<IDockable>(
-                new ProportionalDock
-                {
-                    Orientation = Orientation.Horizontal,
-                    VisibleDockables = new List<IDockable> { left, new ProportionalDockSplitter(), documentDock }
-                },
-                new ProportionalDockSplitter(),
-                bottom
-            ),
-        };
-
-        var rootDock = CreateRootDock();
-        
-        rootDock.Id = "Root";
-        rootDock.Title = "Root";
-        rootDock.ActiveDockable = windowLayoutContent;
-        rootDock.DefaultDockable = windowLayoutContent;
-        rootDock.VisibleDockables = CreateList<IDockable>(windowLayoutContent);
-
-        return rootDock;
-    }
-}
-
-public class RecordManager
-{
-    private int _index = -1;
-    private readonly object[] _values;
-    public RecordManager(object[] values)
-    {
-        _values = values;
-    }
-    public object GetValue()
-    {
-        _index++;
-        return _values[_index];
     }
 }

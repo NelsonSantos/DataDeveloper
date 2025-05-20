@@ -8,6 +8,7 @@
         xmlns:controls="clr-namespace:DataDeveloper.DataGrid;assembly=DataDeveloper.DataGrid"
         xmlns:dock="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
         xmlns:np="https://np.com/visuals"
+        xmlns:views="clr-namespace:DataDeveloper.Views"
         x:Class="DataDeveloper.Views.MainWindow"
         Title="Data Developer"
         Width="1000" Height="700">
@@ -24,7 +25,22 @@
     <!--         <Button Content="Executar" Command="{Binding ExecuteCommand}" Margin="4" Background="Red"/> -->
     <!--     </StackPanel> -->
     <!-- </Grid> -->
-    <dock:DockControl Layout="{Binding Layout}" />
+
+    <!-- <dock:DockControl Layout="{Binding Layout}" /> -->
+    <views:MainView />
+
+    <!-- <Panel Margin="{Binding #MainWindowView.OffScreenMargin}"> -->
+    <!--     <Panel Height="30" HorizontalAlignment="Center" VerticalAlignment="Top"> -->
+    <!--         <Label Content="Notepad" -->
+    <!--                Margin="4,0,4,0" -->
+    <!--                FontSize="14" -->
+    <!--                FontWeight="Normal" -->
+    <!--                VerticalAlignment="Center" -->
+    <!--                VerticalContentAlignment="Center" /> -->
+    <!--     </Panel> -->
+    <!--     <Panel Margin="{Binding #MainWindowView.WindowDecorationMargin}"> -->
+    <!--     </Panel>     -->
+    <!-- </Panel> -->
 
     <!-- <Grid> -->
     <!--     <Grid.RowDefinitions> -->
