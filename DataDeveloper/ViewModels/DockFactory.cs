@@ -8,7 +8,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
+using DataDeveloper.ViewModels.Docks;
 using DataDeveloper.Views;
+using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Model.Core.Events;
@@ -29,109 +31,73 @@ public class DockFactory : Factory
     {
     }
 
-    private SqlEditorViewModel GetNewSqlEditorViewModel()
+    public override IDocumentDock CreateDocumentDock()
     {
-        _countSqlEditors++;
-        var document = new SqlEditorViewModel
-        {
-            Id = $"SqlEditor{_countSqlEditors}",
-            Title = $"Sql Statement {_countSqlEditors}",
-        };
-        return document;
+        return new EditorDocumentDock();
     }
-    
+
     public override IRootDock CreateLayout()
     {
 
-        var treeTool = new ConnectionDataViewModel
+        var treeTool = new ConnectionDetailsViewModel
         {
-            Id = "Tables",
-            Title = "Tabelas",
+            Id = "connectionDetails",
+            Title = "Tables",
             CanClose = false,
             CanFloat = false,
         };
 
-        var outputTool = new ResultViewModel
+        var left = new ProportionalDock()
         {
-            Id = "Output",
-            Title = "Resultados",
-            CanClose = false,
-            CanFloat = false,
-        };
-
-        var document = GetNewSqlEditorViewModel();
-        var documentDock = new DocumentDock
-        {
-            Id = "Documents",
-            Title = "Documentos",
-            ActiveDockable = document,
-            VisibleDockables = CreateList<IDockable>( document ),
-            CanCreateDocument = true,
-        };
-        documentDock.CreateDocument = ReactiveCommand.Create(() =>
-        {
-            var newDocument = GetNewSqlEditorViewModel();
-            documentDock.VisibleDockables.Add(newDocument);
-            documentDock.ActiveDockable = newDocument;
-        });
-        
-        //this.DockableWillBeClosed += OnDockableWillBeClosed;
-        this.DockableWillBeClosed+= OnDockableWillBeClosed; 
-        // documentDock.ConfirmCloseCommand = ReactiveCommand.CreateFromTask<SqlEditorViewModel>(async doc =>
-        // {
-        //     var confirmar = await doc.ConfirmCloseCommand.Execute().FirstAsync();
-        //
-        //     if (!confirmar) return;
-        //     
-        //     documentDock.Close.Execute(true);
-        // });
-    
-        var left = new ToolDock
-        {
+            Proportion = 0.25,
+            Orientation = Orientation.Vertical,
             Id = "Left",
             Title = "Left",
-            ActiveDockable = treeTool,
-            VisibleDockables = CreateList<IDockable>( treeTool ),
-            Alignment = Alignment.Left,
-            CanClose = false,
-            CanFloat = false,
-            Proportion = 0.25,
-        };
-
-        var bottom = new ToolDock
-        {
-            Id = "Bottom",
-            Title = "Bottom",
-            ActiveDockable = outputTool,
-            VisibleDockables = CreateList<IDockable>( outputTool ),
-            Alignment = Alignment.Bottom,
-            CanClose = false,
-            CanFloat = false,
-            Proportion = 0.25, 
-        };
-
-        var windowLayoutContent = new ProportionalDock
-        {
-            Orientation = Orientation.Vertical,
-            CanClose = false,
-            VisibleDockables = CreateList<IDockable>(
-                new ProportionalDock
+            ActiveDockable = null,
+            VisibleDockables = CreateList<IDockable>
+            ( 
+                new ToolDock
                 {
-                    Orientation = Orientation.Horizontal,
-                    VisibleDockables = new List<IDockable> { left, new ProportionalDockSplitter(), documentDock }
-                },
-                new ProportionalDockSplitter(),
-                bottom
+                    ActiveDockable = treeTool,
+                    VisibleDockables = CreateList<IDockable>(treeTool),
+                    Alignment = Alignment.Left
+                }
             ),
+        };
+        
+        var entireDocument = EditorDocumentDock.GetNewEditorDocument(this);
+        var documentDock = new EditorDocumentDock()
+        {
+            IsCollapsable = false,
+            Id = "Documents",
+            Title = "Documentos",
+            ActiveDockable = entireDocument,
+            VisibleDockables = CreateList<IDockable>(entireDocument),
+            CanCreateDocument = true,
+        };
+
+        this.DockableWillBeClosed += OnDockableWillBeClosed;
+        
+        var mainLayout = new ProportionalDock
+        {
+            Orientation = Orientation.Horizontal,
+            VisibleDockables = CreateList<IDockable>( left, new ProportionalDockSplitter(), documentDock ),
+        };
+
+        var homeView = new RootDock
+        {
+            Id = "Home",
+            Title = "Home",
+            ActiveDockable = mainLayout,
+            VisibleDockables = CreateList<IDockable>(mainLayout)
         };
 
         var rootDock = CreateRootDock();
         
-        rootDock.Id = "Root";
-        rootDock.Title = "Root";
-        rootDock.ActiveDockable = windowLayoutContent;
-        rootDock.DefaultDockable = windowLayoutContent;
-        rootDock.VisibleDockables = CreateList<IDockable>(windowLayoutContent);
+        rootDock.IsCollapsable = false;
+        rootDock.ActiveDockable = homeView;
+        rootDock.DefaultDockable = homeView;
+        rootDock.VisibleDockables = CreateList<IDockable>(homeView);
 
         return rootDock;
     }
@@ -188,9 +154,4 @@ public class DockFactory : Factory
         return window;
     }
     
-}
-
-public class Teste : DocumentDock
-{
-
 }

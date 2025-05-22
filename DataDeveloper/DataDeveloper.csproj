@@ -17,10 +17,9 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
-<!--  <ItemGroup>-->
-<!--    <AvaloniaResource Include="Assets\**"/>-->
-<!--    <None Remove=".gitignore"/>-->
-<!--  </ItemGroup>-->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**"/>
+  </ItemGroup>
 
   <ItemGroup>
     <!--This helps with theme dll-s trimming.
@@ -48,12 +47,9 @@
 <!--    <PackageReference Include="Dock.Model.Mvvm" Version="11.3.0.1" />-->
 <!--    <PackageReference Include="Dock.Model.ReactiveUI" Version="11.3.0.1" />-->
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="System.Text.Json" Version="9.0.4" />
     <PackageReference Include="ReactiveUI" Version="20.2.45" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,6 +59,13 @@
     <ProjectReference Include="..\..\Dock\src\Dock.Model.ReactiveUI\Dock.Model.ReactiveUI.csproj" />
     <ProjectReference Include="..\..\Dock\src\Dock.Model\Dock.Model.csproj" />
     <ProjectReference Include="..\DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\Fonts\fa-brands-regular-400.ttf" />
+    <AvaloniaResource Include="Assets\Fonts\fa-light-300.ttf" />
+    <AvaloniaResource Include="Assets\Fonts\fa-regular-400.ttf" />
+    <AvaloniaResource Include="Assets\Fonts\fa-solid-900.ttf" />
   </ItemGroup>
 
 </Project>

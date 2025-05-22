@@ -4,16 +4,29 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:helpers="clr-namespace:DataDeveloper.Helpers"
+             xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.SqlEditorView"
              >
-    <avaloniaEdit:TextEditor
-        Grid.Row="1" Grid.Column="1"
-        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-        ShowLineNumbers="True"
-        SyntaxHighlighting="SQL"
-        HorizontalScrollBarVisibility="Auto"
-        VerticalScrollBarVisibility="Visible"
-        helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
+    <Design.DataContext>
+        <viewModels:EditorDocumentViewModel />
+    </Design.DataContext>
+    
+    <Grid RowDefinitions="Auto, *" Background="#3C3F41">
+        <StackPanel Grid.Row="0" Margin="4" Background="#3C3F41">
+            <Button Background="Transparent" Command="{Binding ExecuteCommand}">
+                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04b;" Foreground="Green" Background="Transparent"></TextBlock>
+            </Button>
+        </StackPanel>
+        <avaloniaEdit:TextEditor
+            Grid.Row="1" Grid.Column="1"
+            FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+            ShowLineNumbers="True"
+            SyntaxHighlighting="SQL"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Visible"
+            Background="#202424"
+            helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
         />
+    </Grid>
 </UserControl>

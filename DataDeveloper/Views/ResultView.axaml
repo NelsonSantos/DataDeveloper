@@ -3,10 +3,14 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:dataGrid="clr-namespace:DataDeveloper.DataGrid;assembly=DataDeveloper.DataGrid"
+             xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.ResultView">
-    <dataGrid:SkiaDataGridControl
-        Grid.Row="2" Grid.Column="1"
+    <Design.DataContext>
+        <viewModels:EditorDocumentViewModel />
+    </Design.DataContext>
+   
+    <dataGrid:SkiaDataGridControl Background="CadetBlue"
         Headers="{Binding MyHeaders}"
         Data="{Binding MyData}" />
 </UserControl>
