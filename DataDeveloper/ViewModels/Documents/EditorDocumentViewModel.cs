@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Dynamic;
 using System.Reactive;
 using Dapper;
+using DataDeveloper.Models;
 using Dock.Model.ReactiveUI.Controls;
+using DynamicData;
 using Microsoft.Data.SqlClient;
 using ReactiveUI;
 
@@ -17,7 +20,7 @@ public class EditorDocumentViewModel : Document
     private SqlConnectionInfo _connection;
 
     public event EventHandler RowClear; 
-    public event EventHandler<object[]> RowAdded; 
+    public event EventHandler<RowValues> RowAdded; 
     public event EventHandler ColunmsClear;
     public event EventHandler<string[]> ColunmsChanged;
     public string QueryText
@@ -77,11 +80,13 @@ public class EditorDocumentViewModel : Document
             this.ColunmsChanged?.Invoke(this, columns.ToArray());
             
             this.RowClear?.Invoke(this, EventArgs.Empty);
+            var rowNumber = 0;
             while (data.Read())
             {
-                var values = new object[data.FieldCount];
-                var count = data.GetValues(values);
-                this.RowAdded?.Invoke(this, values);
+                rowNumber++;
+                var values = new object?[data.FieldCount];
+                data.GetValues(values);
+                this.RowAdded?.Invoke(this, new RowValues(rowNumber, values));
             }
         }
         catch (Exception ex)
@@ -89,5 +94,6 @@ public class EditorDocumentViewModel : Document
             Console.WriteLine("Erro ao executar query: " + ex.Message);
         }
     }
-    
+   
+
 }

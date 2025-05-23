@@ -7,10 +7,17 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.ResultView">
     <Design.DataContext>
-        <viewModels:EditorDocumentViewModel />
+        <viewModels:ResultViewModel />
     </Design.DataContext>
-   
-    <dataGrid:SkiaDataGridControl Background="CadetBlue"
-        Headers="{Binding MyHeaders}"
-        Data="{Binding MyData}" />
+   <DataGrid x:Name="DataGrid1" 
+             AutoGenerateColumns="False" 
+             RowHeaderWidth="200"
+             ItemsSource="{Binding Rows}"
+             FrozenColumnCount="1"
+             FontFamily="Consolas"
+             FontSize="12"
+             />
+    <!-- <dataGrid:SkiaDataGridControl Background="CadetBlue" -->
+    <!--     Headers="{Binding Headers}" -->
+    <!--     Data="{Binding Rows}" /> -->
 </UserControl>

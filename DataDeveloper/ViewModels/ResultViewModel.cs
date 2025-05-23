@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Dynamic;
+using DataDeveloper.Models;
 using Dock.Model.ReactiveUI.Controls;
 using DynamicData;
 
@@ -19,26 +21,26 @@ public class ResultViewModel : Tool
         _document.RowAdded += DocumentOnRowAdded;
     }
 
-    public ObservableCollection<IEnumerable<object>> MyData { get; } = new() { new[] {"A", "B"}, new[] {"C", "D"} };
-    public ObservableCollection<string> MyHeaders { get; } = new()  { "Field1", "Field2" };
+    public ObservableCollection<RowValues> Rows { get; } = new();
+    public ObservableCollection<string> Headers { get; } = new();
     
-    private void DocumentOnRowAdded(object? sender, object[] e)
+    private void DocumentOnRowAdded(object? sender, RowValues e)
     {
-        MyData.Add(e);
+        Rows.Add(e);
     }
 
     private void DocumentOnRowClear(object? sender, EventArgs e)
     {
-        MyData.Clear();
+        Rows.Clear();
     }
 
     private void DocumentOnColunmsClear(object? sender, EventArgs e)
     {
-        MyHeaders.Clear();
+        Headers.Clear();
     }
 
     private void DocumentOnColunmsChanged(object? sender, string[] e)
     {
-        MyHeaders.AddRange(e);
+        Headers.AddRange(e);
     }
 }
