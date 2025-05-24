@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="TSQL" extensions=".sql" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+      <Color name="String" foreground="#CE9178" />
+      <Color name="Number" foreground="#B5CEA8" />
+      <Color name="Function" foreground="#4EC9B0" />
+      <Color name="Default" foreground="#CCCCCC" />
+    <Color name="Comment" foreground="#6A9955" exampleText="-- comment" />
+    <Color name="Char" foreground="#CE9178" exampleText="name = 'abc'" />
+    <Color name="Keywords" fontWeight="bold" foreground="#569CD6" exampleText="SELECT FROM" />
+
+	<Property name="DocCommentMarker" value="///" />
+
+	<RuleSet name="CommentMarkerSet">
+		<Keywords fontWeight="bold" foreground="Red">
+			<Word>TODO</Word>
+			<Word>FIXME</Word>
+		</Keywords>
+		<Keywords fontWeight="bold" foreground="#E0E000">
+			<Word>HACK</Word>
+			<Word>UNDONE</Word>
+		</Keywords>
+	</RuleSet>
+
+	<RuleSet ignoreCase="true">
+		<Span color="Comment" ruleSet="CommentMarkerSet">
+			<Begin>--</Begin>
+		</Span>
+
+		<Span color="Comment" ruleSet="CommentMarkerSet" multiline="true">
+			<Begin>/\*</Begin>
+			<End>\*/</End>
+		</Span>
+
+		<Span color="Char">
+			<Begin>'</Begin>
+			<End>'</End>
+		</Span>
+
+        <Span color="String">
+			<Begin>"</Begin>
+			<End>"</End>
+        </Span>
+    
+        <Keywords color="Keywords">
+              <Word>abs</Word>
+              <Word>absolute</Word>
+              <Word>access</Word>
+              <Word>acos</Word>
+              <Word>add</Word>
+              <Word>add_months</Word>
+              <Word>adddate</Word>
+              <Word>admin</Word>
+              <Word>after</Word>
+              <Word>aggregate</Word>
+              <Word>all</Word>
+              <Word>allocate</Word>
+              <Word>alter</Word>
+              <Word>any</Word>
+              <Word>app_name</Word>
+              <Word>are</Word>
+              <Word>array</Word>
+              <Word>ascii</Word>
+              <Word>asin</Word>
+              <Word>assertion</Word>
+              <Word>at</Word>
+              <Word>atan</Word>
+              <Word>atn2</Word>
+              <Word>audit</Word>
+              <Word>authid</Word>
+              <Word>authorization</Word>
+              <Word>autonomous_transaction</Word>
+              <Word>avg</Word>
+              <Word>before</Word>
+              <Word>begin</Word>
+              <Word>benchmark</Word>
+              <Word>between</Word>
+              <Word>bfilename</Word>
+              <Word>bigint</Word>
+              <Word>bin</Word>
+              <Word>binary</Word>
+              <Word>binary_checksum</Word>
+              <Word>binary_integer</Word>
+              <Word>bit</Word>
+              <Word>bit_and</Word>
+              <Word>bit_count</Word>
+              <Word>bit_or</Word>
+              <Word>blob</Word>
+              <Word>body</Word>
+              <Word>boolean</Word>
+              <Word>both</Word>
+              <Word>breadth</Word>
+              <Word>bulk</Word>
+              <Word>call</Word>
+              <Word>cascade</Word>
+              <Word>cascaded</Word>
+              <Word>cast</Word>
+              <Word>catalog</Word>
+              <Word>ceil</Word>
+              <Word>ceiling</Word>
+              <Word>char</Word>
+              <Word>char_base</Word>
+              <Word>character</Word>
+              <Word>charindex</Word>
+              <Word>chartorowid</Word>
+              <Word>check</Word>
+              <Word>checksum</Word>
+              <Word>checksum_agg</Word>
+              <Word>chr</Word>
+              <Word>class</Word>
+              <Word>clob</Word>
+              <Word>close</Word>
+              <Word>cluster</Word>
+              <Word>coalesce</Word>
+              <Word>col_length</Word>
+              <Word>col_name</Word>
+              <Word>collate</Word>
+              <Word>collation</Word>
+              <Word>collect</Word>
+              <Word>column</Word>
+              <Word>comment</Word>
+              <Word>commit</Word>
+              <Word>completion</Word>
+              <Word>compress</Word>
+              <Word>concat</Word>
+              <Word>concat_ws</Word>
+              <Word>connect</Word>
+              <Word>connection</Word>
+              <Word>constant</Word>
+              <Word>constraint</Word>
+              <Word>constraints</Word>
+              <Word>constructorcreate</Word>
+              <Word>contains</Word>
+              <Word>containsable</Word>
+              <Word>continue</Word>
+              <Word>conv</Word>
+              <Word>convert</Word>
+              <Word>corr</Word>
+              <Word>corresponding</Word>
+              <Word>cos</Word>
+              <Word>cot</Word>
+              <Word>count</Word>
+              <Word>count_big</Word>
+              <Word>covar_pop</Word>
+              <Word>covar_samp</Word>
+              <Word>create</Word>
+              <Word>cross</Word>
+              <Word>cube</Word>
+              <Word>cume_dist</Word>
+              <Word>current</Word>
+              <Word>current_date</Word>
+              <Word>current_path</Word>
+              <Word>current_role</Word>
+              <Word>current_time</Word>
+              <Word>current_timestamp</Word>
+              <Word>current_user</Word>
+              <Word>currval</Word>
+              <Word>cursor</Word>
+              <Word>cycle</Word>
+        </Keywords>
+
+	</RuleSet>
+</SyntaxDefinition>

@@ -20,6 +20,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {    
+        SyntaxLoader.RegisterSqlHighlighting();
+        
         var services = new ServiceCollection();
         var viewResolver = new ViewResolver(services);
 

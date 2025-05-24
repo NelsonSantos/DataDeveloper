@@ -22,7 +22,7 @@
         </StackPanel>
         <avaloniaEdit:TextEditor
             Grid.Row="1" Grid.Column="1"
-            FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+            FontFamily="{StaticResource MonospaceFont}"
             ShowLineNumbers="True"
             SyntaxHighlighting="SQL"
             HorizontalScrollBarVisibility="Auto"
