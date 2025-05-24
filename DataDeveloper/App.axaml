@@ -23,6 +23,7 @@
     <Application.Resources>
         <ResourceDictionary>
 
+            <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
             <FontFamily x:Key="FontAwesomeBrands">avares://DataDeveloper/Assets/Fonts/fa-brans-regular-400.ttf#Font Awesome 5 Brands Regular</FontFamily>    
             <FontFamily x:Key="FontAwesomeLight">avares://DataDeveloper/Assets/Fonts/fa-light-300.ttf#Font Awesome 5 Pro Light</FontFamily>
             <FontFamily x:Key="FontAwesomeRegular">avares://DataDeveloper/Assets/Fonts/fa-regular-400.ttf#Font Awesome 5 Pro Regular</FontFamily>
@@ -69,6 +70,8 @@
     <Application.Styles>
         <FluentTheme />
         <DockFluentTheme />
+        <StyleInclude Source="avares://DataDeveloper/Themes/SelectableTextBlock.axaml" />
+        <StyleInclude Source="avares://DataDeveloper/Themes/DataGridStyles.axaml" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />

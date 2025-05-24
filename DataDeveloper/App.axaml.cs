@@ -52,5 +52,6 @@ public partial class App : Application
         resolver.Register<ConnectionDetailsViewModel, ConnectionDetails>();
         resolver.Register<EditorDocumentViewModel, SqlEditorView>();
         resolver.Register<ResultViewModel, ResultView>();
+        resolver.Register<MessageViewModel, MessageView>();
     }
 }
