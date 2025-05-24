@@ -4,16 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.ResultView">
+             x:Class="DataDeveloper.Views.MessageView">
     <Design.DataContext>
-        <viewModels:ResultViewModel />
+        <viewModels:MessageViewModel />
     </Design.DataContext>
-   <DataGrid x:Name="DataGrid1" 
-             AutoGenerateColumns="False" 
-             RowHeaderWidth="200"
-             ItemsSource="{Binding Rows}"
-             FrozenColumnCount="1"
-             FontFamily="Consolas"
-             FontSize="12"
-             />
+    <SelectableTextBlock Margin="4" Text="{Binding Test}"/>
 </UserControl>

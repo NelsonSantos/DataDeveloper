@@ -8,6 +8,7 @@ using System.Reflection.Metadata;
 using System.Windows.Input;
 using Avalonia.Controls;
 using Dapper;
+using DataDeveloper.Services;
 using DataDeveloper.Views;
 using Dock.Model.Controls;
 using Microsoft.Data.SqlClient;

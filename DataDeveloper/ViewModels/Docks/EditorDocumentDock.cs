@@ -27,12 +27,21 @@ public class EditorDocumentDock : DocumentDock
             CanClose = false,
             CanFloat = false,
         };
+
+        var messageTool = new MessageViewModel()
+        {
+            Id = "messageDetails",
+            Title = "Messages",
+            CanClose = false,
+            CanFloat = false,
+        };
+
         var bottom = new ToolDock
         {
             Id = "Bottom",
             Title = "Bottom",
             ActiveDockable = outputTool,
-            VisibleDockables = factory.CreateList<IDockable>( outputTool ),
+            VisibleDockables = factory.CreateList<IDockable>( outputTool, messageTool ),
             Alignment = Alignment.Bottom,
             CanClose = false,
             CanFloat = false,

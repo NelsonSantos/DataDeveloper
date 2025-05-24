@@ -11,10 +11,13 @@ public class RowValues
     }
     
     public int RowNumber { get; }
-    public object Value{
+    public object? Value{
         get
         {
             _index++;
+            
+            if (_index >= _values.Length) return default(object);
+            
             return _values[_index];
         }
     }
