@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Dynamic;
 using DataDeveloper.Models;
+using Dock.Model.Core;
 using Dock.Model.ReactiveUI.Controls;
 using DynamicData;
 
@@ -12,13 +13,20 @@ public class ResultViewModel : Tool
 {
     private readonly EditorDocumentViewModel _document;
 
-    public ResultViewModel(EditorDocumentViewModel document)
+    public ResultViewModel(IFactory factory, EditorDocumentViewModel document)
     {
+        Factory = factory;
         _document = document;
-        _document.ColunmsClear += DocumentOnColunmsClear;
-        _document.ColunmsChanged += DocumentOnColunmsChanged;
+        _document.ColumnsClear += DocumentOnColunmsClear;
+        _document.ColumnsChanged += DocumentOnColunmsChanged;
         _document.RowClear += DocumentOnRowClear;
         _document.RowAdded += DocumentOnRowAdded;
+        _document.ShowResultTool += DocumentOnShowResultTool;
+    }
+
+    private void DocumentOnShowResultTool(object? sender, int e)
+    {
+        this.Factory?.SetActiveDockable(this);
     }
 
     public ObservableCollection<RowValues> Rows { get; } = new();

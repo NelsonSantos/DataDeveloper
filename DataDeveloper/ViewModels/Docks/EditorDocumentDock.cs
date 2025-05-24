@@ -20,7 +20,7 @@ public class EditorDocumentDock : DocumentDock
             Id = $"SqlEditor{_countDocument}",
             Title = $"Sql Statement {_countDocument}",
         };
-        var outputTool = new ResultViewModel(document)
+        var outputTool = new ResultViewModel(factory, document)
         {
             Id = "outputDetails",
             Title = "Results",
@@ -28,7 +28,7 @@ public class EditorDocumentDock : DocumentDock
             CanFloat = false,
         };
 
-        var messageTool = new MessageViewModel()
+        var messageTool = new MessageViewModel(factory, document)
         {
             Id = "messageDetails",
             Title = "Messages",

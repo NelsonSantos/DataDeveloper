@@ -35,7 +35,7 @@ public static class TextEditorHelper
         return newValue ?? string.Empty;
     }
 
-    private static void OnTextChanged(object? sender, EventArgs e)
+    private static void OnTextChanged(object? sender, System.EventArgs e)
     {
         if (sender is TextEditor editor)
         {

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
-using System.Dynamic;
 using System.Reactive;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using Dapper;
+using DataDeveloper.Events;
 using DataDeveloper.Models;
 using Dock.Model.ReactiveUI.Controls;
-using DynamicData;
 using Microsoft.Data.SqlClient;
 using ReactiveUI;
 
@@ -18,11 +18,14 @@ public class EditorDocumentViewModel : Document
     private string _queryText = "select top 100 * from Test1";
     private bool _textWasChanged = false;
     private SqlConnectionInfo _connection;
+    private bool _statementIsRunning;
 
     public event EventHandler RowClear; 
     public event EventHandler<RowValues> RowAdded; 
-    public event EventHandler ColunmsClear;
-    public event EventHandler<string[]> ColunmsChanged;
+    public event EventHandler ColumnsClear;
+    public event EventHandler<string[]> ColumnsChanged;
+    public event EventHandler<ShowMessageEventArgs> ShowMessage;
+    public event EventHandler<int> ShowResultTool; 
     public string QueryText
     {
         get => _queryText;
@@ -37,6 +40,12 @@ public class EditorDocumentViewModel : Document
     {
         get => _textWasChanged;
         set => this.RaiseAndSetIfChanged(ref _textWasChanged, value);
+    }
+
+    public bool StatementIsRunning
+    {
+        get => _statementIsRunning;
+        set => this.RaiseAndSetIfChanged(ref _statementIsRunning, value);
     }
 
     public override bool OnClose()
@@ -58,27 +67,52 @@ public class EditorDocumentViewModel : Document
             // User = "user_app",
         };
 
-        ExecuteCommand = ReactiveCommand.Create(ExecuteQuery);
+        ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
+        StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
     }
 
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
-    private void ExecuteQuery()
+    public ReactiveCommand<Unit, Unit> StopCommand { get; }
+
+    private async Task StopQuery()
     {
+        await Task.Delay(100);
         try
         {
-            using var conn = new SqlConnection(_connection.ConnectionString);
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            throw;
+        }
+        finally
+        {
+            this.StatementIsRunning = false;
+        }
+    }
+
+    private async Task ExecuteQuery()
+    {
+        this.StatementIsRunning = true;
+        await Task.Delay(100);
+
+        try
+        {
+            await using var conn = new SqlConnection(_connection.ConnectionString);
             conn.Open();
 
-            var data  = conn.ExecuteReader(QueryText, commandType: CommandType.Text);
+            var data = await conn.ExecuteReaderAsync(QueryText, commandType: CommandType.Text);
 
-            this.ColunmsClear?.Invoke(this, EventArgs.Empty);
+            this.ColumnsClear?.Invoke(this, EventArgs.Empty);
             var columns = new List<string>();
             for (int i = 0; i < data.FieldCount; i++)
             {
                 columns.Add(data.GetName(i));
             }
-            this.ColunmsChanged?.Invoke(this, columns.ToArray());
-            
+
+            this.ColumnsChanged?.Invoke(this, columns.ToArray());
+
             this.RowClear?.Invoke(this, EventArgs.Empty);
             var rowNumber = 0;
             while (data.Read())
@@ -88,10 +122,17 @@ public class EditorDocumentViewModel : Document
                 data.GetValues(values);
                 this.RowAdded?.Invoke(this, new RowValues(rowNumber, values));
             }
+
+            this.ShowResultTool?.Invoke(this, 0); ///here, for now, I'll send 0 (zero) for result tab 0
+            
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Erro ao executar query: " + ex.Message);
+            this.ShowMessage?.Invoke(this, new ShowMessageEventArgs(ex.Message, true));
+        }
+        finally
+        {
+            this.StatementIsRunning = false;
         }
     }
    

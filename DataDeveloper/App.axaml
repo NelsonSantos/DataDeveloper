@@ -4,6 +4,7 @@
              xmlns:viewmodels="clr-namespace:DataDeveloper.ViewModels"
              xmlns:views="clr-namespace:DataDeveloper.Views"
              xmlns:core="using:Dock.Model.Core"
+             xmlns:converters="clr-namespace:DataDeveloper.Converters"
              x:Class="DataDeveloper.App"
              RequestedThemeVariant="Dark"
              >
@@ -23,6 +24,8 @@
     <Application.Resources>
         <ResourceDictionary>
 
+            <converters:BoolToColorConverter x:Key="BoolToColor" />
+            
             <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
             <FontFamily x:Key="FontAwesomeBrands">avares://DataDeveloper/Assets/Fonts/fa-brans-regular-400.ttf#Font Awesome 5 Brands Regular</FontFamily>    
             <FontFamily x:Key="FontAwesomeLight">avares://DataDeveloper/Assets/Fonts/fa-light-300.ttf#Font Awesome 5 Pro Light</FontFamily>
