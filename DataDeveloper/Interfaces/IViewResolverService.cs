@@ -1,6 +1,6 @@
-namespace DataDeveloper.Services;
-
 using Avalonia.Controls;
+
+namespace DataDeveloper.Interfaces;
 
 public interface IViewResolverService
 {

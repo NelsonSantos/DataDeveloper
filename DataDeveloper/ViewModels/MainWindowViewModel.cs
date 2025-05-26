@@ -2,13 +2,12 @@ using Dock.Model.Core;
 using System;
 using System.Reactive;
 using Avalonia;
-using Avalonia.Controls;
+using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using Dock.Model.Controls;
 using ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
-using DataDeveloper.Services;
     
 namespace DataDeveloper.ViewModels;
 
@@ -35,21 +34,10 @@ public class MainWindowViewModel : ViewModelBase
         {
             factory.InitLayout(Layout);
         }
-        // Mostrar diálogo de conexão ao iniciar
-        // var dialog = new ConnectionDialogViewModel();
-        // dialog.OpenDialog();
-        //
-        // if (dialog.ConnectionInfo == null)
-        // {
-        //     Environment.Exit(0);
-        //     return;
-        // }
-    
-        //_connection = dialog.ConnectionInfo;
 
         this.NewWindowCommand = ReactiveCommand.Create(() =>
         {
-            var newWindow = new MainWindow();
+            var newWindow = new MainWindow(_serviceProvider);
             newWindow.Show();
         });
         this.NewConnection = ReactiveCommand.CreateFromTask<StyledElement>(async (control) =>

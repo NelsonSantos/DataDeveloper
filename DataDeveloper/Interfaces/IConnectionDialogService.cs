@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using DataDeveloper.Models;
 
-namespace DataDeveloper.Services;
+namespace DataDeveloper.Interfaces;
 
 public interface IConnectionDialogService
 {

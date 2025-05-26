@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using AvaloniaEdit.Highlighting;
+using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
@@ -42,7 +43,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            desktop.MainWindow = new MainWindow(ServiceProvider)
             {
                 DataContext = new MainWindowViewModel(ServiceProvider),
             };
@@ -53,8 +54,9 @@ public partial class App : Application
 
     private void RegisterServices(IServiceCollection services)
     {
-        services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
         services.AddSingleton<AppDataFileService>();
+        services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
+        services.AddSingleton<IWindowStateService, WindowStateService>();
     }
 
     private void RegisterViewViewModel(IViewResolverService resolver)
