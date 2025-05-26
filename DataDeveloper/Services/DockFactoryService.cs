@@ -15,11 +15,11 @@ using MsBox.Avalonia.Enums;
 
 namespace DataDeveloper.Services;
 
-public class DockFactory : Factory
+public class DockFactoryService : Factory
 {
     private int _countSqlEditors = 0;
 
-    public DockFactory()
+    public DockFactoryService()
     {
     }
 
@@ -100,7 +100,7 @@ public class DockFactory : Factory
     }
 
     
-    public async Task<bool> CanCloseDocument(IDockable? dockable)
+    private async Task<bool> CanCloseDocument(IDockable? dockable)
     {
         if (dockable == null)
             return false;
@@ -114,7 +114,7 @@ public class DockFactory : Factory
             bool isLast = count <= 1;
 
             // Exibe uma MessageBox de confirmação
-            var result = await Dispatcher.UIThread.InvokeAsync(async ()=> await ShowConfirmationAsync(isLast));
+            var result= await ShowConfirmationAsync(isLast);
 
             return result; // true para permitir fechar, false para cancelar
         }

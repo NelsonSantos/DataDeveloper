@@ -1,23 +1,21 @@
 using Dock.Model.Core;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data;
 using System.Reactive;
-using System.Reflection.Metadata;
-using System.Windows.Input;
+using Avalonia;
 using Avalonia.Controls;
-using Dapper;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using Dock.Model.Controls;
-using Microsoft.Data.SqlClient;
 using ReactiveUI;
-
+using Microsoft.Extensions.DependencyInjection;
+using DataDeveloper.Services;
+    
 namespace DataDeveloper.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IConnectionDialogService _connectionDialogService;
     private IRootDock? _layout;
     private readonly IFactory? factory; 
     public IRootDock? Layout
@@ -26,9 +24,12 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _layout, value);
     }
     
-    public MainWindowViewModel()
+    public MainWindowViewModel(IServiceProvider serviceProvider)
     {
-        factory = new DockFactory();
+        _serviceProvider = serviceProvider;
+        _connectionDialogService = _serviceProvider.GetService<IConnectionDialogService>();
+        
+        factory = new DockFactoryService();
         Layout = factory.CreateLayout();
         if (Layout is { } root)
         {
@@ -51,8 +52,15 @@ public class MainWindowViewModel : ViewModelBase
             var newWindow = new MainWindow();
             newWindow.Show();
         });
+        this.NewConnection = ReactiveCommand.CreateFromTask<StyledElement>(async (control) =>
+        {
+            var window = ServicesExtensionMethods.GetParentWindow(control);
+            var teste = await _connectionDialogService.ShowDialogAsync(window);
+            var a = 10;
+        });
     }
     
-    public ICommand NewWindowCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewWindowCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> NewConnection { get; }
 
 }

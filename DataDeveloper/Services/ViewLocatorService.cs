@@ -1,0 +1,26 @@
+using Avalonia.Controls;
+using Avalonia.Controls.Templates;
+using ReactiveUI;
+
+namespace DataDeveloper.Services;
+
+public class ViewLocatorService : IDataTemplate
+{
+    private readonly IViewResolverService _viewResolver;
+
+    public ViewLocatorService(IViewResolverService viewResolver)
+    {
+        _viewResolver = viewResolver;
+    }
+
+    public Control Build(object data)
+    {
+        return _viewResolver.Resolve(data);
+    }
+
+    public bool Match(object data)
+    {
+        var result = data is ReactiveObject;
+        return result;
+    }
+}

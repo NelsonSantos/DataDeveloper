@@ -1,17 +1,16 @@
 using Microsoft.Extensions.DependencyInjection;
-
-namespace DataDeveloper.Services;
-
 using Avalonia.Controls;
 using System;
 using System.Collections.Generic;
 
-public class ViewResolver : IViewResolver
+namespace DataDeveloper.Services;
+
+public class ViewResolverService : IViewResolverService
 {
     private readonly IServiceCollection _services;
     private readonly Dictionary<Type, Type> _map = new();
     private IServiceProvider _provider;
-    public ViewResolver(IServiceCollection services)
+    public ViewResolverService(IServiceCollection services)
     {
         _services = services;
     }
@@ -25,6 +24,7 @@ public class ViewResolver : IViewResolver
         var viewType = typeof(TView);
         _map[viewModelType] = viewType;
         _services.AddTransient(viewModelType);
+        _services.AddTransient(viewType);
     }
 
     public Control Resolve(object viewModel)
@@ -32,11 +32,11 @@ public class ViewResolver : IViewResolver
         var vmType = viewModel.GetType();
         if (_map.TryGetValue(vmType, out var viewType))
         {
-            var view = (Control)Activator.CreateInstance(viewType)!;
+            var view = (Control)_provider.GetService(viewType);
             view.DataContext = viewModel;
             return view;
         }
 
-        throw new InvalidOperationException($"There are no registered view for type {vmType.FullName}");
+        return null; //throw new InvalidOperationException($"There are no registered view for type {vmType.FullName}");
     }
 }

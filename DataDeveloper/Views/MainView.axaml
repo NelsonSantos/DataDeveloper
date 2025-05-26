@@ -8,16 +8,28 @@
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
-    <Grid RowDefinitions="Auto,*" Background="Transparent" DragDrop.AllowDrop="True">
+    <Grid RowDefinitions="Auto,*,Auto" Background="Transparent" DragDrop.AllowDrop="True">
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
                 <MenuItem Header="_New Window" Command="{Binding NewWindowCommand}"/>
-                <MenuItem Header="Test 2" />
-                <MenuItem Header="Test 3" />
                 <Separator />
-                <MenuItem Header="Test 1" />
+                <MenuItem Header="_Close this window" Command="{Binding NewConnection}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
             </MenuItem>
         </Menu>
         <DockControl x:Name="MainDockControl" Layout="{Binding Layout}"  Margin="4" Grid.Row="1" />
+        <Border Grid.Row="2" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
+            <Grid ColumnDefinitions="*,Auto,Auto" Margin="8,0">
+
+                <!-- Mensagem principal -->
+                <TextBlock Text="{Binding StatusMessage}" Foreground="White" VerticalAlignment="Center"/>
+
+                <!-- Status lateral -->
+                <TextBlock Grid.Column="1" Text="Modo: SQL" Foreground="#CCCCCC" Margin="10,0" VerticalAlignment="Center"/>
+
+                <!-- Conexão -->
+                <TextBlock Grid.Column="2" Text="Online" Foreground="LightGreen" VerticalAlignment="Center"/>
+    
+            </Grid>
+        </Border>
     </Grid>    
 </UserControl>

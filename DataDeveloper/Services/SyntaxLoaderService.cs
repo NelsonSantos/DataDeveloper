@@ -7,7 +7,7 @@ using AvaloniaEdit.Highlighting.Xshd;
 
 namespace DataDeveloper.Services;
 
-public static class SyntaxLoader
+public static class SyntaxLoaderService
 {
     public static void RegisterSqlHighlighting()
     {

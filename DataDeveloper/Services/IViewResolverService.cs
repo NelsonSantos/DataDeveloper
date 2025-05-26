@@ -2,7 +2,7 @@ namespace DataDeveloper.Services;
 
 using Avalonia.Controls;
 
-public interface IViewResolver
+public interface IViewResolverService
 {
     void Register<TViewModel, TView>()
         where TView : Control, new();

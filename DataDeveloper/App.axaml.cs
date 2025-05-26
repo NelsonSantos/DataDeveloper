@@ -20,10 +20,16 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {    
-        SyntaxLoader.RegisterSqlHighlighting();
+        SyntaxLoaderService.RegisterSqlHighlighting();
         
         var services = new ServiceCollection();
-        var viewResolver = new ViewResolver(services);
+        var viewResolver = new ViewResolverService(services);
+
+        services.AddSingleton<ViewResolverService>(provider => viewResolver);
+
+        var viewLocator = new ViewLocatorService(viewResolver);
+        
+        services.AddSingleton<ViewLocatorService>(provider => viewLocator);
 
         this.RegisterServices(services);
         this.RegisterViewViewModel(viewResolver);
@@ -32,13 +38,13 @@ public partial class App : Application
         
         viewResolver.SetServiceProvider(ServiceProvider);
         
-        this.DataTemplates.Add(new ViewLocator(viewResolver));
+        this.DataTemplates.Add(new ViewLocatorService(viewResolver));
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainWindowViewModel(),
+                DataContext = new MainWindowViewModel(ServiceProvider),
             };
         }
 
@@ -47,13 +53,16 @@ public partial class App : Application
 
     private void RegisterServices(IServiceCollection services)
     {
+        services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
+        services.AddSingleton<AppDataFileService>();
     }
 
-    private void RegisterViewViewModel(IViewResolver resolver)
+    private void RegisterViewViewModel(IViewResolverService resolver)
     {
         resolver.Register<ConnectionDetailsViewModel, ConnectionDetails>();
         resolver.Register<EditorDocumentViewModel, SqlEditorView>();
         resolver.Register<ResultViewModel, ResultView>();
         resolver.Register<MessageViewModel, MessageView>();
+        resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
     }
 }
