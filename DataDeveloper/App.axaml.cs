@@ -3,6 +3,9 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using AvaloniaEdit.Highlighting;
+using DataDeveloper.Core;
+using DataDeveloper.Data;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
@@ -13,7 +16,7 @@ namespace DataDeveloper;
 
 public partial class App : Application
 {
-    public static IServiceProvider ServiceProvider { get; private set; } = null!;
+    public IServiceProvider ServiceProvider { get; private set; } = null!;
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -36,6 +39,7 @@ public partial class App : Application
         this.RegisterViewViewModel(viewResolver);
         
         ServiceProvider = services.BuildServiceProvider();
+        DatabaseExtensionsMethods.SetServiceProvider(ServiceProvider);
         
         viewResolver.SetServiceProvider(ServiceProvider);
         
@@ -43,10 +47,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(ServiceProvider)
-            {
-                DataContext = new MainWindowViewModel(ServiceProvider),
-            };
+            desktop.MainWindow = new MainWindow(ServiceProvider);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -57,6 +58,7 @@ public partial class App : Application
         services.AddSingleton<AppDataFileService>();
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
+        services.AddSingleton<DatabaseProviderFactoryService>();
     }
 
     private void RegisterViewViewModel(IViewResolverService resolver)

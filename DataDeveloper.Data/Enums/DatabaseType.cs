@@ -1,4 +1,4 @@
-namespace DataDeveloper.Enums;
+namespace DataDeveloper.Data.Enums;
 
 public enum DatabaseType
 {

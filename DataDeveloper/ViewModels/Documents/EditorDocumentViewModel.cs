@@ -5,6 +5,8 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Dapper;
+using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Events;
 using DataDeveloper.Models;
 using Dock.Model.ReactiveUI.Controls;
@@ -15,9 +17,9 @@ namespace DataDeveloper.ViewModels;
 
 public class EditorDocumentViewModel : Document
 {
-    private string _queryText = "select top 100 * from Test1";
-    private bool _textWasChanged = false;
-    private SqlConnectionInfo _connection;
+    private readonly IConnectionSettings _connectionSettings;
+    private string _queryText;
+    private bool _textWasChanged = false; 
     private bool _statementIsRunning;
 
     public event EventHandler RowClear; 
@@ -31,7 +33,8 @@ public class EditorDocumentViewModel : Document
         get => _queryText;
         set
         {
-            TextWasChanged = _queryText != value;
+            if (_queryText != null)
+                TextWasChanged = _queryText != value;
             this.RaiseAndSetIfChanged(ref _queryText, value);
         }
     }
@@ -53,19 +56,9 @@ public class EditorDocumentViewModel : Document
         return !TextWasChanged;
     }
 
-    public EditorDocumentViewModel()
+    public EditorDocumentViewModel(IConnectionSettings connectionSettings)
     {
-        _connection = new SqlConnectionInfo()
-        {
-            Database = "test-data-developer",
-            Password = "Nass5544@",
-            Server = "192.168.68.132",
-            User = "sa",
-            // Database = "NXGenMarketplace_Payment_Development",
-            // Password = "123mudar",
-            // Server = "192.168.239.48",
-            // User = "user_app",
-        };
+        _connectionSettings = connectionSettings;
 
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
@@ -99,7 +92,12 @@ public class EditorDocumentViewModel : Document
 
         try
         {
-            await using var conn = new SqlConnection(_connection.ConnectionString);
+            // TODO trocar isso por um component
+            var connectionSettingsSql = _connectionSettings as SqlServerConnectionSettings;
+                
+            var connectionString = $"Server={connectionSettingsSql.Server};Database={connectionSettingsSql.Database};User Id={connectionSettingsSql.User};Password={connectionSettingsSql.Password};TrustServerCertificate=True;";
+            
+            await using var conn = new SqlConnection(/*_connection.ConnectionString*/connectionString);
             conn.Open();
 
             var data = await conn.ExecuteReaderAsync(QueryText, commandType: CommandType.Text);

@@ -15,8 +15,9 @@ public class RowValues
         get
         {
             _index++;
-            
-            if (_index >= _values.Length) return default(object);
+
+            if (_index >= _values.Length)
+                _index = 0;
             
             return _values[_index];
         }

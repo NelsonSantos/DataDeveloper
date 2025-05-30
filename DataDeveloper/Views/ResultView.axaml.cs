@@ -14,6 +14,12 @@ public partial class ResultView : UserControl
     public ResultView()
     {
         InitializeComponent();
+        DataGrid1.CopyingRowClipboardContent += DataGrid1OnCopyingRowClipboardContent;
+    }
+
+    private void DataGrid1OnCopyingRowClipboardContent(object? sender, DataGridRowClipboardEventArgs e)
+    {
+        e.ClipboardRowContent.RemoveAll(cell => cell.Column.DisplayIndex == 0);
     }
 
     protected override void OnDataContextChanged(EventArgs e)

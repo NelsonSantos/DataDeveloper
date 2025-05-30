@@ -16,7 +16,7 @@
         <!-- Footer bar with action buttons -->
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,0,0">
             <Button Content="Apply" Command="{Binding ApplyCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" IsEnabled="{Binding IsEditing}" />
-            <Button Content="OK" Command="{Binding OkCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" IsEnabled="{Binding SelectedConnection}" />
+            <Button Content="Connect" Command="{Binding OkCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" IsEnabled="{Binding SelectedConnection}" />
             <Button Content="Cancel" Command="{Binding CancelCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
         </StackPanel>
 
@@ -105,6 +105,7 @@
                 <Button  
                     Content="Test Connection" 
                     Command="{Binding TestCommand}" 
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
                     IsEnabled="{Binding SelectedConnection}"
                     HorizontalAlignment="Right"
                     Margin="0,10, 0, 0"/>

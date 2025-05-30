@@ -1,3 +1,4 @@
+using DataDeveloper.Data.Interfaces;
 using Dock.Model.Core;
 using Dock.Model.ReactiveUI.Controls;
 using ReactiveUI;
@@ -6,19 +7,22 @@ namespace DataDeveloper.ViewModels.Docks;
 
 public class EditorDocumentDock : DocumentDock
 {
+    private IConnectionSettings _connectionSettings;
     private static int _countDocument = -1;
-    public EditorDocumentDock()
+    public EditorDocumentDock(IConnectionSettings connectionSettings)
     {
+        _connectionSettings = connectionSettings;
         CreateDocument = ReactiveCommand.Create(CreateNewDocument);
     }
 
-    public static ProportionalDock GetNewEditorDocument(IFactory factory)
+    public ProportionalDock GetNewEditorDocument(IFactory factory/*, IConnectionSettings connectionSettings*/)
     {
         _countDocument++;
-        var document = new EditorDocumentViewModel
+        var document = new EditorDocumentViewModel(_connectionSettings)
         {
             Id = $"SqlEditor{_countDocument}",
             Title = $"Sql Statement {_countDocument}",
+            Proportion = 0.5
         };
         var outputTool = new ResultViewModel(factory, document)
         {
@@ -26,6 +30,7 @@ public class EditorDocumentDock : DocumentDock
             Title = "Results",
             CanClose = false,
             CanFloat = false,
+            Proportion = 0.5
         };
 
         var messageTool = new MessageViewModel(factory, document)
@@ -34,6 +39,7 @@ public class EditorDocumentDock : DocumentDock
             Title = "Messages",
             CanClose = false,
             CanFloat = false,
+            Proportion = 0.5
         };
 
         var bottom = new ToolDock
@@ -45,7 +51,7 @@ public class EditorDocumentDock : DocumentDock
             Alignment = Alignment.Bottom,
             CanClose = false,
             CanFloat = false,
-            Proportion = 0.35, 
+            Proportion = 0.5, 
         };
         var entireDocument = new EditorProportionalDock(document)
         {
@@ -53,6 +59,7 @@ public class EditorDocumentDock : DocumentDock
             Id = document.Id,
             Title = document.Title,
             VisibleDockables = factory.CreateList<IDockable>(document, new ProportionalDockSplitter(), bottom),
+            Proportion = 0.75,
         };
 
         return entireDocument;
@@ -61,24 +68,9 @@ public class EditorDocumentDock : DocumentDock
     
     private void CreateNewDocument()
     {
-        var document = GetNewEditorDocument(Factory);
+        var document = GetNewEditorDocument(Factory/*, _connectionSettings*/);
         Factory?.AddDockable(this, document);
         Factory?.SetActiveDockable(document);
         Factory?.SetFocusedDockable(this, document);    
     }    
-}
-
-public class EditorProportionalDock : ProportionalDock
-{
-    private readonly EditorDocumentViewModel _viewModel;
-
-    public EditorProportionalDock(EditorDocumentViewModel viewModel)
-    {
-        _viewModel = viewModel;
-    }
-
-    public override bool OnClose()
-    {
-        return _viewModel.OnClose();
-    }
 }

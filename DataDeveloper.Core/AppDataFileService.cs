@@ -1,21 +1,17 @@
 // Cross-platform file service to manage folders and files in a writable app-specific directory
-using System;
-using System.IO;
-using System.Text.Json;
 
-namespace DataDeveloper.Services;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using DynamicData;
+
+namespace DataDeveloper.Core;
 
 public class AppDataFileService
 {
     private const string AppFolderName = "DataDeveloper";
-    private readonly string _appDataDirectory;
+    public static string AppDataDirectory { get; }= InitializeAppDataDirectory();
 
-    public AppDataFileService()
-    {
-        _appDataDirectory = InitializeAppDataDirectory();
-    }
-
-    private string InitializeAppDataDirectory()
+    private static string InitializeAppDataDirectory()
     {
         string basePath;
 
@@ -39,8 +35,6 @@ public class AppDataFileService
         return appPath;
     }
 
-    public string AppDataDirectory => _appDataDirectory;
-
     public void AppendLog(string fileName, string message, string? subfolder = null)
     {
         var dir = EnsureSubfolder(subfolder);
@@ -62,24 +56,37 @@ public class AppDataFileService
         return File.Exists(fullPath) ? File.ReadAllText(fullPath) : null;
     }
 
-    public void SaveJson<T>(string fileName, T data, string? subfolder = null)
+    public void SaveJson<T>(string fileName, T data, string? subfolder = null, params JsonConverter[] converters)
     {
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(data, GetJsonSerializerOptions(converters));
         WriteFile(fileName, json, subfolder);
     }
 
-    public T? LoadJson<T>(string fileName, string? subfolder = null)
+    public T? LoadJson<T>(string fileName, string? subfolder = null, params JsonConverter[] converters)
     {
         var content = ReadFile(fileName, subfolder);
-        return content is not null ? JsonSerializer.Deserialize<T>(content) : default;
+        return content is not null ? JsonSerializer.Deserialize<T>(content, GetJsonSerializerOptions(converters)) : default;
+    }
+
+    private JsonSerializerOptions GetJsonSerializerOptions(params JsonConverter[] converters)
+    {
+        var options = new JsonSerializerOptions()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() },
+            WriteIndented = true,
+        };
+        options.Converters.AddRange(converters);
+        return options;
     }
 
     private string EnsureSubfolder(string? subfolder)
     {
         if (string.IsNullOrWhiteSpace(subfolder))
-            return _appDataDirectory;
+            return AppDataDirectory;
 
-        var fullPath = Path.Combine(_appDataDirectory, subfolder);
+        var fullPath = Path.Combine(AppDataDirectory, subfolder);
         Directory.CreateDirectory(fullPath);
         return fullPath;
     }

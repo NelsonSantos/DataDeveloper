@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DataDeveloper.Models;
+using DataDeveloper.Data.Interfaces;
 
 namespace DataDeveloper.Interfaces;
 
 public interface IConnectionDialogService
 {
-    Task<ConnectionModel?> ShowDialogAsync(Window parentWindow);
+    Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow);
 }

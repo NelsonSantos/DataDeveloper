@@ -1,6 +1,6 @@
 using ReactiveUI;
 
-namespace DataDeveloper.ViewModels;
+namespace DataDeveloper.Core;
 
 public class ViewModelBase : ReactiveObject
 {

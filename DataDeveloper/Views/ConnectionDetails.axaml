@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.ConnectionDetails"
              >
@@ -12,15 +13,31 @@
         </Style>
     </UserControl.Styles>
     <Design.DataContext>
-        <vm:MainWindowViewModel />
+        <vm:ConnectionDetailsViewModel />
     </Design.DataContext>
     <TreeView
         HorizontalAlignment="Stretch"
-        ItemsSource="{Binding TableNames}">
-        <TreeView.ItemTemplate>
-            <TreeDataTemplate>
-                <TextBlock Classes="FontStyle" Text="{Binding TableName}" />
+        ItemsSource="{Binding RootConnections}"
+        >
+        <TreeView.DataTemplates>
+            <TreeDataTemplate
+                DataType="{x:Type models:SchemaNode}"
+                ItemsSource="{Binding Children}"
+                >
+                <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="5">
+                    <TextBlock Grid.Column="0" FontFamily="{StaticResource FontAwesomeRegular}" Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" />
+                    <Button 
+                        Grid.Column="2" 
+                        Background="Transparent" 
+                        IsVisible="{Binding CanLoad}"
+                        Command="{Binding DataContext.LoadItemsCommand, RelativeSource={RelativeSource AncestorType=TreeView}}"
+                        CommandParameter="{Binding .}"
+                        >
+                        <TextBlock  FontFamily="{StaticResource FontAwesomeRegular}" FontSize="9" Text="&#xf2f1;" VerticalAlignment="Center" />
+                    </Button>
+                </Grid>
             </TreeDataTemplate>
-        </TreeView.ItemTemplate>
+        </TreeView.DataTemplates>
     </TreeView>
 </UserControl>

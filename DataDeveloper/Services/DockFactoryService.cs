@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
+using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
-using DataDeveloper.ViewModels;
+using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Interfaces;
 using DataDeveloper.ViewModels.Docks;
 using Dock.Model.Controls;
 using Dock.Model.Core;
@@ -12,84 +14,60 @@ using Dock.Model.ReactiveUI;
 using Dock.Model.ReactiveUI.Controls;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
+using ReactiveUI;
 
 namespace DataDeveloper.Services;
 
-public class DockFactoryService : Factory
+public class DockFactoryService : Factory, IAuxFactory
 {
     private int _countSqlEditors = 0;
-
+    private RootDock _homeView;
+    private ConnectionDocumentDock _connectionDocumentDock;
+    
     public DockFactoryService()
     {
+        AddNewConnectionCommand = ReactiveCommand.CreateFromTask<IConnectionSettings>(AddConnection);
     }
 
-    public override IDocumentDock CreateDocumentDock()
+    private async Task AddConnection(IConnectionSettings connectionSettings)
     {
-        return new EditorDocumentDock();
+        await Task.Delay(100);
+        
+        if (_connectionDocumentDock == null)
+            _connectionDocumentDock = new ConnectionDocumentDock(this, connectionSettings);
+
+        _homeView.ActiveDockable = _connectionDocumentDock;
+
+        if (_homeView.VisibleDockables == null)
+        {
+            _homeView.VisibleDockables = CreateList<IDockable>(_connectionDocumentDock);
+        }
+        else
+        {
+            _connectionDocumentDock.AddNewConnection(connectionSettings);
+        }
     }
 
+    public ReactiveCommand<IConnectionSettings, Unit> AddNewConnectionCommand { get; }
+    private Task _initializationTask;
     public override IRootDock CreateLayout()
     {
-
-        var treeTool = new ConnectionDetailsViewModel
-        {
-            Id = "connectionDetails",
-            Title = "Tables",
-            CanClose = false,
-            CanFloat = false,
-        };
-
-        var left = new ProportionalDock()
-        {
-            Proportion = 0.25,
-            Orientation = Orientation.Vertical,
-            Id = "Left",
-            Title = "Left",
-            ActiveDockable = null,
-            VisibleDockables = CreateList<IDockable>
-            ( 
-                new ToolDock
-                {
-                    ActiveDockable = treeTool,
-                    VisibleDockables = CreateList<IDockable>(treeTool),
-                    Alignment = Alignment.Left
-                }
-            ),
-        };
-        
-        var entireDocument = EditorDocumentDock.GetNewEditorDocument(this);
-        var documentDock = new EditorDocumentDock()
-        {
-            IsCollapsable = false,
-            Id = "Documents",
-            Title = "Documentos",
-            ActiveDockable = entireDocument,
-            VisibleDockables = CreateList<IDockable>(entireDocument),
-            CanCreateDocument = true,
-        };
-
         this.DockableWillBeClosed += OnDockableWillBeClosed;
-        
-        var mainLayout = new ProportionalDock
-        {
-            Orientation = Orientation.Horizontal,
-            VisibleDockables = CreateList<IDockable>( left, new ProportionalDockSplitter(), documentDock ),
-        };
 
-        var homeView = new RootDock
+        _homeView = new RootDock
         {
             Id = "Home",
             Title = "Home",
-            ActiveDockable = mainLayout,
-            VisibleDockables = CreateList<IDockable>(mainLayout)
+            IsCollapsable = false,
+            CanFloat = false
         };
-
-        var rootDock = CreateRootDock();
         
+        var rootDock = CreateRootDock();
+
         rootDock.IsCollapsable = false;
-        rootDock.ActiveDockable = homeView;
-        rootDock.DefaultDockable = homeView;
-        rootDock.VisibleDockables = CreateList<IDockable>(homeView);
+        rootDock.ActiveDockable = _homeView;
+        rootDock.DefaultDockable = _homeView;
+        rootDock.VisibleDockables = CreateList<IDockable>(_homeView);
 
         return rootDock;
     }
@@ -98,7 +76,6 @@ public class DockFactoryService : Factory
     {
         return await CanCloseDocument(e.Dockable).ConfigureAwait(true);
     }
-
     
     private async Task<bool> CanCloseDocument(IDockable? dockable)
     {
@@ -145,5 +122,4 @@ public class DockFactoryService : Factory
             : null;
         return window;
     }
-    
 }

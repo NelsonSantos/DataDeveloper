@@ -1,14 +1,20 @@
 using Dock.Model.Core;
 using System;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Input;
+using DataDeveloper.Core;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using Dock.Model.Controls;
 using ReactiveUI;
 using Microsoft.Extensions.DependencyInjection;
-    
+using ReactiveUI.Fody.Helpers;
+
 namespace DataDeveloper.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
@@ -16,13 +22,8 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IServiceProvider _serviceProvider;
     private readonly IConnectionDialogService _connectionDialogService;
     private IRootDock? _layout;
-    private readonly IFactory? factory; 
-    public IRootDock? Layout
-    {
-        get => _layout;
-        set => this.RaiseAndSetIfChanged(ref _layout, value);
-    }
-    
+    private readonly IAuxFactory? factory; 
+
     public MainWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -42,10 +43,28 @@ public class MainWindowViewModel : ViewModelBase
         });
         this.NewConnection = ReactiveCommand.CreateFromTask<StyledElement>(async (control) =>
         {
-            var window = ServicesExtensionMethods.GetParentWindow(control);
-            var teste = await _connectionDialogService.ShowDialogAsync(window);
-            var a = 10;
+            try
+            {
+                await Task.Delay(100);
+                var window = ServicesExtensionMethods.GetParentWindow(control);
+                var connectionSettings = await _connectionDialogService.ShowDialogAsync(window);
+
+                if (connectionSettings is not null)
+                {
+                    await factory.AddNewConnectionCommand.Execute(connectionSettings);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         });
+    }
+    
+    public IRootDock? Layout
+    {
+        get => _layout;
+        set => this.RaiseAndSetIfChanged(ref _layout, value);
     }
     
     public ReactiveCommand<Unit, Unit> NewWindowCommand { get; }

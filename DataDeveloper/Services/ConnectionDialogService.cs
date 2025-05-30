@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Interfaces;
-using DataDeveloper.Models;
 using DataDeveloper.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,13 +19,13 @@ public class ConnectionDialogService : IConnectionDialogService
         _viewLocator = viewLocator;
     }
 
-    public async Task<ConnectionModel?> ShowDialogAsync(Window parentWindow)
+    public async Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow)
     {
         var model = _serviceProvider.GetService<ConnectionSelectorViewModel>();
         var dialog = _viewLocator.Build(model) as Window;
 
         // Show the dialog modally
-        var result = await dialog.ShowDialog<ConnectionModel>(parentWindow);
+        var result = await dialog.ShowDialog<IConnectionSettings>(parentWindow);
 
         return result;
     }

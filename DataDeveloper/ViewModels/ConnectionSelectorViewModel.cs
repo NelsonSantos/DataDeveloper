@@ -7,8 +7,12 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
-using DataDeveloper.Models;
+using DataDeveloper.Core;
+using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Data.JsonConverters;
+using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.SqlServer;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Services;
 using DynamicData;
 using MsBox.Avalonia;
@@ -19,17 +23,19 @@ namespace DataDeveloper.ViewModels;
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private readonly AppDataFileService _fileService;
+    private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private const string ConnectionsFolder = "connections";
     private const string FilePath = "connections.json";
 
-    public ConnectionSelectorViewModel(AppDataFileService fileService)
+    public ConnectionSelectorViewModel(AppDataFileService fileService, DatabaseProviderFactoryService databaseProviderFactoryService)
     {
         _fileService = fileService;
+        _databaseProviderFactoryService = databaseProviderFactoryService;
         LoadConnections();
         
         AddCommand = ReactiveCommand.Create(() =>
         {
-            var newConn = new ConnectionModel
+            var newConn = new SqlServerConnectionSettings
             {
                 Id = Guid.NewGuid(),
                 Name = "New Connection name",
@@ -47,7 +53,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.WhenAnyValue(x => x.IsEditing)
         );
 
-        EditCommand = ReactiveCommand.Create<ConnectionModel>(
+        EditCommand = ReactiveCommand.Create<ConnectionSettings>(
             (connectionModel) =>
             {
                 IsEditing = true; 
@@ -57,8 +63,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         DeleteCommand = ReactiveCommand.CreateFromTask<StyledElement>(DeleteAsync);
         
-        TestCommand = ReactiveCommand.Create(
-            () => { /* Test connection logic */ },
+        TestCommand = ReactiveCommand.CreateFromTask<StyledElement>(TestConnection,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
 
@@ -69,23 +74,32 @@ public class ConnectionSelectorViewModel : ViewModelBase
         CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);      
     }
 
+    private async Task TestConnection(StyledElement element)
+    {
+        var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
+        var result = databaseProvider.TestConnection();
+        await this.ShowDialogAsync(
+            element
+            , "Connection..."
+            , result.Success ? result.ResultMessage : $"Could not connect to database\r\n\r\n{result.ResultMessage}"
+            , ButtonEnum.Ok
+            , result.Success ? Icon.Success : Icon.Error);
+    }
+
     private void CancelAsync(StyledElement element)
     {
         var window = element.GetParentWindow();
         window?.Close();
     }
 
-    private async Task DeleteAsync(StyledElement control)
+    private async Task DeleteAsync(StyledElement element)
     {
-        var connectionModel = control.DataContext as ConnectionModel;
+        var connectionModel = element.DataContext as ConnectionSettings;
         
         IsEditing = true; 
         SelectedConnection = connectionModel;
-        var window = control.GetParentWindow();   
-        var box = MessageBoxManager
-            .GetMessageBoxStandard("Connection...", "Are you sure to delete this connection?", ButtonEnum.YesNo, Icon.Question);
 
-        var result = await box.ShowAsPopupAsync(window);
+        var result = await this.ShowDialogAsync(element, "Connection...", "Are you sure to delete this connection?", ButtonEnum.YesNo, Icon.Question);
 
         if (result == ButtonResult.Yes)
         {
@@ -94,10 +108,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
         }
     }
 
-    public ObservableCollection<ConnectionModel> Connections { get; private set; } = new();
+    public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
 
-    private ConnectionModel? _selectedConnection;
-    public ConnectionModel? SelectedConnection
+    private ConnectionSettings? _selectedConnection;
+    public ConnectionSettings? SelectedConnection
     {
         get => _selectedConnection;
         set => this.RaiseAndSetIfChanged(ref _selectedConnection, value);
@@ -113,9 +127,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     public ReactiveCommand<StyledElement, Unit> OkCommand { get; }
     public ReactiveCommand<Unit, Unit> AddCommand { get; }
-    public ReactiveCommand<ConnectionModel, Unit> EditCommand { get; }
+    public ReactiveCommand<ConnectionSettings, Unit> EditCommand { get; }
     public ReactiveCommand<StyledElement, Unit> ApplyCommand { get; }
-    public ReactiveCommand<Unit, Unit> TestCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> TestCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
     public ReactiveCommand<StyledElement, Unit> DeleteCommand { get; }
     private async Task OkAsync(StyledElement element)
@@ -125,25 +139,29 @@ public class ConnectionSelectorViewModel : ViewModelBase
         window?.Close(SelectedConnection);
     }
 
-    private async Task ApplyAsync(StyledElement control)
+    private async Task ApplyAsync(StyledElement element)
     {
         if (SelectedConnection == null)
         {
-            var window = control.GetParentWindow();            
-            var box = MessageBoxManager
-                .GetMessageBoxStandard("Connection...", "There is no connection selected to save!", ButtonEnum.Ok, Icon.Info);
-
-            await box.ShowAsPopupAsync(window);
-
+            await this.ShowDialogAsync(element, "Connection...", "There is no connection selected to save!", ButtonEnum.Ok, Icon.Info);
             return;
         }
 
         SaveConnection(SelectedConnection.Id);
     }
 
+    private async Task<ButtonResult> ShowDialogAsync(StyledElement element, string title, string messagge, ButtonEnum button, Icon icon)
+    {
+        var window = element.GetParentWindow();            
+        var box = MessageBoxManager
+            .GetMessageBoxStandard(title, messagge, button, icon);
+
+        return await box.ShowAsPopupAsync(window);
+    }
+
     private void SaveConnection(Guid connectionId)
     {
-        _fileService.SaveJson(FilePath, Connections, ConnectionsFolder);
+        _fileService.SaveJson(FilePath, Connections, ConnectionsFolder, new ConnectionSettingsConverter());
         
         IsEditing = false;
         LoadConnections();
@@ -153,7 +171,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     private void LoadConnections()
     {
-        var sortedList  = _fileService.LoadJson<List<ConnectionModel>>(FilePath, ConnectionsFolder);
+        var sortedList  = _fileService.LoadJson<List<ConnectionSettings>>(FilePath, ConnectionsFolder, new ConnectionSettingsConverter());
         Connections.Clear();
         if (sortedList is not null)
             Connections.AddRange(sortedList.OrderBy(s => s.Name));
