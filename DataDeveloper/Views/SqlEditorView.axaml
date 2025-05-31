@@ -24,7 +24,7 @@
             </Button>
         </StackPanel>
         <avaloniaEdit:TextEditor
-            Grid.Row="1" Grid.Column="1"
+            
             FontFamily="{StaticResource MonospaceFont}"
             ShowLineNumbers="True"
             SyntaxHighlighting="SQL"
@@ -33,5 +33,7 @@
             Background="#202424"
             helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
         />
+        <!-- <Grid Grid.Row="1"> -->
+        <!-- </Grid> -->
     </Grid>
 </UserControl>

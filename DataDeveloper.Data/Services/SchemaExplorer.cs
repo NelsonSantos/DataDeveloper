@@ -54,7 +54,37 @@ public class SchemaExplorer : ISchemaExplorer
         table.Children.Clear();
         foreach (var column in columns)
         {
-            table.Children.Add(new SchemaNode(NodeType.Column, column.Name, isFolder: false, parent: table));
+            var columnDetails = $"{(column.IsPrimaryKey ? "PK-" : "")}{column.DataType}";
+            
+            switch (column.DataType.ToLower())
+            {
+                case "varchar":
+                case "nvarchar":
+                case "char":
+                    columnDetails += $" ({(column.Length == -1 ? "max" : column.Length)})";
+                    break;
+                
+                case "int":
+                case "bigint":
+                case "numeric":
+                case "real":
+                case "smallint":
+                case "tinyint":
+                case "bit":
+                    break;
+
+                default:
+                    if (column.DataType.Contains("date") || column.DataType.Contains("time"))
+                        break;
+
+                    if (column.Precision != 0)
+                        columnDetails += $"({column.Precision}{(column.Scale != 0 ? $", {column.Scale}" : "")})";
+                    break;
+            }
+
+            columnDetails+= $" {(column.IsNullable ? " - null" : " - not null")}";
+
+            table.Children.Add(new SchemaNode(NodeType.Column, column.Name, isFolder: false, parent: table, details: columnDetails, tag: column));
         }
 
         table.CanLoad = false;

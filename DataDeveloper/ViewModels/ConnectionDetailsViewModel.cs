@@ -1,15 +1,15 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.LogicalTree;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
-using DataDeveloper.Data.Services;
 using Dock.Model.ReactiveUI.Controls;
 using DynamicData;
-using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace DataDeveloper.ViewModels;
@@ -17,37 +17,44 @@ namespace DataDeveloper.ViewModels;
 public class ConnectionDetailsViewModel : Tool
 {
     private readonly IConnectionSettings _connectionSettings;
-    private ISchemaExplorer _schemaExplorer;
+    public ISchemaExplorer SchemaExplorer { get; }
     
     public ConnectionDetailsViewModel(IConnectionSettings connectionSettings)
     {
         _connectionSettings = connectionSettings;
-        _schemaExplorer = _connectionSettings.GetSchemaExplorer();
+        SchemaExplorer = _connectionSettings.GetSchemaExplorer();
         this.Initialization = LoadConnection();
-        LoadItemsCommand = ReactiveCommand.CreateFromTask<SchemaNode>(LoadItems);
+        LoadItemsCommand = ReactiveCommand.CreateFromTask<StyledElement>(LoadItems);
     }
 
-    private async Task LoadItems(SchemaNode node)
+    private async Task LoadItems(StyledElement element)
     {
-        if (node == null) return;
+        var treeViewItem = element.FindLogicalAncestorOfType<TreeViewItem>();
+        
+        if (treeViewItem == null) return;
 
+        var node = treeViewItem.DataContext as SchemaNode;
+        
+        if (node == null) return;
+        
         switch (node.NodeType)
         {
             case NodeType.Columns:
-                await _schemaExplorer.LoadTableColumnsAsync(node);
+                await SchemaExplorer.LoadTableColumnsAsync(node);
                 break;
         }
+        treeViewItem.IsExpanded = true;
     }
 
-    public ReactiveCommand<SchemaNode, Unit> LoadItemsCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> LoadItemsCommand { get; }
     public Task Initialization { get; private set; }
     public ObservableCollection<SchemaNode> RootConnections { get; } = new();
     private async Task LoadConnection()
     {
-        await _schemaExplorer.InitializeSchemaNode();
+        await SchemaExplorer.InitializeSchemaNode();
         
         RootConnections.Clear();
-        RootConnections.Add(_schemaExplorer.RootConnections);
+        RootConnections.Add(SchemaExplorer.RootConnections);
     }
 }
 
