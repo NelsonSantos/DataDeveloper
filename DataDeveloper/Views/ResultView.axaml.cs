@@ -10,7 +10,7 @@ namespace DataDeveloper.Views;
 
 public partial class ResultView : UserControl
 {
-    private ResultViewModel _model = null;
+    private TabResultDataGrid _model = null;
     public ResultView()
     {
         InitializeComponent();
@@ -24,8 +24,12 @@ public partial class ResultView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _model = this.DataContext as ResultViewModel;
-        _model.Headers.CollectionChanged += HeadersOnCollectionChanged;
+        _model = this.DataContext as TabResultDataGrid;
+        if (_model != null)
+        {
+            _model.Headers.CollectionChanged -= HeadersOnCollectionChanged;
+            _model.Headers.CollectionChanged += HeadersOnCollectionChanged;
+        }
         base.OnDataContextChanged(e);
     }
 

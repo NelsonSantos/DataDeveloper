@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:helpers="clr-namespace:DataDeveloper.Helpers"
+             xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:models="clr-namespace:DataDeveloper.Models"
+             xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DataDeveloper.Views.QueryEditorView"
+             >
+    <Design.DataContext>
+        <viewModels:EditorDocumentViewModel />
+    </Design.DataContext>
+    <UserControl.Resources>
+        <templateSelectors:TabContentTemplateSelector x:Key="TabContentTemplate" />
+    </UserControl.Resources>
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding ExecuteCommand}" ></KeyBinding>
+    </UserControl.KeyBindings>
+    <Grid x:Name="RootGrid" Background="#3C3F41">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" MinHeight="{Binding EditorHeadHeight}" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="1*" MinHeight="{Binding ResultsHeaderHeight, Mode=OneWay}" />
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="StackPanelEditor" Grid.Row="0" Margin="4" Background="#3C3F41" Orientation="Horizontal">
+            <Button Background="Transparent" Command="{Binding ExecuteCommand}" IsEnabled="{Binding !StatementIsRunning}" ToolTip.Tip="F5 - Run the statement" >
+                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04b;" Foreground="{Binding !StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
+            </Button>
+            <Button Background="Transparent" Command="{Binding StopCommand}" IsEnabled="{Binding StatementIsRunning}" ToolTip.Tip="Ctrl+F5 - Stop the execution of the statement">
+                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04d;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
+            </Button>
+        </StackPanel>
+        <avaloniaEdit:TextEditor Grid.Row="1"
+            FontFamily="{StaticResource MonospaceFont}"
+            ShowLineNumbers="True"
+            SyntaxHighlighting="SQL"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Visible"
+            Background="#202424"
+            helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
+        />
+        <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows" ShowsPreview="True" Background="Gray" Opacity="0.5" />
+        <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">
+            <StackPanel x:Name="StackPanelResult" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Background="Transparent" Margin="5" Click="ToggleTabs_Click">
+                    <TextBlock 
+                        FontSize="12" 
+                        Text="{Binding ResultIsMinimized, Converter={StaticResource BoolToIcon}, ConverterParameter='&#xf077;|&#xf078;'}" 
+                        FontFamily="{StaticResource FontAwesomeLight}" 
+                        VerticalAlignment="Center" 
+                        />
+                </Button>
+            </StackPanel>
+            <Border Grid.Row="1" Background="LightGray" Height="0.5" Opacity="0.5" />
+            <TabControl Grid.Row="2"  x:Name="Tabs" ItemsSource="{Binding Tabs}" SelectedIndex="{Binding SelectedTabIndex}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
+                            <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <Button 
+                                Background="Transparent" 
+                                IsVisible="{Binding CanClose}"
+                                Command="{Binding DataContext.CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                CommandParameter="{Binding .}"
+                                >
+                                <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <StaticResource ResourceKey="TabContentTemplate" />
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

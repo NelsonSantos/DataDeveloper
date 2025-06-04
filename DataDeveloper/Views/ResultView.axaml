@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
-             xmlns:customControl="clr-namespace:DataDeveloper.CustomControl"
+             xmlns:models="clr-namespace:DataDeveloper.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.ResultView">
     <Design.DataContext>
-        <viewModels:ResultViewModel />
+        <models:TabResultDataGrid />
     </Design.DataContext>
    <DataGrid x:Name="DataGrid1" 
              AutoGenerateColumns="False" 

@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
@@ -14,7 +15,7 @@ public abstract class DatabaseProviderBase<TConnectionSettings> : IDatabaseProvi
     }
 
     public TConnectionSettings ConnectionSettings { get; }
-    public abstract IDbConnection GetConnection();
+    public abstract DbConnection GetConnection();
     public abstract string GetTableStatement();
     public abstract string GetColumnStatement();
 

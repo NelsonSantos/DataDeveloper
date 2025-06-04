@@ -17,11 +17,11 @@ public class ResultViewModel : Tool
     {
         Factory = factory;
         _document = document;
-        _document.ColumnsClear += DocumentOnColunmsClear;
-        _document.ColumnsChanged += DocumentOnColunmsChanged;
-        _document.RowClear += DocumentOnRowClear;
-        _document.RowAdded += DocumentOnRowAdded;
-        _document.ShowResultTool += DocumentOnShowResultTool;
+        //_document.ColumnsClear += DocumentOnColumnsClear;
+        //_document.ColumnsChanged += DocumentOnColumnsChanged;
+        //_document.RowClear += DocumentOnRowClear;
+        //_document.RowAdded += DocumentOnRowAdded;
+        //_document.ShowResultTool += DocumentOnShowResultTool;
     }
 
     private void DocumentOnShowResultTool(object? sender, int e)
@@ -42,12 +42,12 @@ public class ResultViewModel : Tool
         Rows.Clear();
     }
 
-    private void DocumentOnColunmsClear(object? sender, EventArgs e)
+    private void DocumentOnColumnsClear(object? sender, EventArgs e)
     {
         Headers.Clear();
     }
 
-    private void DocumentOnColunmsChanged(object? sender, string[] e)
+    private void DocumentOnColumnsChanged(object? sender, string[] e)
     {
         Headers.AddRange(e);
     }

@@ -20,4 +20,9 @@ public class DatabaseProviderFactoryService
         var provider = GetDatabaseProvider(connectionSettings);
         return new SchemaExplorer(provider, connectionSettings);
     }
+
+    public IStatementExecutor? GetStatementExecutor(IConnectionSettings connectionSettings)
+    {
+        return new StatementExecutor(connectionSettings);
+    }
 }

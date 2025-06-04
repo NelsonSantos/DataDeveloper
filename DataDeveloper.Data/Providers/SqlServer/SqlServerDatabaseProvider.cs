@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Services;
@@ -13,7 +14,7 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
     {
     }
 
-    public override IDbConnection GetConnection()
+    public override DbConnection GetConnection()
     {
         ConnectionSettings.UseTrustedConnection = true;
         var connectionString = $"Server={ConnectionSettings.Server};Database={ConnectionSettings.Database};User Id={ConnectionSettings.User};Password={ConnectionSettings.Password};TrustServerCertificate={ConnectionSettings.UseTrustedConnection};";

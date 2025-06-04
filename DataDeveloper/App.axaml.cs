@@ -7,6 +7,7 @@ using DataDeveloper.Core;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Interfaces;
+using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
@@ -59,13 +60,14 @@ public partial class App : Application
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<DatabaseProviderFactoryService>();
+        services.AddTransient<StatementSplitter>();
     }
 
     private void RegisterViewViewModel(IViewResolverService resolver)
     {
         resolver.Register<ConnectionDetailsViewModel, ConnectionDetails>();
-        resolver.Register<EditorDocumentViewModel, SqlEditorView>();
-        resolver.Register<ResultViewModel, ResultView>();
+        resolver.Register<EditorDocumentViewModel, QueryEditorView>();
+        resolver.Register<TabResultDataGrid, ResultView>();
         resolver.Register<MessageViewModel, MessageView>();
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
     }

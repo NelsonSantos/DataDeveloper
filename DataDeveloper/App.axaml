@@ -15,6 +15,7 @@
             <converters:EnumValueToResourceConverter x:Key="EnumValueToResource" />
             <converters:NodeTypeToIconConverter x:Key="NodeTypeToIcon" />
             <converters:ColumnModelIsPrimaryKeyConverter x:Key="ColumnModelIsPrimaryKey" />
+            <converters:BoolToIconConverter x:Key="BoolToIcon" />
             
             <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
             <FontFamily x:Key="FontAwesomeBrands">avares://DataDeveloper/Assets/Fonts/fa-brans-regular-400.ttf#Font Awesome 5 Brands Regular</FontFamily>    

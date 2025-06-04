@@ -1,33 +1,50 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using Dapper;
+using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Providers.SqlServer;
+using DataDeveloper.Enums;
 using DataDeveloper.Events;
 using DataDeveloper.Models;
 using Dock.Model.ReactiveUI.Controls;
 using Microsoft.Data.SqlClient;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace DataDeveloper.ViewModels;
 
 public class EditorDocumentViewModel : Document
 {
     private readonly IConnectionSettings _connectionSettings;
+    private readonly IStatementExecutor _statementExecutor;
     private string _queryText;
-    private bool _textWasChanged = false; 
-    private bool _statementIsRunning;
 
-    public event EventHandler RowClear; 
-    public event EventHandler<RowValues> RowAdded; 
-    public event EventHandler ColumnsClear;
-    public event EventHandler<string[]> ColumnsChanged;
     public event EventHandler<ShowMessageEventArgs> ShowMessage;
     public event EventHandler<int> ShowResultTool; 
+    
+    public EditorDocumentViewModel(IConnectionSettings connectionSettings)
+    {
+        _connectionSettings = connectionSettings;
+        _statementExecutor = _connectionSettings.GetStatementExecutor();
+        
+        ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
+        StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
+        CloseTabResultCommand = ReactiveCommand.Create<TabResult>(CloseTabResult);
+
+        Tabs.Add(new TabResultMessage("Message", false));
+    }
+
+    private void CloseTabResult(TabResult tabModel)
+    {
+        Tabs.Remove(tabModel);
+    }
+
     public string QueryText
     {
         get => _queryText;
@@ -38,35 +55,22 @@ public class EditorDocumentViewModel : Document
             this.RaiseAndSetIfChanged(ref _queryText, value);
         }
     }
-
-    public bool TextWasChanged
-    {
-        get => _textWasChanged;
-        set => this.RaiseAndSetIfChanged(ref _textWasChanged, value);
-    }
-
-    public bool StatementIsRunning
-    {
-        get => _statementIsRunning;
-        set => this.RaiseAndSetIfChanged(ref _statementIsRunning, value);
-    }
-
+    [Reactive] public double EditorHeadHeight { get; set; }
+    [Reactive] public double ResultsHeaderHeight { get; set; }
+    [Reactive] public bool TextWasChanged { get; set; }
+    [Reactive] public bool StatementIsRunning { get; set; }
+    [Reactive] public bool ResultIsMinimized { get; set; } = true;
+    [Reactive] public int SelectedTabIndex { get; set; }
+    
+    public ObservableCollection<TabResult> Tabs { get; } = new();
+    public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
+    public ReactiveCommand<Unit, Unit> StopCommand { get; }
+    public ReactiveCommand<TabResult, Unit> CloseTabResultCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowResultCommand { get; set; }
     public override bool OnClose()
     {
         return !TextWasChanged;
     }
-
-    public EditorDocumentViewModel(IConnectionSettings connectionSettings)
-    {
-        _connectionSettings = connectionSettings;
-
-        ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
-        StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
-    }
-
-    public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
-    public ReactiveCommand<Unit, Unit> StopCommand { get; }
-
     private async Task StopQuery()
     {
         await Task.Delay(100);
@@ -92,12 +96,41 @@ public class EditorDocumentViewModel : Document
 
         try
         {
+            var statementExecutor = _connectionSettings.GetStatementExecutor();
+
+            var statementResults = await statementExecutor.ExecuteStatement(QueryText);
+
+            if (statementResults.Any())
+            {
+                for (var i = (Tabs.Count - 1); i > 0; i--)
+                {
+                    var tab = Tabs[i] as TabResultDataGrid;
+                    await tab.CloseDataReader();
+                    Tabs.RemoveAt(i);
+                }
+
+                var index = 0;
+                foreach (var statementResult in statementResults)
+                {
+                    index++;
+                    var resultName = $"result {index:00}";
+                    var tabResult = new TabResultDataGrid(statementResult, resultName, true); 
+                    Tabs.Add(tabResult);
+                    this.SelectedTabIndex = index;
+                    await tabResult.LoadData();
+                }
+
+                this.ResultIsMinimized = false;
+                this.ShowResultTool?.Invoke(this, this.SelectedTabIndex); ///here, for now, I'll send 0 (zero) for result tab 0
+            }
+
             // TODO trocar isso por um component
-            var connectionSettingsSql = _connectionSettings as SqlServerConnectionSettings;
-                
-            var connectionString = $"Server={connectionSettingsSql.Server};Database={connectionSettingsSql.Database};User Id={connectionSettingsSql.User};Password={connectionSettingsSql.Password};TrustServerCertificate=True;";
-            
-            await using var conn = new SqlConnection(/*_connection.ConnectionString*/connectionString);
+            //var connectionSettingsSql = _connectionSettings as SqlServerConnectionSettings;
+
+            //var connectionString = $"Server={connectionSettingsSql.Server};Database={connectionSettingsSql.Database};User Id={connectionSettingsSql.User};Password={connectionSettingsSql.Password};TrustServerCertificate=True;";
+
+            /*
+            await using var conn = new SqlConnection(connectionString);
             conn.Open();
 
             var data = await conn.ExecuteReaderAsync(QueryText, commandType: CommandType.Text);
@@ -121,18 +154,19 @@ public class EditorDocumentViewModel : Document
                 this.RowAdded?.Invoke(this, new RowValues(rowNumber, values));
             }
 
-            this.ShowResultTool?.Invoke(this, 0); ///here, for now, I'll send 0 (zero) for result tab 0
-            
+            this.SelectedTabIndex = 1;
+            this.ResultIsMinimized = false;
+            this.ShowResultTool?.Invoke(this, this.SelectedTabIndex); ///here, for now, I'll send 0 (zero) for result tab 0
+
+                                                                      */
         }
         catch (Exception ex)
         {
-            this.ShowMessage?.Invoke(this, new ShowMessageEventArgs(ex.Message, true));
+            //this.ShowMessage?.Invoke(this, new ShowMessageEventArgs(ex.Message, true));
         }
         finally
         {
             this.StatementIsRunning = false;
         }
     }
-   
-
 }

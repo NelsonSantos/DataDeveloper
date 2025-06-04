@@ -16,7 +16,7 @@ public class MessageViewModel : Tool
     {
         Factory = factory;
         _documentViewModel = documentViewModel;
-        _documentViewModel.ShowMessage += DocumentViewModelOnShowMessage;
+        //_documentViewModel.ShowMessage += DocumentViewModelOnShowMessage;
     }
 
     private void DocumentViewModelOnShowMessage(object? sender, ShowMessageEventArgs e)

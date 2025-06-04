@@ -31,5 +31,5 @@ public class SchemaNode : ReactiveObject
     [Reactive] public bool CanLoad { get; set; }
     public string? Details { get; }
     public object? Tag { get; }
-    [Reactive] public ObservableCollection<SchemaNode> Children { get; }
+    public ObservableCollection<SchemaNode> Children { get; }
 }

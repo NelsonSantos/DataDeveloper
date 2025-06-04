@@ -21,4 +21,11 @@ public static class DatabaseExtensionsMethods
         var explorer = factory.GetSchemaExplorer(value);
         return explorer;
     }
+
+    public static IStatementExecutor GetStatementExecutor(this IConnectionSettings value)
+    {
+        var factory = _serviceProvider.GetService<DatabaseProviderFactoryService>();
+        var executor = factory.GetStatementExecutor(value);
+        return executor;
+    }
 }

@@ -1,11 +1,12 @@
 ﻿using System.Data;
+using System.Data.Common;
 using DataDeveloper.Data.Models;
 
 namespace DataDeveloper.Data.Interfaces;
 
 public interface IDatabaseProvider
 {
-    IDbConnection GetConnection();
+    DbConnection GetConnection();
     TestConnectionResult TestConnection();
     string GetTableStatement();
     string GetColumnStatement();
