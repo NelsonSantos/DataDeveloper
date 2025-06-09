@@ -9,21 +9,21 @@ using DataDeveloper.ViewModels;
 
 namespace DataDeveloper.Views;
 
-public partial class QueryEditorView : UserControl
+public partial class TabQueryEditorView : UserControl
 {
     private GridLength _previousTabHeight = new GridLength(200); // altura padrão
-    private EditorDocumentViewModel _viewModel;
-    private TabContentTemplateSelector _templateSelector;
-    public QueryEditorView()
+    private TabQueryEditorViewModel _viewModel;
+    private TabTemplateSelector _templateSelector;
+    public TabQueryEditorView()
     {
         InitializeComponent();
         this.Loaded += OnLoaded;
-        _templateSelector = this.Resources["TabContentTemplate"] as TabContentTemplateSelector;
+        _templateSelector = this.Resources["TabContentTemplate"] as TabTemplateSelector;
     }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _viewModel = DataContext as EditorDocumentViewModel;
+        _viewModel = DataContext as TabQueryEditorViewModel;
         base.OnDataContextChanged(e);
     }
 
@@ -42,7 +42,7 @@ public partial class QueryEditorView : UserControl
         {
             foreach (var item in e.OldItems)
             {
-                _templateSelector.RemoveControl(item as TabResult);
+                _templateSelector?.RemoveControl(item as BaseTabContent);
             }
         }
     }

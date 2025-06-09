@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
+             xmlns:behaviors="clr-namespace:DataDeveloper.Behaviors"
+             xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DataDeveloper.Views.ConnectionDetailsView"
+             >
+    <UserControl.Styles>
+        <Style Selector="TextBlock.FontStyle">
+            <Setter Property="FontSize" Value="12"></Setter>
+        </Style>
+    </UserControl.Styles>
+    <Design.DataContext>
+        <vm:TabConnectionViewModel />
+    </Design.DataContext>
+    <UserControl.Resources>
+        <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
+    </UserControl.Resources>    
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="1*,Auto,3*">
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="LightGray" Height="0.5" Opacity="0.5" />
+        <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,*">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Background="#3C3F41">
+                <Button 
+                    Grid.Column="1"  
+                    HorizontalAlignment="Right" 
+                    Margin="4" 
+                    Command="{Binding AddQueryEditorCommand}"
+                    Background="Transparent">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock FontSize="15" Text="&#xf319;" FontFamily="{StaticResource FontAwesomeRegular}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="13" Text="New query" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+            <TreeView 
+                Grid.Row="1" 
+                ItemsSource="{Binding RootConnections}">
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem">
+                        <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
+                        <Setter Property="behaviors:TreeViewExpansionBehavior.SchemaExplorer" Value="{Binding DataContext.SchemaExplorer, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                    </Style>
+                </TreeView.Styles>        
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate
+                        DataType="{x:Type models:SchemaNode}"
+                        ItemsSource="{Binding Children}"
+                        >
+                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="5">
+                            <TextBlock 
+                                Grid.Column="0" 
+                                FontFamily="{StaticResource FontAwesomeRegular}" 
+                                Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" 
+                                VerticalAlignment="Center"
+                                Margin="4"
+                                />
+                            <TextBlock 
+                                Grid.Column="0" 
+                                FontFamily="{StaticResource FontAwesomeSolid}" 
+                                Text="&#xf084;" 
+                                IsVisible="{Binding Tag, Converter={StaticResource ColumnModelIsPrimaryKey}}"
+                                VerticalAlignment="Bottom"
+                                Foreground="Goldenrod"
+                                FontSize="10"
+                                Margin="8,8,0,0"
+                            />
+                            <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,3,0,0" />
+                            <TextBlock Grid.Column="2" Text="{Binding Details}" VerticalAlignment="Center" Margin="0,3,0,0" FontSize="11" Foreground="Gray" />
+                        </Grid>
+                    </TreeDataTemplate>
+                </TreeView.DataTemplates>
+            </TreeView>
+        </Grid>
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" ResizeDirection="Columns" />
+        <TabControl 
+            Grid.Row="1" Grid.Column="2" 
+            ItemsSource="{Binding QueryEditors}" 
+            SelectedIndex="{Binding SelectedEditor, Mode=TwoWay}" 
+            Padding="0" Margin="0">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
+                        <TextBlock FontSize="15" Text="&#xf15b;" FontFamily="{StaticResource FontAwesomeRegular}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,4,0,0" />
+                        
+                        <Button 
+                            Background="Transparent" 
+                            IsVisible="{Binding CanClose}"
+                            Command="{Binding CloseCommand}"
+                            >
+                            <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
+                        </Button>
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <StaticResource ResourceKey="TabTemplateSelector" />
+            </TabControl.ContentTemplate>            
+        </TabControl>
+    </Grid>
+</UserControl>

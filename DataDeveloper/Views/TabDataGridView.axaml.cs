@@ -8,10 +8,10 @@ using DataDeveloper.ViewModels;
 
 namespace DataDeveloper.Views;
 
-public partial class ResultView : UserControl
+public partial class TabDataGridView : UserControl
 {
-    private TabResultDataGrid _model = null;
-    public ResultView()
+    private TabDataGridViewModel _model = null;
+    public TabDataGridView()
     {
         InitializeComponent();
         DataGrid1.CopyingRowClipboardContent += DataGrid1OnCopyingRowClipboardContent;
@@ -24,7 +24,7 @@ public partial class ResultView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _model = this.DataContext as TabResultDataGrid;
+        _model = this.DataContext as TabDataGridViewModel;
         if (_model != null)
         {
             _model.Headers.CollectionChanged -= HeadersOnCollectionChanged;
@@ -51,12 +51,14 @@ public partial class ResultView : UserControl
         }
         else if (e.Action == NotifyCollectionChangedAction.Add)
         {
+            var index = -1;
             foreach (var nome in e.NewItems)
             {
+                index++;
                 column = new DataGridTextColumn
                 {
                     Header = nome,
-                    Binding = new Avalonia.Data.Binding(nameof(RowValues.Value))
+                    Binding = new Avalonia.Data.Binding(nameof(RowValues.Value)),
                 };
                 DataGrid1.Columns.Add(column);
             }            

@@ -2,16 +2,15 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using AvaloniaEdit.Highlighting;
 using DataDeveloper.Core;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Interfaces;
-using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
 using Microsoft.Extensions.DependencyInjection;
+using TabConnectionViewModel = DataDeveloper.ViewModels.TabConnectionViewModel;
 
 namespace DataDeveloper;
 
@@ -30,7 +29,7 @@ public partial class App : Application
         var services = new ServiceCollection();
         var viewResolver = new ViewResolverService(services);
 
-        services.AddSingleton<ViewResolverService>(provider => viewResolver);
+        services.AddSingleton<IViewResolverService, ViewResolverService>(provider => viewResolver);
 
         var viewLocator = new ViewLocatorService(viewResolver);
         
@@ -56,6 +55,7 @@ public partial class App : Application
 
     private void RegisterServices(IServiceCollection services)
     {
+        services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
         services.AddSingleton<AppDataFileService>();
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
@@ -65,10 +65,10 @@ public partial class App : Application
 
     private void RegisterViewViewModel(IViewResolverService resolver)
     {
-        resolver.Register<ConnectionDetailsViewModel, ConnectionDetails>();
-        resolver.Register<EditorDocumentViewModel, QueryEditorView>();
-        resolver.Register<TabResultDataGrid, ResultView>();
-        resolver.Register<MessageViewModel, MessageView>();
+        resolver.Register<TabConnectionViewModel, ConnectionDetailsView>();
+        resolver.Register<TabQueryEditorViewModel, TabQueryEditorView>();
+        resolver.Register<TabDataGridViewModel, TabDataGridView>();
+        resolver.Register<TabMessageViewModel, TabMessageView>();
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
     }
 }

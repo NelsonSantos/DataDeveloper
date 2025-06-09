@@ -5,9 +5,9 @@
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              xmlns:models="clr-namespace:DataDeveloper.Models"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.ResultView">
+             x:Class="DataDeveloper.Views.TabDataGridView">
     <Design.DataContext>
-        <models:TabResultDataGrid />
+        <viewModels:TabDataGridViewModel />
     </Design.DataContext>
    <DataGrid x:Name="DataGrid1" 
              AutoGenerateColumns="False" 

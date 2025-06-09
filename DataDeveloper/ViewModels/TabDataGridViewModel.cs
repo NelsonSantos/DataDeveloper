@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Enums;
-using DataDeveloper.Events;
+using DataDeveloper.Models;
 using DynamicData;
 
-namespace DataDeveloper.Models;
+namespace DataDeveloper.ViewModels;
 
-public class TabResultDataGrid : TabResult
+public class TabDataGridViewModel : BaseTabContent
 {
     private readonly StatementResult _statementResult;
     
@@ -18,8 +17,8 @@ public class TabResultDataGrid : TabResult
     //public event EventHandler ColumnsClear;
     //public event EventHandler<string[]> ColumnsChanged;
     
-    public TabResultDataGrid(StatementResult statementResult, string name, bool canClose) 
-        : base(TabResultType.DataGrid, name, canClose)
+    public TabDataGridViewModel(StatementResult statementResult, string name, bool canClose) 
+        : base(TabType.DataGrid, name, canClose)
     {
         _statementResult = statementResult;
     }

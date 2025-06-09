@@ -21,7 +21,6 @@
             <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Click on [Add new Connection] to start using Data Developer" FontSize="20" />
             </StackPanel>
-            <DockControl x:Name="MainDockControl" Layout="{Binding Layout}"  Margin="4"  />
         </Grid>
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
             <Grid ColumnDefinitions="*,Auto,Auto" Margin="8,0">

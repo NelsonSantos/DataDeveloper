@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace DataDeveloper.Views;
 
-public partial class ConnectionDetails : UserControl
+public partial class TabMessageView : UserControl
 {
-    public ConnectionDetails()
+    public TabMessageView()
     {
         InitializeComponent();
     }

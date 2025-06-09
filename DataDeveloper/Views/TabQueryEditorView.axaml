@@ -8,13 +8,13 @@
              xmlns:models="clr-namespace:DataDeveloper.Models"
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.QueryEditorView"
+             x:Class="DataDeveloper.Views.TabQueryEditorView"
              >
     <Design.DataContext>
-        <viewModels:EditorDocumentViewModel />
+        <viewModels:TabQueryEditorViewModel />
     </Design.DataContext>
     <UserControl.Resources>
-        <templateSelectors:TabContentTemplateSelector x:Key="TabContentTemplate" />
+        <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding ExecuteCommand}" ></KeyBinding>
@@ -43,7 +43,7 @@
             Background="#202424"
             helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
         />
-        <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows" ShowsPreview="True" Background="Gray" Opacity="0.5" />
+        <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
         <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">
             <StackPanel x:Name="StackPanelResult" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Background="Transparent" Margin="5" Click="ToggleTabs_Click">
@@ -73,7 +73,7 @@
                     </DataTemplate>
                 </TabControl.ItemTemplate>
                 <TabControl.ContentTemplate>
-                    <StaticResource ResourceKey="TabContentTemplate" />
+                    <StaticResource ResourceKey="TabTemplateSelector" />
                 </TabControl.ContentTemplate>
             </TabControl>
         </Grid>
