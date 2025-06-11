@@ -65,7 +65,7 @@ public partial class App : Application
 
     private void RegisterViewViewModel(IViewResolverService resolver)
     {
-        resolver.Register<TabConnectionViewModel, ConnectionDetailsView>();
+        resolver.Register<TabConnectionViewModel, TabConnectionView>();
         resolver.Register<TabQueryEditorViewModel, TabQueryEditorView>();
         resolver.Register<TabDataGridViewModel, TabDataGridView>();
         resolver.Register<TabMessageViewModel, TabMessageView>();

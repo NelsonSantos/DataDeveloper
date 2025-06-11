@@ -1,11 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia;
 using DataDeveloper.Core;
+using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
-using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using ReactiveUI;
@@ -18,21 +19,16 @@ public class MainWindowViewModel : ViewModelBase
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IConnectionDialogService _connectionDialogService;
-    //private IRootDock? _layout;
-    //private readonly IAuxFactory? factory; 
-
+    private readonly IEventAggregatorService _eventAggregatorService;
+    
     public MainWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         _connectionDialogService = _serviceProvider.GetService<IConnectionDialogService>();
+        _eventAggregatorService = _serviceProvider.GetService<IEventAggregatorService>();
         
-        // factory = new DockFactoryService();
-        // Layout = factory.CreateLayout();
-        // if (Layout is { } root)
-        // {
-        //     factory.InitLayout(Layout);
-        // }
-
+        _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
+        
         this.NewWindowCommand = ReactiveCommand.Create(() =>
         {
             var newWindow = new MainWindow(_serviceProvider);
@@ -48,10 +44,9 @@ public class MainWindowViewModel : ViewModelBase
 
                 if (connectionSettings is not null)
                 {
-                    //await factory.AddNewConnectionCommand.Execute(connectionSettings);
-                    var tab = new TabConnectionViewModel(connectionSettings, true);
+                    var tab = new TabConnectionViewModel(connectionSettings, true, _serviceProvider);
                     Connections.Add(tab);
-                    SelectedConnectionIndex = Connections.Count - 1;
+                    SelectedTabConnectionIndex = Connections.Count - 1;
                 }
             }
             catch (Exception e)
@@ -59,17 +54,28 @@ public class MainWindowViewModel : ViewModelBase
                 Console.WriteLine(e);
             }
         });
+        this.WhenAnyValue(vm => vm.SelectedTabConnectionIndex).Subscribe(_ =>
+        {
+            if (!Connections.Any()) return;
+            var connection = Connections[this.SelectedTabConnectionIndex];
+            var queryEditor = connection.QueryEditors[connection.SelectedEditor];
+            queryEditor.ShowCursorData();
+        });
+
     }
-    
-    // public IRootDock? Layout
-    // {
-    //     get => _layout;
-    //     set => this.RaiseAndSetIfChanged(ref _layout, value);
-    // }
-    
+
+    private void ShowCursorDataEvent(ShowCursorDataEvent message)
+    {
+        this.CursorOffSet = message.CursorOffSet;
+        this.CursorLine = message.CursorLine;
+        this.CursorColumn = message.CursorColumn;
+    }
+
     public ReactiveCommand<Unit, Unit> NewWindowCommand { get; }
     public ReactiveCommand<StyledElement, Unit> NewConnection { get; }
-
     public ObservableCollection<TabConnectionViewModel> Connections { get; } =  new();
-    [Reactive] public int SelectedConnectionIndex { get; set; }
+    [Reactive] public int SelectedTabConnectionIndex { get; set; }
+    [Reactive] public int CursorOffSet { get; set; }
+    [Reactive] public int CursorLine { get; set; }
+    [Reactive] public int CursorColumn { get; set; }
 }

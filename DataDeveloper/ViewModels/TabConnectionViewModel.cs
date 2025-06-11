@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Threading.Tasks;
@@ -20,8 +21,8 @@ public class TabConnectionViewModel : BaseTabContent
 {
     private int _countQueryEditors = 0;
 
-    public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose) 
-        : base(TabType.Connection, connectionSettings.Name, canClose)
+    public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider) 
+        : base(TabType.Connection, connectionSettings.Name, canClose, serviceProvider)
     {
         ConnectionSettings = connectionSettings;    
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
@@ -30,6 +31,10 @@ public class TabConnectionViewModel : BaseTabContent
         LoadItemsCommand = ReactiveCommand.CreateFromTask<StyledElement>(LoadItems);
         AddQueryEditorCommand = ReactiveCommand.Create(AddQueryEditor);
         AddQueryEditor();
+        this.WhenAnyValue(vm => vm.SelectedEditor).Subscribe(_ =>
+        {
+            QueryEditors[this.SelectedEditor].ShowCursorData();
+        });
     }
     public IConnectionSettings ConnectionSettings { get; }
     public ISchemaExplorer SchemaExplorer { get; }
@@ -43,7 +48,7 @@ public class TabConnectionViewModel : BaseTabContent
     private void AddQueryEditor()
     {
         _countQueryEditors++;
-        this.QueryEditors.Add(new TabQueryEditorViewModel(ConnectionSettings, $"Query {_countQueryEditors}", canClose: true));
+        this.QueryEditors.Add(new TabQueryEditorViewModel(ConnectionSettings, $"Query {_countQueryEditors}", canClose: true, this.ServiceProvider));
         this.SelectedEditor = this.QueryEditors.Count - 1;
     }
 

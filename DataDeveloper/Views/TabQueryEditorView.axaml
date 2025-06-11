@@ -3,9 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
-             xmlns:helpers="clr-namespace:DataDeveloper.Helpers"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
-             xmlns:models="clr-namespace:DataDeveloper.Models"
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.TabQueryEditorView"
@@ -34,14 +32,15 @@
                 <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04d;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
             </Button>
         </StackPanel>
-        <avaloniaEdit:TextEditor Grid.Row="1"
+        <avaloniaEdit:TextEditor 
+            Grid.Row="1"
+            x:Name="SqlEditor"
             FontFamily="{StaticResource MonospaceFont}"
             ShowLineNumbers="True"
             SyntaxHighlighting="SQL"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Visible"
             Background="#202424"
-            helpers:TextEditorHelper.BindableText="{Binding QueryText, Mode=TwoWay}"
         />
         <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
         <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">

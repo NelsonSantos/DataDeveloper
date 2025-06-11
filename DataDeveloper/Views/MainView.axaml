@@ -3,11 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
+             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.MainView">
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
+    <UserControl.Resources>
+        <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
+    </UserControl.Resources>
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, *" Background="Transparent" DragDrop.AllowDrop="True">
         <Menu Grid.Row="0" Grid.Column="0">
             <MenuItem Header="_File">
@@ -16,24 +21,45 @@
                 <MenuItem Header="_Close this window" />
             </MenuItem>
         </Menu>
-        <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Content="Add new connection" Command="{Binding NewConnection}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+        <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Add new connection" Command="{Binding NewConnection}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0">
             <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Click on [Add new Connection] to start using Data Developer" FontSize="20" />
             </StackPanel>
+            <TabControl x:Name="Tabs" ItemsSource="{Binding Connections}" SelectedIndex="{Binding SelectedTabConnectionIndex}">
+                <TabControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
+                            <svg:Svg Width="24" Height="24" Path="{Binding ConnectionSettings.DatabaseType, Converter={StaticResource EnumValueToResource}}" />
+                            <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" />
+                            <Button 
+                                Background="Transparent" 
+                                IsVisible="{Binding CanClose}"
+                                >
+                                <!-- Command="{Binding DataContext.CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}" -->
+                                <!-- CommandParameter="{Binding .}" -->
+                                <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
+                            </Button>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabControl.ItemTemplate>
+                <TabControl.ContentTemplate>
+                    <StaticResource ResourceKey="TabTemplateSelector" />
+                </TabControl.ContentTemplate>
+            </TabControl>
+            
         </Grid>
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
-            <Grid ColumnDefinitions="*,Auto,Auto" Margin="8,0">
-
-                <!-- Mensagem principal -->
-                <TextBlock Text="{Binding StatusMessage}" Foreground="White" VerticalAlignment="Center"/>
-
-                <!-- Status lateral -->
-                <TextBlock Grid.Column="1" Text="Modo: SQL" Foreground="#CCCCCC" Margin="10,0" VerticalAlignment="Center"/>
-
-                <!-- Conexão -->
-                <TextBlock Grid.Column="2" Text="Online" Foreground="LightGreen" VerticalAlignment="Center"/>
-    
+            <Grid ColumnDefinitions="*,Auto,20" Margin="8,0">
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" FontFamily="{StaticResource MonospaceFont}">
+                    <Run Text="Cursor -> " Foreground="Gray"/>
+                    <Run Text="Lin:" Foreground="Gray"/>
+                    <Run Text="{Binding CursorLine}" />
+                    <Run Text=" Col:" Foreground="Gray"/>
+                    <Run Text="{Binding CursorColumn}" />
+                    <Run Text=" Offset:" Foreground="Gray"/>
+                    <Run Text="{Binding CursorOffSet}" />
+                </TextBlock>
             </Grid>
         </Border>
     </Grid>    

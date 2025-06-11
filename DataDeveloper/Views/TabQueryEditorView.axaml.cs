@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Specialized;
-using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Interactivity;
 using DataDeveloper.Models;
 using DataDeveloper.TemplateSelectors;
@@ -23,10 +23,15 @@ public partial class TabQueryEditorView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _viewModel = DataContext as TabQueryEditorViewModel;
         base.OnDataContextChanged(e);
+        _viewModel = DataContext as TabQueryEditorViewModel;
+        SqlEditor.Bind(TextEditorBindingHelper.BindableTextProperty, new Binding(nameof(_viewModel.SqlStatement)) { Mode = BindingMode.TwoWay });
+        SqlEditor.Bind(TextEditorBindingHelper.BindableSelectedTextProperty, new Binding(nameof(_viewModel.SelectedStatement)));
+        SqlEditor.Bind(TextEditorBindingHelper.BindableCaretOffsetProperty, new Binding(nameof(_viewModel.CursorOffSet)));
+        SqlEditor.Bind(TextEditorBindingHelper.BindableCaretLineProperty, new Binding(nameof(_viewModel.CursorLine)));
+        SqlEditor.Bind(TextEditorBindingHelper.BindableCaretColumnProperty, new Binding(nameof(_viewModel.CursorColumn)));
     }
-
+    
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         _viewModel.EditorHeadHeight = StackPanelEditor.Bounds.Height;

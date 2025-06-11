@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -11,14 +12,9 @@ namespace DataDeveloper.ViewModels;
 public class TabDataGridViewModel : BaseTabContent
 {
     private readonly StatementResult _statementResult;
-    
-    // public event EventHandler RowClear; 
-    // public event EventHandler<RowValues> RowAdded; 
-    //public event EventHandler ColumnsClear;
-    //public event EventHandler<string[]> ColumnsChanged;
-    
-    public TabDataGridViewModel(StatementResult statementResult, string name, bool canClose) 
-        : base(TabType.DataGrid, name, canClose)
+   
+    public TabDataGridViewModel(StatementResult statementResult, string name, bool canClose, IServiceProvider serviceProvider) 
+        : base(TabType.DataGrid, name, canClose, serviceProvider)
     {
         _statementResult = statementResult;
     }

@@ -4,7 +4,10 @@ namespace DataDeveloper.Interfaces;
 
 public interface IEventAggregatorService
 {
-    void Subscribe<TMessage>(Action<TMessage> handler);
-    void Unsubscribe<TMessage>(Action<TMessage> handler);
-    void Publish<TMessage>(TMessage message);
+    IDisposable Subscribe<T>(object subscriber, Action<T> handler, Func<T, bool>? filter = null);
+    void Publish<T>(T message);
+    void UnsubscribeAllFor(object subscriber);
+    void Unsubscribe(Subscription subscription);
 }
+
+public record Subscription(Type Type, WeakReference Target, Action<object> Handler);

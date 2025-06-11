@@ -9,11 +9,12 @@ namespace DataDeveloper.Models;
 
 public abstract class BaseTabContent : ViewModelBase
 {
-    protected BaseTabContent(TabType type, string name, bool canClose)
+    protected BaseTabContent(TabType type, string name, bool canClose, IServiceProvider serviceProvider)
     {
         Type = type;
         Name = name;
         CanClose = canClose;
+        ServiceProvider = serviceProvider;
         Id = Guid.NewGuid();
         CloseCommand = ReactiveCommand.CreateFromTask(OnClose);
     }
@@ -21,6 +22,7 @@ public abstract class BaseTabContent : ViewModelBase
     public TabType Type { get; }
     public string Name { get; }
     public bool CanClose { get; }
+    public IServiceProvider ServiceProvider { get; }
     public ReactiveCommand<Unit, bool> CloseCommand { get; }
     protected virtual async Task<bool> OnClose()
     {
