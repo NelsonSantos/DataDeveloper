@@ -20,12 +20,23 @@
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>    
-    <Grid RowDefinitions="Auto,*" ColumnDefinitions="1*,Auto,3*">
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="1*,Auto,3*" Margin="0">
         <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="LightGray" Height="0.5" Opacity="0.5" />
         <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,*">
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Background="#3C3F41">
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="#3C3F41">
                 <Button 
-                    Grid.Column="1"  
+                    Grid.Column="0"  
+                    HorizontalAlignment="Right" 
+                    Margin="4" 
+                    Command="{Binding RefreshCommand}"
+                    Background="Transparent">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock FontSize="15" Text="&#xf021;" FontFamily="{StaticResource FontAwesomeRegular}" VerticalAlignment="Center" />
+                        <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
+                <Button 
+                    Grid.Column="2"  
                     HorizontalAlignment="Right" 
                     Margin="4" 
                     Command="{Binding AddQueryEditorCommand}"
@@ -90,7 +101,9 @@
                         <Button 
                             Background="Transparent" 
                             IsVisible="{Binding CanClose}"
-                            Command="{Binding CloseCommand}"
+                            Command="{Binding DataContext.CloseTabQueryEditorCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                            CommandParameter="{Binding .}"
+                            Margin="0"
                             >
                             <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
                         </Button>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
@@ -8,7 +9,6 @@ using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
-using DataDeveloper.Events;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using ReactiveUI;
@@ -21,6 +21,8 @@ public class TabQueryEditorViewModel : BaseTabContent
 {
     private string _queryText;
     private IEventAggregatorService _eventAggregatorService;
+    private readonly Dictionary<string, int> _cachePages = new Dictionary<string, int>();
+    
     public event EventHandler<int> ShowResultTool; 
 
     public TabQueryEditorViewModel(IConnectionSettings connectionSettings, string name, bool canClose, IServiceProvider serviceProvider) 
@@ -39,6 +41,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         this.WhenAnyValue(vm => vm.CursorOffSet).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorLine).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorColumn).Subscribe(_ => ShowCursorData());
+        this.WhenAnyValue(vm => vm.SqlStatement).Subscribe(_ => TextWasChanged = SqlStatement == null ? false : true);
     }
 
     public void ShowCursorData()
@@ -52,7 +55,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         Tabs.Remove(tabModel);
     }
 
-    [Reactive] public string SqlStatement { get; set; }
+    [Reactive] public string SqlStatement { get; set; } = "select * from integrationlog";
     [Reactive] public string SelectedStatement { get; set; }
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
@@ -109,16 +112,26 @@ public class TabQueryEditorViewModel : BaseTabContent
                 }
 
                 var index = 0;
+                var statementCount = 0;
                 var resultMessage = new StringBuilder();
                 foreach (var statementResult in statementResults)
                 {
-                    index++;
+
+                    statementCount++;
                     var hasRows = statementResult.DataReader.HasRows;
 
-                    var resultName = $"result {index:00}";
+                    var resultName = $"result {statementCount:00}";
+                    
+                    if (!_cachePages.ContainsKey(statementResult.Statement))
+                        _cachePages[statementResult.Statement] = 100;
+                    
                     if (hasRows)
                     {
-                        var tabResult = new TabDataGridViewModel(statementResult, resultName, true, this.ServiceProvider); 
+                        index++;
+                        
+                        var tabResult = new TabDataGridViewModel(statementResult, _cachePages[statementResult.Statement], resultName, true, this.ServiceProvider);
+                        tabResult.WhenAnyValue(vm => vm.SelectedPage).Subscribe(page => _cachePages[statementResult.Statement] = page);
+                        
                         Tabs.Add(tabResult);
                         this.SelectedTabIndex = index;
                         await tabResult.LoadData();
@@ -135,6 +148,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         catch (Exception ex)
         {
             _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, ex.Message));
+            this.SelectedTabIndex = 0;
         }
         finally
         {
@@ -142,11 +156,6 @@ public class TabQueryEditorViewModel : BaseTabContent
             this.StatementIsRunning = false;
             this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
-    }
-    
-    protected override Task<bool> OnClose()
-    {
-        return base.OnClose();
     }
 }
 

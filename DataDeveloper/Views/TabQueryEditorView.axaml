@@ -41,6 +41,7 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Visible"
             Background="#202424"
+            Text="select * from payment"
         />
         <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
         <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">

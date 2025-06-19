@@ -2,7 +2,6 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using DynamicData;
 
 namespace DataDeveloper.Core;
 
@@ -58,27 +57,14 @@ public class AppDataFileService
 
     public void SaveJson<T>(string fileName, T data, string? subfolder = null, params JsonConverter[] converters)
     {
-        var json = JsonSerializer.Serialize(data, GetJsonSerializerOptions(converters));
+        var json = JsonSerializer.Serialize(data, MappingExtensions.GetJsonSerializerOptions(converters));
         WriteFile(fileName, json, subfolder);
     }
 
     public T? LoadJson<T>(string fileName, string? subfolder = null, params JsonConverter[] converters)
     {
         var content = ReadFile(fileName, subfolder);
-        return content is not null ? JsonSerializer.Deserialize<T>(content, GetJsonSerializerOptions(converters)) : default;
-    }
-
-    private JsonSerializerOptions GetJsonSerializerOptions(params JsonConverter[] converters)
-    {
-        var options = new JsonSerializerOptions()
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() },
-            WriteIndented = true,
-        };
-        options.Converters.AddRange(converters);
-        return options;
+        return content is not null ? JsonSerializer.Deserialize<T>(content, MappingExtensions.GetJsonSerializerOptions(converters)) : default;
     }
 
     private string EnsureSubfolder(string? subfolder)

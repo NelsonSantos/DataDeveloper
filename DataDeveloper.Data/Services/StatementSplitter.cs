@@ -4,19 +4,6 @@ namespace DataDeveloper.Data.Services;
 
 public class StatementSplitter
 {
-    // public static List<string> SplitStatements(string sql)
-    // {
-    //     var input = new AntlrInputStream(sql);
-    //     var lexer = new TSqlLexer(input);
-    //     var tokens = new CommonTokenStream(lexer);
-    //     var parser = new TSqlParser(tokens);
-    //
-    //     var listener = new StatementCollector(tokens);
-    //     parser.AddParseListener(listener);
-    //     parser.tsql_file();
-    //
-    //     return listener.Statements;
-    // }    
     public static List<string> SplitStatements(string sqlText)
     {
         var input = new AntlrInputStream(sqlText);
@@ -25,13 +12,30 @@ public class StatementSplitter
         tokens.Fill();
 
         var statements = new List<string>();
+        var allTokens = tokens.GetTokens();
+
         List<IToken> buffer = new();
         int? startIndex = null;
         int? endIndex = null;
+        int blockLevel = 0;
 
-        foreach (var token in tokens.GetTokens())
+        foreach (var token in allTokens)
         {
-            if (token.Type == TSqlLexer.SEMI || token.Type == TSqlLexer.GO)
+            var tokenText = token.Text?.ToUpperInvariant();
+
+            // Detecta BEGIN/END para pilha de blocos
+            if (token.Type == TSqlLexer.BEGIN)
+            {
+                blockLevel++;
+            }
+            else if (token.Type == TSqlLexer.END)
+            {
+                if (blockLevel > 0)
+                    blockLevel--;
+            }
+
+            // Detecção segura de GO somente fora de blocos
+            if (token.Type == TSqlLexer.GO && blockLevel == 0)
             {
                 if (startIndex != null && endIndex != null)
                 {
@@ -41,8 +45,11 @@ public class StatementSplitter
                 }
                 startIndex = null;
                 endIndex = null;
+                continue;
             }
-            else if (token.Type != TokenConstants.EOF)
+
+            // Marcação de início/fim do statement
+            if (token.Type != TokenConstants.EOF)
             {
                 if (startIndex == null)
                     startIndex = token.StartIndex;
@@ -51,7 +58,7 @@ public class StatementSplitter
             }
         }
 
-        // Final flush (sem ; ou GO no final)
+        // Final flush (último bloco sem GO)
         if (startIndex != null && endIndex != null)
         {
             var statement = sqlText.Substring(startIndex.Value, endIndex.Value - startIndex.Value + 1);
@@ -60,23 +67,52 @@ public class StatementSplitter
         }
 
         return statements;
-    }    
+    }
 }
-
-// public class StatementCollector : TSqlParserBaseListener
+// public class StatementSplitter
 // {
-//     private readonly CommonTokenStream _tokens;
-//     public List<string> Statements { get; } = new();
-//
-//     public StatementCollector(CommonTokenStream tokens)
+//     public static List<string> SplitStatements(string sqlText)
 //     {
-//         _tokens = tokens;
-//     }
+//         var input = new AntlrInputStream(sqlText);
+//         var lexer = new TSqlLexer(input);
+//         var tokens = new CommonTokenStream(lexer);
+//         tokens.Fill();
 //
-//     public override void EnterSql_clauses(TSqlParser.Sql_clausesContext context)
-//     {
-//         var text = _tokens.GetText(context.SourceInterval)?.Trim();
-//         if (!string.IsNullOrWhiteSpace(text))
-//             Statements.Add(text);        
-//     }
+//         var statements = new List<string>();
+//         List<IToken> buffer = new();
+//         int? startIndex = null;
+//         int? endIndex = null;
+//
+//         foreach (var token in tokens.GetTokens())
+//         {
+//             if (token.Type == TSqlLexer.SEMI || token.Type == TSqlLexer.GO)
+//             {
+//                 if (startIndex != null && endIndex != null)
+//                 {
+//                     var statement = sqlText.Substring(startIndex.Value, endIndex.Value - startIndex.Value + 1);
+//                     if (!string.IsNullOrWhiteSpace(statement))
+//                         statements.Add(statement.Trim());
+//                 }
+//                 startIndex = null;
+//                 endIndex = null;
+//             }
+//             else if (token.Type != TokenConstants.EOF || token.Type == TSqlLexer.END)
+//             {
+//                 if (startIndex == null)
+//                     startIndex = token.StartIndex;
+//
+//                 endIndex = token.StopIndex;
+//             }
+//         }
+//
+//         // Final flush (sem ; ou GO no final)
+//         if (startIndex != null && endIndex != null)
+//         {
+//             var statement = sqlText.Substring(startIndex.Value, endIndex.Value - startIndex.Value + 1);
+//             if (!string.IsNullOrWhiteSpace(statement))
+//                 statements.Add(statement.Trim());
+//         }
+//
+//         return statements;
+//     }    
 // }

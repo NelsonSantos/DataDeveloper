@@ -50,6 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj" />
     <ProjectReference Include="..\DataDeveloper.Data\DataDeveloper.Data.csproj" />
   </ItemGroup>
 

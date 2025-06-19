@@ -34,11 +34,19 @@ public partial class App : Application
         var viewLocator = new ViewLocatorService(viewResolver);
         
         services.AddSingleton<ViewLocatorService>(provider => viewLocator);
-
+        services.AddScoped<IMainWindow, MainWindow>();
+        services.AddScoped<IDialogService>(provider =>
+        {
+            var scope = provider.CreateScope();
+            var currentWindow = scope.ServiceProvider.GetService<IMainWindow>();
+            return currentWindow?.GetDialogService();
+        });
         this.RegisterServices(services);
         this.RegisterViewViewModel(viewResolver);
         
         ServiceProvider = services.BuildServiceProvider();
+        var scope = ServiceProvider.CreateScope();
+        
         DatabaseExtensionsMethods.SetServiceProvider(ServiceProvider);
         
         viewResolver.SetServiceProvider(ServiceProvider);
@@ -47,7 +55,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow(ServiceProvider);
+            desktop.MainWindow = (MainWindow)scope.ServiceProvider.GetService<IMainWindow>(); // new MainWindow(ServiceProvider);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -55,6 +63,7 @@ public partial class App : Application
 
     private void RegisterServices(IServiceCollection services)
     {
+        services.AddTransient<MainWindowViewModel>();
         services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
         services.AddSingleton<AppDataFileService>();
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
