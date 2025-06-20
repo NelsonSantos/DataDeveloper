@@ -13,21 +13,24 @@
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="20, Auto, *" Background="Transparent" Margin="0">
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, Auto, *" Background="Transparent" Margin="0">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xf7a5;" FontFamily="{StaticResource FontAwesomeLight}" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
         <Menu Grid.Row="0" Grid.Column="1">
             <MenuItem Header="_File">
-                <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" />
+                <MenuItem Header="_Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                <Separator />
                 <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" />
                 <MenuItem Header="_Save..." Command="{Binding SaveCurrentEditorTabCommand}" />
                 <MenuItem Header="Save as..." Command="{Binding SaveAsCurrentEditorTabCommand}" />
                 <Separator />
+                <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" />
                 <MenuItem Header="New Window" Command="{Binding NewWindowCommand}"/>
             </MenuItem>
         </Menu>
-        <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Add new connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+        <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
         <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" >
             <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Click on [Add new Connection] to start using Data Developer" FontSize="20" />
+                <TextBlock Text="Click on [Load/Add connection] to start using Data Developer" FontSize="20" />
             </StackPanel>
             <TabControl x:Name="Tabs" Margin="0" ItemsSource="{Binding Connections}" SelectedIndex="{Binding SelectedTabConnectionIndex}">
                 <TabControl.ItemTemplate>

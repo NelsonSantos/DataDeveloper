@@ -50,17 +50,22 @@ public class TabConnectionViewModel : BaseTabContent
 
     public async Task<bool> SaveChanges(TabQueryEditorViewModel tabQueryEditor, bool isSaveAs = false)
     {
+        var filePath = "";
         if (isSaveAs || tabQueryEditor.File.IsNullOrEmpty())
         {
-            var fileName = $"{tabQueryEditor.Name}.sql";
-            var filePath = await  _dialogService.ShowSaveFileDialogAsync(fileName);
+            var fileName = $"{tabQueryEditor.Name}{(tabQueryEditor.Name.EndsWith("sql", StringComparison.OrdinalIgnoreCase) ? "" : ".sql")}";
+            filePath = await  _dialogService.ShowSaveFileDialogAsync(fileName);
             if (filePath.IsNullOrEmpty())
             {
                 return false;
             }
-            tabQueryEditor.File = filePath;
         }
-        await File.WriteAllTextAsync(tabQueryEditor.File, tabQueryEditor.SqlStatement);
+        else
+        {
+            filePath = tabQueryEditor.File;
+        }
+        await File.WriteAllTextAsync(filePath, tabQueryEditor.SqlStatement);
+        tabQueryEditor.File = filePath;
         tabQueryEditor.TextWasChanged = false;
         return true;
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Reactive;
@@ -44,6 +45,11 @@ public class TabQueryEditorViewModel : BaseTabContent
         this.WhenAnyValue(vm => vm.CursorLine).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorColumn).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.SqlStatement).Subscribe(_ => TextWasChanged = SqlStatement == null ? false : true);
+        this.WhenAnyValue(vm => vm.File).Subscribe(newFileName =>
+        {
+            if (System.IO.File.Exists(newFileName))
+                Name = Path.GetFileName(newFileName);
+        });
 
         if ((File?.IsNullOrEmpty() ?? true) == false)
             SqlStatement = System.IO.File.ReadAllText(File);

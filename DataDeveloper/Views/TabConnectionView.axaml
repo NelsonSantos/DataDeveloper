@@ -98,7 +98,7 @@
                         <TextBlock FontSize="15" Text="&#xf15b;" FontFamily="{StaticResource FontAwesomeRegular}" VerticalAlignment="Center" />
                         <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,4,0,0" />
                         <TextBlock 
-                            FontSize="9" 
+                            FontSize="8" 
                             Text="&#xf111;" 
                             FontFamily="{StaticResource FontAwesomeSolid}" 
                             VerticalAlignment="Center" 

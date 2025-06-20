@@ -21,7 +21,7 @@ public abstract class BaseTabContent : ViewModelBase
     }
     public Guid Id { get; }
     public TabType Type { get; }
-    public string Name { get; }
+    [Reactive] public string Name { get; set; }
     public bool CanClose { get; }
     protected IServiceProvider ServiceProvider { get; }
     [Reactive] public bool IsBusy { get; set; } 
