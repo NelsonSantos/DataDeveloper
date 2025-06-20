@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Mime;
 using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,13 +26,14 @@ public class TabQueryEditorViewModel : BaseTabContent
     
     public event EventHandler<int> ShowResultTool; 
 
-    public TabQueryEditorViewModel(IConnectionSettings connectionSettings, string name, bool canClose, IServiceProvider serviceProvider) 
+    public TabQueryEditorViewModel(IConnectionSettings connectionSettings, string name, string? file, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.QueryEditor, name, canClose, serviceProvider)
     {
         _eventAggregatorService = this.ServiceProvider.GetService<IEventAggregatorService>();    
         
         ConnectionSettings = connectionSettings;
-        
+        File = file;
+
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
         CloseTabResultCommand = ReactiveCommand.Create<BaseTabContent>(CloseTabResult);
@@ -42,6 +44,10 @@ public class TabQueryEditorViewModel : BaseTabContent
         this.WhenAnyValue(vm => vm.CursorLine).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorColumn).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.SqlStatement).Subscribe(_ => TextWasChanged = SqlStatement == null ? false : true);
+
+        if ((File?.IsNullOrEmpty() ?? true) == false)
+            SqlStatement = System.IO.File.ReadAllText(File);
+        TextWasChanged = false;
     }
 
     public void ShowCursorData()
@@ -49,13 +55,14 @@ public class TabQueryEditorViewModel : BaseTabContent
         _eventAggregatorService.Publish(new ShowCursorDataEvent(this.CursorOffSet, this.CursorLine, this.CursorColumn));
     }
 
-    public IConnectionSettings ConnectionSettings { get; }
     private void CloseTabResult(BaseTabContent tabModel)
     {
         Tabs.Remove(tabModel);
     }
 
-    [Reactive] public string SqlStatement { get; set; } = "select * from integrationlog";
+    public IConnectionSettings ConnectionSettings { get; }
+    [Reactive] public string? File { get; set; }
+    [Reactive] public string SqlStatement { get; set; }
     [Reactive] public string SelectedStatement { get; set; }
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
@@ -116,8 +123,9 @@ public class TabQueryEditorViewModel : BaseTabContent
                 var resultMessage = new StringBuilder();
                 foreach (var statementResult in statementResults)
                 {
-
+                    statementResult.Watcher.Start();
                     statementCount++;
+                    
                     var hasRows = statementResult.DataReader.HasRows;
 
                     var resultName = $"result {statementCount:00}";
@@ -135,12 +143,13 @@ public class TabQueryEditorViewModel : BaseTabContent
                         Tabs.Add(tabResult);
                         this.SelectedTabIndex = index;
                         await tabResult.LoadData();
-                        resultMessage.AppendLine($"{tabResult.Rows.Count} record(s) returned for {resultName}\r\n");
+                        resultMessage.AppendLine($"{tabResult.Rows.Count} record(s) returned for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
                     }
                     else
                     {
-                        resultMessage.AppendLine($"{statementResult.DataReader.RecordsAffected} record(s) affected for {resultName}\r\n");
+                        resultMessage.AppendLine($"{statementResult.DataReader.RecordsAffected} record(s) affected for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
                     }
+                    statementResult.Watcher.Stop();
                 }
                 _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, resultMessage.ToString()));
             }

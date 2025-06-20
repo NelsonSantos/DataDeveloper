@@ -13,16 +13,19 @@
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, *" Background="Transparent" Margin="0">
-        <Menu Grid.Row="0" Grid.Column="0">
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="20, Auto, *" Background="Transparent" Margin="0">
+        <Menu Grid.Row="0" Grid.Column="1">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Window" Command="{Binding NewWindowCommand}"/>
+                <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" />
+                <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" />
+                <MenuItem Header="_Save..." Command="{Binding SaveCurrentEditorTabCommand}" />
+                <MenuItem Header="Save as..." Command="{Binding SaveAsCurrentEditorTabCommand}" />
                 <Separator />
-                <MenuItem Header="_Close this window" />
+                <MenuItem Header="New Window" Command="{Binding NewWindowCommand}"/>
             </MenuItem>
         </Menu>
-        <Button Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Add new connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" >
+        <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Add new connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" >
             <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Click on [Add new Connection] to start using Data Developer" FontSize="20" />
             </StackPanel>
@@ -55,7 +58,7 @@
             </TabControl>
             
         </Grid>
-        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
             <Grid ColumnDefinitions="*,Auto,20" Margin="8,0">
                 <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" FontFamily="{StaticResource MonospaceFont}">
                     <Run Text="Cursor -> " Foreground="Gray"/>

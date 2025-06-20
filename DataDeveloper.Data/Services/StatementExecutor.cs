@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics;
 using Dapper;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
@@ -25,9 +26,15 @@ public class StatementExecutor : IStatementExecutor
 
             foreach (var statement in statements)
             {
+                var watcher = new Stopwatch();
+                watcher.Start();
+
                 var connection = _databaseProvider.GetConnection();
                 var reader = await connection.ExecuteReaderAsync(statement, commandType: CommandType.Text);
-                result.Add(new StatementResult(reader, sqlStatement));
+                
+                result.Add(new StatementResult(reader, sqlStatement, watcher));
+                
+                watcher.Stop();
             }
 
             return result;

@@ -20,16 +20,19 @@ namespace DataDeveloper.ViewModels;
 public class TabConnectionViewModel : BaseTabContent
 {
     private int _countQueryEditors = 0;
-
+    private readonly IDialogService _dialogService;
+    
     public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.Connection, connectionSettings.Name, canClose, serviceProvider)
     {
         ConnectionSettings = connectionSettings;    
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
-        this.Initialization = LoadConnection();
+        _dialogService = ServiceProvider.GetService<IDialogService>();
         
-        CloseTabQueryEditorCommand = ReactiveCommand.CreateFromTask<TabQueryEditorViewModel, bool>(CloseTabQueryEditor);
-        AddQueryEditorCommand = ReactiveCommand.Create(AddQueryEditor);
+        this.Initialization = LoadConnection();
+
+        CloseTabQueryEditorCommand = ReactiveCommand.CreateFromTask<TabQueryEditorViewModel, bool>(tab => CloseTabQueryEditor(tab));
+        AddQueryEditorCommand = ReactiveCommand.Create<string?>(AddQueryEditor);
         RefreshCommand = ReactiveCommand.CreateFromTask(Refresh);
         AddQueryEditor();
         this.WhenAnyValue(vm => vm.SelectedEditor).Subscribe(_ =>
@@ -45,7 +48,24 @@ public class TabConnectionViewModel : BaseTabContent
         await LoadConnection();
     }
 
-    private async Task<bool> CloseTabQueryEditor(TabQueryEditorViewModel tabQueryEditor)
+    public async Task<bool> SaveChanges(TabQueryEditorViewModel tabQueryEditor, bool isSaveAs = false)
+    {
+        if (isSaveAs || tabQueryEditor.File.IsNullOrEmpty())
+        {
+            var fileName = $"{tabQueryEditor.Name}.sql";
+            var filePath = await  _dialogService.ShowSaveFileDialogAsync(fileName);
+            if (filePath.IsNullOrEmpty())
+            {
+                return false;
+            }
+            tabQueryEditor.File = filePath;
+        }
+        await File.WriteAllTextAsync(tabQueryEditor.File, tabQueryEditor.SqlStatement);
+        tabQueryEditor.TextWasChanged = false;
+        return true;
+    }
+
+    public async Task<bool> CloseTabQueryEditor(TabQueryEditorViewModel tabQueryEditor, bool showDialog = true)
     {
         var remove = true;
         
@@ -53,23 +73,16 @@ public class TabConnectionViewModel : BaseTabContent
         {
             SelectedEditor = QueryEditors.IndexOf(tabQueryEditor);
             await Task.Delay(100);
-            
-            var dialog = ServiceProvider.GetService<IDialogService>();
-            var result = await dialog.ShowDialogResult($"{tabQueryEditor.Name} was changed...\n\r\r\nDo you want to save that changes?");
+
+            var result = showDialog
+                ? await _dialogService.ShowDialogResult($"{tabQueryEditor.Name} was changed...\n\r\r\nDo you want to save that changes?")
+                : DialogResult.Yes;
 
             switch (result)
             {
                 case DialogResult.Yes:
-                    // TODO SAVE CHANGES - check if file was been saved to set remove to true, otherwise false
-                    var fileName = $"{tabQueryEditor.Name}.sql";
                     await Task.Delay(100);
-                    var filePath = await  dialog.ShowSaveFileDialogAsync(fileName);
-                    if (filePath.IsNullOrEmpty())
-                    {
-                        remove = false;
-                        break;
-                    }
-                    await File.WriteAllTextAsync(filePath, tabQueryEditor.SqlStatement);
+                    remove = await SaveChanges(tabQueryEditor);
                     break;
                 case DialogResult.No:
                     remove = true;
@@ -86,22 +99,23 @@ public class TabConnectionViewModel : BaseTabContent
         return remove;
     }
 
-    public IConnectionSettings ConnectionSettings { get; }
-    public ISchemaExplorer SchemaExplorer { get; }
-    public Task Initialization { get; private set; }
-    [Reactive] public int SelectedEditor { get; set; }
-    public ReactiveCommand<Unit, Unit> AddQueryEditorCommand { get; }
-    public ReactiveCommand<TabQueryEditorViewModel, bool> CloseTabQueryEditorCommand { get; }
-    public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
-    public ObservableCollection<SchemaNode> RootConnections { get; } = new();
-    public ObservableCollection<TabQueryEditorViewModel> QueryEditors { get; } = new();
-
-    private void AddQueryEditor()
+    private void AddQueryEditor(string? file = null)
     {
-        _countQueryEditors++;
+        var name = "";
+        if (File.Exists(file))
+        {
+            name = Path.GetFileName(file);
+        }
+        else
+        {
+            _countQueryEditors++;
+            name = $"Query {_countQueryEditors}";
+        }
+
         var queryEditor = new TabQueryEditorViewModel(
             ConnectionSettings
-            , name: $"Query {_countQueryEditors}"
+            , name
+            , file
             , canClose: true, 
             this.ServiceProvider);
         this.QueryEditors.Add(queryEditor);
@@ -116,4 +130,13 @@ public class TabConnectionViewModel : BaseTabContent
         RootConnections.Add(SchemaExplorer.RootConnections);
     }
     
+    public IConnectionSettings ConnectionSettings { get; }
+    public ISchemaExplorer SchemaExplorer { get; }
+    public Task Initialization { get; private set; }
+    [Reactive] public int SelectedEditor { get; set; }
+    public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
+    public ReactiveCommand<TabQueryEditorViewModel, bool> CloseTabQueryEditorCommand { get; }
+    public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
+    public ObservableCollection<SchemaNode> RootConnections { get; } = new();
+    public ObservableCollection<TabQueryEditorViewModel> QueryEditors { get; } = new();
 }

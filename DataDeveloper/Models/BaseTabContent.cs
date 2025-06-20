@@ -5,6 +5,7 @@ using DataDeveloper.Core;
 using DataDeveloper.Enums;
 using DataDeveloper.Events;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 
 namespace DataDeveloper.Models;
 
@@ -23,4 +24,5 @@ public abstract class BaseTabContent : ViewModelBase
     public string Name { get; }
     public bool CanClose { get; }
     protected IServiceProvider ServiceProvider { get; }
+    [Reactive] public bool IsBusy { get; set; } 
 }

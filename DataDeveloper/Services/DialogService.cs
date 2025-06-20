@@ -25,11 +25,6 @@ public class DialogService : IDialogService
         return window ?? throw new Exception("Failed to capture owner window.");
     }
 
-    public DialogService(Window window)
-    {
-        //_window = window;
-    }
-
     public async Task<DialogResult> ShowDialogResult(string message, string? title = null)
     {
         var messageBox = MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
@@ -79,4 +74,20 @@ public class DialogService : IDialogService
 
         return dialog.ShowAsync(GetOwnerWindow());
     }
+    public async Task<string?> ShowOpenFileAsync(string? title = null)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = title ?? "Open file...",
+            AllowMultiple = false,
+            Filters = new List<FileDialogFilter>
+            {
+                new FileDialogFilter { Name = "Sql file", Extensions = { "sql" } },
+                new FileDialogFilter { Name = "All files", Extensions = { "*" } }
+            }
+        };
+
+        var result = await dialog.ShowAsync(GetOwnerWindow());
+        return result?.FirstOrDefault();
+    }    
 }

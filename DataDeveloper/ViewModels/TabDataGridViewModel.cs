@@ -17,23 +17,23 @@ namespace DataDeveloper.ViewModels;
 
 public class TabDataGridViewModel : BaseTabContent
 {
-    private readonly StatementResult _statementResult;
-    
     public TabDataGridViewModel(StatementResult statementResult, int selectedPage, string name, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.DataGrid, name, canClose, serviceProvider)
     {
-        _statementResult = statementResult;
+        StatementResult = statementResult;
 
         SelectedPage = selectedPage;
-        LoadNextPageCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(SelectedPage),
-            canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
-        LoadAllRecordsCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(),
-            canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
+        LoadNextPageCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(SelectedPage)
+            , outputScheduler: RxApp.MainThreadScheduler
+            , canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
+        LoadAllRecordsCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage()
+            , outputScheduler: RxApp.MainThreadScheduler
+            , canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
     }
 
     public async Task CloseDataReader()
     {
-        await _statementResult.CloseDataReader();
+        await StatementResult.CloseDataReader();
         this.IsClosed = true;
     }
 
@@ -41,13 +41,13 @@ public class TabDataGridViewModel : BaseTabContent
     {
         Headers.Clear();
         var columns = new List<ColumnHeader>();
-        for (int i = 0; i < _statementResult.DataReader.FieldCount; i++)
+        for (int i = 0; i < StatementResult.DataReader.FieldCount; i++)
         {
             var columnHeader = new ColumnHeader()
             {
-                Name = _statementResult.DataReader.GetName(i),
-                Type = _statementResult.DataReader.GetFieldType(i),
-                Alignment = GetFieldAlignment(_statementResult.DataReader.GetFieldType(i))
+                Name = StatementResult.DataReader.GetName(i),
+                Type = StatementResult.DataReader.GetFieldType(i),
+                Alignment = GetFieldAlignment(StatementResult.DataReader.GetFieldType(i))
             };
             columns.Add(columnHeader);
         }
@@ -62,19 +62,31 @@ public class TabDataGridViewModel : BaseTabContent
     private async Task LoadNextPage(int itemsPerPage = 0)
     {
         var countRecords = 0;
-        while (_statementResult.DataReader.Read())
+        StatementResult.Watcher.Start();
+        this.IsBusy = true;
+        await Task.Delay(100);
+        var readedUntilEnd = true;
+        while (StatementResult.DataReader.Read())
         {
             RowNumber++;
             countRecords++;
             
-            var values = new object?[_statementResult.DataReader.FieldCount];
-            _statementResult.DataReader.GetValues(values);
+            var values = new object?[StatementResult.DataReader.FieldCount];
+            StatementResult.DataReader.GetValues(values);
             this.Rows.Add(new RowValues(RowNumber, values));
             
-            if (itemsPerPage > 0 && countRecords == itemsPerPage) return;
+            if (itemsPerPage > 0 && countRecords == itemsPerPage)
+            {
+                readedUntilEnd = false;
+                break;
+            }
         }
 
-        await this.CloseDataReader();
+        if (readedUntilEnd)
+            await this.CloseDataReader();
+        StatementResult.Watcher.Stop();
+        this.TimeElapsed = StatementResult.Watcher.Elapsed;
+        this.IsBusy = false;
     }
 
     public ColumnAlignment GetFieldAlignment(Type fieldType)
@@ -103,6 +115,8 @@ public class TabDataGridViewModel : BaseTabContent
         };
     }
 
+    public StatementResult StatementResult { get; }
+    [Reactive] public TimeSpan TimeElapsed { get; set; }
     [Reactive] public bool IsClosed { get; set; }
     [Reactive] public int RowNumber { get; set; }
     [Reactive] public int SelectedPage { get; set; }

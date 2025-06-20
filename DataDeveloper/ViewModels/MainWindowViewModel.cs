@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -21,11 +22,13 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IServiceProvider _serviceProvider;
     private readonly IConnectionDialogService _connectionDialogService;
     private readonly IEventAggregatorService _eventAggregatorService;
+    private readonly IDialogService _dialogService;
     public MainWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
         _connectionDialogService = _serviceProvider.GetService<IConnectionDialogService>();
         _eventAggregatorService = _serviceProvider.GetService<IEventAggregatorService>();
+        _dialogService = _serviceProvider.GetService<IDialogService>();
         
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
 
@@ -33,7 +36,51 @@ public class MainWindowViewModel : ViewModelBase
         this.NewConnectionCommand = ReactiveCommand.CreateFromTask<StyledElement>(NewConnection);
         this.CloseTabConnectionCommand = ReactiveCommand.CreateFromTask<TabConnectionViewModel, bool>(CloseTabConnection);
         
+        this.NewQueryTabCommand = ReactiveCommand.CreateFromTask(NewQueryTab);
+        this.OpenFileCommand = ReactiveCommand.CreateFromTask(OpenFile);
+        this.SaveCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab());
+        this.SaveAsCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(isSaveAs: true));
+        
         this.WhenAnyValue(vm => vm.SelectedTabConnectionIndex).Subscribe(_ => OnSelectedTabConnectionIndexChanged());
+    }
+
+    private TabQueryEditorViewModel? GetCurrentTabQueryEditorViewModel()
+    {
+        if (!HasConnections) return null;
+        
+        var connection = this.Connections[this.SelectedTabConnectionIndex];
+
+        if (!connection.QueryEditors.Any()) return null;
+        
+        var queryEditor = connection.QueryEditors[connection.SelectedEditor];
+        
+        return queryEditor;
+    }
+
+    private async Task SaveCurrentEditorTab(bool isSaveAs = false)
+    {
+        var connection = this.Connections[this.SelectedTabConnectionIndex];
+        var queryEditor = connection.QueryEditors[connection.SelectedEditor];
+
+        if (File.Exists(queryEditor.File))
+            await connection.SaveChanges(queryEditor, isSaveAs);
+        else
+            await connection.CloseTabQueryEditor(queryEditor, showDialog: false);
+    }
+
+    private async Task OpenFile()
+    {
+        var fileToOpen = await _dialogService.ShowOpenFileAsync();
+        if (fileToOpen != null)
+        {
+            await this.Connections[this.SelectedTabConnectionIndex].AddQueryEditorCommand.Execute(fileToOpen);
+        }
+
+    }
+
+    private async Task NewQueryTab()
+    {
+        await this.Connections[this.SelectedTabConnectionIndex].AddQueryEditorCommand.Execute();
     }
 
     private async Task<bool> CloseTabConnection(TabConnectionViewModel connection)
@@ -57,6 +104,10 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public ReactiveCommand<Unit, Unit> NewWindowCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewQueryTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveCurrentEditorTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveAsCurrentEditorTabCommand { get; }
     public ReactiveCommand<TabConnectionViewModel, bool> CloseTabConnectionCommand { get; }
     public ReactiveCommand<StyledElement, Unit> NewConnectionCommand { get; }
     public ObservableCollection<TabConnectionViewModel> Connections { get; } =  new();
@@ -64,7 +115,19 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
     [Reactive] public int CursorColumn { get; set; }
-    
+
+    public bool HasConnections
+    {
+        get => Connections.Any();
+        set { }
+    }
+
+    public bool HasEditor
+    {
+        get => GetCurrentTabQueryEditorViewModel() != null;
+        set { }
+    }
+
     private void OnSelectedTabConnectionIndexChanged()
     {
         if (!Connections.Any()) return;

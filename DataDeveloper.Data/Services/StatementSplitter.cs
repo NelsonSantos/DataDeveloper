@@ -35,7 +35,7 @@ public class StatementSplitter
             }
 
             // Detecção segura de GO somente fora de blocos
-            if (token.Type == TSqlLexer.GO && blockLevel == 0)
+            if ((token.Type == TSqlLexer.GO || token.Type == TSqlLexer.SEMI) && blockLevel == 0)
             {
                 if (startIndex != null && endIndex != null)
                 {
