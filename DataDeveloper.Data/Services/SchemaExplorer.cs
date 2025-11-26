@@ -39,16 +39,16 @@ public class SchemaExplorer : ISchemaExplorer
 
     private async Task<IEnumerable<string>> GetTablesAsync()
     {
-         using var connection = _databaseProvider.GetConnection();
+         await using var connection = _databaseProvider.GetConnection();
          var tables = await connection.QueryAsync<string>(_databaseProvider.GetTableStatement(), commandType: CommandType.Text);
-         return tables;
+         return tables.OrderBy(t => t);
     }
     
     public async Task LoadTableColumnsAsync(SchemaNode table)
     {
 
         var parameters = new { tableName = table.NodeType == NodeType.Columns ? table.Parent?.Name : table.Name };
-        using var connection = _databaseProvider.GetConnection();
+        await using var connection = _databaseProvider.GetConnection();
         var columns = await connection.QueryAsync<ColumnModel>(_databaseProvider.GetColumnStatement(), param: parameters, commandType: CommandType.Text);
         
         table.Children.Clear();

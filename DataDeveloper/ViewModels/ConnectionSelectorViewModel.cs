@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using DataDeveloper.Core;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
@@ -71,7 +72,25 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
 
-        CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);      
+        CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);
+        DuplicateConnectionCommand = ReactiveCommand.Create(DuplicateConnection,
+            this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
+        );
+    }
+
+    private void DuplicateConnection()
+    {
+        var duplicate = SelectedConnection.DatabaseType switch
+        {
+            DatabaseType.SqlServer => SelectedConnection.Map<SqlServerConnectionSettings>(),
+            _ => null
+        };
+        if (duplicate == null) throw new Exception("Type not recognized");
+        duplicate.Name = $"Copy of {duplicate.Name}";
+        duplicate.Id = Guid.NewGuid();
+        Connections.Add(duplicate);
+        SelectedConnection = duplicate;
+        IsEditing = true;
     }
 
     private async Task TestConnection(StyledElement element)
@@ -123,6 +142,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         get => _isEditing;
         set => this.RaiseAndSetIfChanged(ref _isEditing, value);
     }    
+    
     public SqlConnectionInfo? ConnectionInfo { get; private set; }
 
     public ReactiveCommand<StyledElement, Unit> OkCommand { get; }
@@ -132,6 +152,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> TestCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
     public ReactiveCommand<StyledElement, Unit> DeleteCommand { get; }
+    public ReactiveCommand<Unit, Unit> DuplicateConnectionCommand { get; }
+
     private async Task OkAsync(StyledElement element)
     {
         await ApplyAsync(element);

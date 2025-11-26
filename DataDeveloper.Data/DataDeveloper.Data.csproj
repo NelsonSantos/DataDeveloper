@@ -25,4 +25,16 @@
       <Folder Include="Providers\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="StatementParser\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="StatementParser\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="StatementParser\**" />
+    </ItemGroup>
+
 </Project>

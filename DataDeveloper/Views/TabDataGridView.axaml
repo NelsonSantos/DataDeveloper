@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DataDeveloper.Views.TabDataGridView">
+    <Design.DataContext>
+        <viewModels:TabDataGridViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto, Auto, Auto, *">
+        <Border Grid.Row="0" Background="LightGray" Height="0.5" Opacity="0.5" />
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
+            <TextBlock Grid.Column="0" Text="&#xf7a5;" FontFamily="{StaticResource FontAwesomeLight}" FontSize="25" Foreground="LightGray" />
+            <TextBlock Grid.Column="1" Text="Rows per page:" FontSize="11" VerticalAlignment="Center" Foreground="LightGray" />
+            <ComboBox Grid.Column="2" FontSize="12" FontFamily="{StaticResource MonospaceFont}"
+                SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
+                MaxDropDownHeight="200" 
+                VerticalAlignment="Center"
+                ItemsSource="{Binding Pages}"
+                >
+            </ComboBox>
+            <Button Grid.Column="3" 
+                Background="Transparent" 
+                VerticalAlignment="Center" 
+                ToolTip.Tip="{Binding SelectedPage, StringFormat='Load next {0} records'}"
+                Command="{Binding LoadNextPageCommand}"
+                IsEnabled="{Binding !IsBusy}"
+                >
+                <TextBlock 
+                    Text="&#xf04e;" FontFamily="{StaticResource FontAwesomeSolid}" 
+                    Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
+                    />
+            </Button>
+            <Button  Grid.Column="4"
+                Background="Transparent" 
+                VerticalAlignment="Center" 
+                ToolTip.Tip="Load all records"
+                Command="{Binding LoadAllRecordsCommand}"
+                IsEnabled="{Binding !IsBusy}"
+                >
+                <TextBlock 
+                    Text="&#xf050;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
+                    />
+            </Button>
+            <Border Grid.Column="6" BorderThickness="0.5" BorderBrush="LightGray" CornerRadius="3" Margin="0, 3, 0 ,3" Padding="4, 0, 5, 0">
+                <TextBlock 
+                    Text="" 
+                    FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="LightGray">
+                    <Run Text="{Binding RowNumber, StringFormat=' {0:N0} row(s) loaded'}" />
+                    <Run Text="{Binding TimeElapsed, StringFormat=' in {0:c}'}"/>
+                </TextBlock>
+            </Border>
+        </Grid>        
+        <Border Grid.Row="2" Background="LightGray" Height="0.5" Opacity="0.5" />
+        <DataGrid Grid.Row="3" 
+                  x:Name="DataGrid1" 
+                  AutoGenerateColumns="False" 
+                  RowHeaderWidth="200"
+                  ItemsSource="{Binding Rows}"
+                  FrozenColumnCount="1"
+                  FontFamily="Consolas"
+                  FontSize="12"
+                  SelectionMode="Extended"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="True"
+        />
+    </Grid>
+    
+</UserControl>

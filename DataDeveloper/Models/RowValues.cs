@@ -11,6 +11,7 @@ public class RowValues
     }
     
     public int RowNumber { get; }
+    public int CurrentIndex => _index;
     public object? Value{
         get
         {

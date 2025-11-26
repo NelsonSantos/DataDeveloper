@@ -35,12 +35,12 @@ public class EditorDocumentViewModel : Document
         
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
-        CloseTabResultCommand = ReactiveCommand.Create<TabResult>(CloseTabResult);
+        CloseTabResultCommand = ReactiveCommand.Create<BaseTabContent>(CloseTabResult);
 
         Tabs.Add(new TabResultMessage("Message", false));
     }
 
-    private void CloseTabResult(TabResult tabModel)
+    private void CloseTabResult(BaseTabContent tabModel)
     {
         Tabs.Remove(tabModel);
     }
@@ -62,10 +62,10 @@ public class EditorDocumentViewModel : Document
     [Reactive] public bool ResultIsMinimized { get; set; } = true;
     [Reactive] public int SelectedTabIndex { get; set; }
     
-    public ObservableCollection<TabResult> Tabs { get; } = new();
+    public ObservableCollection<BaseTabContent> Tabs { get; } = new();
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
-    public ReactiveCommand<TabResult, Unit> CloseTabResultCommand { get; }
+    public ReactiveCommand<BaseTabContent, Unit> CloseTabResultCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowResultCommand { get; set; }
     public override bool OnClose()
     {

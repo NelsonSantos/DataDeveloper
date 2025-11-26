@@ -9,7 +9,7 @@ using DynamicData;
 
 namespace DataDeveloper.Models;
 
-public class TabResultDataGrid : TabResult
+public class TabResultDataGrid : BaseTabContent
 {
     private readonly StatementResult _statementResult;
     
@@ -19,7 +19,7 @@ public class TabResultDataGrid : TabResult
     //public event EventHandler<string[]> ColumnsChanged;
     
     public TabResultDataGrid(StatementResult statementResult, string name, bool canClose) 
-        : base(TabResultType.DataGrid, name, canClose)
+        : base(TabType.DataGrid, name, canClose)
     {
         _statementResult = statementResult;
     }

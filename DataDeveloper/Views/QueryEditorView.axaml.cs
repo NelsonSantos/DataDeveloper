@@ -13,12 +13,12 @@ public partial class QueryEditorView : UserControl
 {
     private GridLength _previousTabHeight = new GridLength(200); // altura padrão
     private EditorDocumentViewModel _viewModel;
-    private TabContentTemplateSelector _templateSelector;
+    private TabResultTemplateSelector _templateSelector;
     public QueryEditorView()
     {
         InitializeComponent();
         this.Loaded += OnLoaded;
-        _templateSelector = this.Resources["TabContentTemplate"] as TabContentTemplateSelector;
+        _templateSelector = this.Resources["TabContentTemplate"] as TabResultTemplateSelector;
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -42,7 +42,7 @@ public partial class QueryEditorView : UserControl
         {
             foreach (var item in e.OldItems)
             {
-                _templateSelector.RemoveControl(item as TabResult);
+                _templateSelector.RemoveControl(item as BaseTabContent);
             }
         }
     }

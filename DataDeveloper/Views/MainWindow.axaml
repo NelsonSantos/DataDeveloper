@@ -1,12 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
         xmlns:views="clr-namespace:DataDeveloper.Views"
         x:Class="DataDeveloper.Views.MainWindow"
         Title="Data Developer"
         Width="1000" Height="700">
-    <Window.DataContext>
-        <vm:MainWindowViewModel />
-    </Window.DataContext>
     <views:MainView />
 </Window>

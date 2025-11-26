@@ -16,7 +16,7 @@ public class ViewLocatorService : IDataTemplate
 
     public Control Build(object data)
     {
-        return _viewResolver.Resolve(data);
+        return _viewResolver.ResolveByModel(data);
     }
 
     public bool Match(object data)

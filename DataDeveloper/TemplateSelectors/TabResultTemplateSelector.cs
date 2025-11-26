@@ -9,43 +9,43 @@ using DataDeveloper.Views;
 
 namespace DataDeveloper.TemplateSelectors;
 
-public class TabContentTemplateSelector : IDataTemplate
+public class TabResultTemplateSelector : IDataTemplate
 {
-    private Dictionary<Guid, Control> controls = new Dictionary<Guid, Control>();
+    private Dictionary<Guid, Control> _controls = new();
     
     public Control? Build(object? param)
     {
-        if (param is not TabResult tab)
+        if (param is not BaseTabContent tab)
             return null;
 
-        if (!controls.ContainsKey(tab.Id))
+        if (!_controls.ContainsKey(tab.Id))
         {
             var control = default(Control);
             switch (tab.Type)
             {
-                case TabResultType.Message:
+                case TabType.Message:
                     control = new MessageView();
                     break;
-                case TabResultType.DataGrid:
+                case TabType.DataGrid:
                     control = new ResultView();
                     break;
                 default:
                     control = new TextBox { Text = "Undefined type", VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
                     break;
             }
-            controls.Add(tab.Id, control);
+            _controls.Add(tab.Id, control);
         }
         
-        return controls[tab.Id];
+        return _controls[tab.Id];
     }
 
-    public void RemoveControl(TabResult tab)
+    public void RemoveControl(BaseTabContent tab)
     {
-        controls.Remove(tab.Id);
+        _controls.Remove(tab.Id);
     }
 
     public bool Match(object? data)
     {
-        return data is TabResult;
+        return data is BaseTabContent;
     }
 }

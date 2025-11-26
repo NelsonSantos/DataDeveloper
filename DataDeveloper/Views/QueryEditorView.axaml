@@ -14,7 +14,7 @@
         <viewModels:EditorDocumentViewModel />
     </Design.DataContext>
     <UserControl.Resources>
-        <templateSelectors:TabContentTemplateSelector x:Key="TabContentTemplate" />
+        <templateSelectors:TabResultTemplateSelector x:Key="TabContentTemplate" />
     </UserControl.Resources>
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding ExecuteCommand}" ></KeyBinding>
