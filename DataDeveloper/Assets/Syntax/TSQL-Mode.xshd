@@ -73,13 +73,14 @@
             <Word>having</Word>
             <Word>limit</Word>
             <Word>offset</Word>
+		</Keywords>
+    
+		<Keywords color="Functions">
             <Word>case</Word>
             <Word>when</Word>
             <Word>then</Word>
             <Word>end</Word>
-		</Keywords>
-    
-		<Keywords color="Functions">
+
             <Word>abs</Word>
             <Word>absolute</Word>
             <Word>access</Word>
