@@ -54,4 +54,11 @@
     <ProjectReference Include="..\DataDeveloper.Data\DataDeveloper.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Temp\" />
+    <Folder Include="Temp\Analyzers\" />
+    <Folder Include="Temp\Engine\" />
+    <Folder Include="Temp\Visitors\" />
+  </ItemGroup>
+
 </Project>

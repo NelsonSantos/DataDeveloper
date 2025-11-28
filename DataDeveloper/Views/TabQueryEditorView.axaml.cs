@@ -3,9 +3,12 @@ using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using AvaloniaEdit;
+using DataDeveloper.Data;
 using DataDeveloper.Models;
 using DataDeveloper.TemplateSelectors;
 using DataDeveloper.ViewModels;
+using Microsoft.Data.SqlClient;
 
 namespace DataDeveloper.Views;
 
@@ -19,6 +22,7 @@ public partial class TabQueryEditorView : UserControl
         InitializeComponent();
         this.Loaded += OnLoaded;
         _templateSelector = this.Resources["TabContentTemplate"] as TabTemplateSelector;
+        
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -30,6 +34,14 @@ public partial class TabQueryEditorView : UserControl
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretOffsetProperty, new Binding(nameof(_viewModel.CursorOffSet)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretLineProperty, new Binding(nameof(_viewModel.CursorLine)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretColumnProperty, new Binding(nameof(_viewModel.CursorColumn)));
+        
+        var conn = _viewModel.ConnectionSettings.GetDatabaseProvider().GetConnection();
+        //var cache = SqlServerSchemaCache.FromDatabase(conn);
+        //var engine = new SqlSuggestionEngine(cache);
+        var editor = this.FindControl<TextEditor>("SqlEditor");
+
+        //_ = new SqlEditorWithCompletion(editor, engine);
+        
     }
     
     private void OnLoaded(object? sender, RoutedEventArgs e)

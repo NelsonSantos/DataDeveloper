@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
+        <PackageReference Include="Antlr4BuildTasks" Version="12.10" PrivateAssets="all" IncludeAssets="build" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Antlr4 Include="Antlr\SqlServer\TSqlLexer.g4">
+            <Listener>true</Listener>
+            <Visitor>true</Visitor>
+            <GAtn>true</GAtn>
+            <Package>SqlServer</Package>
+            <Error>true</Error>
+        </Antlr4>
+        <Antlr4 Include="Antlr\SqlServer\TSqlParser.g4">
+            <Listener>true</Listener>
+            <Visitor>true</Visitor>
+            <GAtn>true</GAtn>
+            <Package>SqlServer</Package>
+            <Error>true</Error>
+        </Antlr4>
+    </ItemGroup>
+
+</Project>
