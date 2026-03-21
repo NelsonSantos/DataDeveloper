@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
+    <TrimMode>copyused</TrimMode>
+    <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <VersionPrefix>1.$([System.DateTime]::UtcNow.ToString(yyyy.MMdd))</VersionPrefix>
+    <VersionSuffix>$(VersionPrefix).$([System.DateTime]::UtcNow.ToString(mmss))</VersionSuffix>
+    <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
+    <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
+    <Version Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</Version>
+    <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <ApplicationIcon>Assets/Icons/AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--This helps with theme dll-s trimming.
+    If you will publish your application in self-contained mode with p:PublishTrimmed=true and it will use Fluent theme Default theme will be trimmed from the output and vice versa.
+    https://github.com/AvaloniaUI/Avalonia/issues/5593 -->
+    <TrimmableAssembly Include="Avalonia.Themes.Fluent" />
+    <TrimmableAssembly Include="Avalonia.Themes.Default" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="6.9.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0" />
+    <PackageReference Include="Avalonia" Version="11.3.0" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
+    <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
+    <PackageReference Include="MessageBox.Avalonia.Markdown" Version="3.2.0" />
+    <PackageReference Include="Svg.Controls.Avalonia" Version="11.3.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataDeveloper.Antlr\DataDeveloper.Antlr.csproj" />
+    <ProjectReference Include="..\DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj" />
+    <ProjectReference Include="..\DataDeveloper.Data\DataDeveloper.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Temp\" />
+    <Folder Include="Temp\Analyzers\" />
+    <Folder Include="Temp\Engine\" />
+    <Folder Include="Temp\Visitors\" />
+  </ItemGroup>
+
+</Project>

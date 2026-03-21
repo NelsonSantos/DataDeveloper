@@ -1,0 +1,123 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:DataDeveloper"
+             xmlns:viewmodels="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
+             xmlns:converters="clr-namespace:DataDeveloper.Converters"
+             x:Class="DataDeveloper.App"
+             RequestedThemeVariant="Dark"
+             >
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <converters:BoolToColorConverter x:Key="BoolToColor" />
+            <converters:EnumValueToResourceConverter x:Key="EnumValueToResource" />
+            <converters:NodeTypeToIconConverter x:Key="NodeTypeToIcon" />
+            <converters:ColumnModelIsPrimaryKeyConverter x:Key="ColumnModelIsPrimaryKey" />
+            <converters:BoolToIconConverter x:Key="BoolToIcon" />
+            
+            <!-- <x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>  -->
+            
+            <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
+            <FontFamily x:Key="FontAwesomeBrands">avares://DataDeveloper/Assets/Fonts/fa-brans-regular-400.ttf#Font Awesome 5 Brands Regular</FontFamily>    
+            <FontFamily x:Key="FontAwesomeLight">avares://DataDeveloper/Assets/Fonts/fa-light-300.ttf#Font Awesome 5 Pro Light</FontFamily>
+            <FontFamily x:Key="FontAwesomeRegular">avares://DataDeveloper/Assets/Fonts/fa-regular-400.ttf#Font Awesome 5 Pro Regular</FontFamily>
+            <FontFamily x:Key="FontAwesomeSolid">avares://DataDeveloper/Assets/Fonts/fa-solid-900.ttf#Font Awesome 5 Pro Solid</FontFamily>
+            <FontFamily x:Key="FontAwesomeSolidFree">avares://DataDeveloper/Assets/Fonts/fa-solid-900.ttf#Font Awesome 5 Pro Solid Free</FontFamily>
+            
+            <ResourceDictionary.MergedDictionaries>
+            
+            <ResourceDictionary>
+                <!-- <ControlRecycling x:Key="ControlRecyclingKey" /> -->
+            </ResourceDictionary>
+
+            <ResourceDictionary>
+              <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key='Default'>
+                  <SolidColorBrush x:Key="TextControlBackground">#EFEFEF</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBackgroundFocused">#EFEFEF</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#EFEFEF</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlForeground">#212121</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextForegroundColor">#212121</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBorderBrush">#33323232</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#33323232</SolidColorBrush>
+                    <SolidColorBrush x:Key="WindowBackground">#FFFAFAFA</SolidColorBrush>
+                  <Color x:Key="RegionColor">#FFFAFAFA</Color>
+                  <Color x:Key="AcrylicFallbackColor">#E2E2E2</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key='Dark'>
+                  <SolidColorBrush x:Key="TextControlBackground">#2F2F2F</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBackgroundFocused">#2F2F2F</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBackgroundPointerOver">#2F2F2F</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlForeground">#FFFFFF</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextForegroundColor">#FFFFFF</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBorderBrush">#434343</SolidColorBrush>
+                  <SolidColorBrush x:Key="TextControlBorderBrushPointerOver">#434343</SolidColorBrush>
+                  <SolidColorBrush x:Key="WindowBackground">#FF212121</SolidColorBrush>
+                  <Color x:Key="RegionColor">#FF212121</Color>
+                  <Color x:Key="AcrylicFallbackColor">#1F1F1F</Color>
+                </ResourceDictionary>
+              </ResourceDictionary.ThemeDictionaries>
+            </ResourceDictionary>
+          </ResourceDictionary.MergedDictionaries>
+          
+        </ResourceDictionary>
+        
+    </Application.Resources>    
+    <Application.Styles>
+        <FluentTheme />
+        
+        <StyleInclude Source="avares://DataDeveloper/Themes/SelectableTextBlock.axaml" />
+        <StyleInclude Source="avares://DataDeveloper/Themes/DataGridStyles.axaml" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+
+        <Style Selector="Window">
+            <Setter Property="Background" Value="#FF212121"></Setter>
+        </Style>        
+        
+        <Style Selector="views|TabConnectionView">
+            <Setter Property="Background" Value="#FF212121"></Setter>
+        </Style>        
+        
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="#3C3F41"/>
+        </Style>        
+        
+        <Style Selector="GridSplitter">
+            <Setter Property="ShowsPreview" Value= "True" />
+            <Setter Property="Background" Value= "Gray" />
+            <Setter Property="Opacity" Value="0.5" />            
+        </Style>
+        
+        <Style Selector="TabItem">
+            <Setter Property="Background" Value="#121318"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Aba selecionada (usa pseudoclasse :is-selected) -->
+        <Style Selector="TabItem:is(TabItem)[IsSelected=true]">
+            <Setter Property="Background" Value="#2E2E2E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style Selector="DataGridCell.left-alignment-column TextBlock">
+            <Setter Property="TextAlignment" Value="Left"/>
+        </Style>
+        
+        <Style Selector="DataGridCell.center-alignment-column TextBlock">
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="DataGridCell.right-alignment-column TextBlock">
+            <Setter Property="TextAlignment" Value="Right"/>
+        </Style>
+      
+    </Application.Styles>
+</Application>
