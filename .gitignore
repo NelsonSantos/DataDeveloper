@@ -6,3 +6,4 @@ Release/
 /.vs
 /.idea
 *.user
+artifacts/
