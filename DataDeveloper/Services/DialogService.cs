@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using MsBox.Avalonia;
@@ -29,7 +30,7 @@ public class DialogService : IDialogService
     {
         var messageBox = MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
         {
-            ContentTitle = title,
+            ContentTitle = title ?? string.Empty,
             ContentMessage = message,
             ButtonDefinitions = ButtonEnum.YesNoCancel,
             Icon = Icon.Question,
@@ -42,6 +43,7 @@ public class DialogService : IDialogService
             ButtonResult.Yes => DialogResult.Yes,
             ButtonResult.No => DialogResult.No,
             ButtonResult.Cancel => DialogResult.Cancel,
+            _ => DialogResult.Cancel
         };
     }
 
@@ -49,7 +51,7 @@ public class DialogService : IDialogService
     {
         await MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
         {
-            ContentTitle = title,
+            ContentTitle = title ?? string.Empty,
             ContentMessage = message,
             ButtonDefinitions = ButtonEnum.Ok,
             Icon = Icon.Info,
@@ -57,37 +59,48 @@ public class DialogService : IDialogService
         }).ShowAsPopupAsync(GetOwnerWindow());
     }
 
-    public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null)
+    public async Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null)
     {
-        var dialog = new SaveFileDialog
+        var owner = GetOwnerWindow();
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title ?? "Save file...",
-            InitialFileName = suggestedName ?? "resultado.sql",
+            SuggestedFileName = suggestedName ?? "resultado.sql",
             DefaultExtension = "sql",
             ShowOverwritePrompt = true,
-            Filters = new List<FileDialogFilter>
+            FileTypeChoices = new List<FilePickerFileType>
             {
-                new FileDialogFilter { Name = "Sql file", Extensions = { "sql" } },
-                new FileDialogFilter { Name = "All files", Extensions = { "*" } }
+                new("Sql file")
+                {
+                    Patterns = new[] { "*.sql" },
+                    AppleUniformTypeIdentifiers = new[] { "public.sql" },
+                    MimeTypes = new[] { "application/sql", "text/plain" }
+                },
+                FilePickerFileTypes.All
             }
-        };
+        });
 
-        return dialog.ShowAsync(GetOwnerWindow());
+        return file?.TryGetLocalPath();
     }
     public async Task<string?> ShowOpenFileAsync(string? title = null)
     {
-        var dialog = new OpenFileDialog
+        var owner = GetOwnerWindow();
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title ?? "Open file...",
             AllowMultiple = false,
-            Filters = new List<FileDialogFilter>
+            FileTypeFilter = new List<FilePickerFileType>
             {
-                new FileDialogFilter { Name = "Sql file", Extensions = { "sql" } },
-                new FileDialogFilter { Name = "All files", Extensions = { "*" } }
+                new("Sql file")
+                {
+                    Patterns = new[] { "*.sql" },
+                    AppleUniformTypeIdentifiers = new[] { "public.sql" },
+                    MimeTypes = new[] { "application/sql", "text/plain" }
+                },
+                FilePickerFileTypes.All
             }
-        };
+        });
 
-        var result = await dialog.ShowAsync(GetOwnerWindow());
-        return result?.FirstOrDefault();
+        return files.FirstOrDefault()?.TryGetLocalPath();
     }    
 }

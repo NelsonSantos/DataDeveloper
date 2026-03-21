@@ -14,14 +14,16 @@ public class ViewLocatorService : IDataTemplate
         _viewResolver = viewResolver;
     }
 
-    public Control Build(object data)
+    public Control? Build(object? data)
     {
+        if (data is null)
+            return null;
+
         return _viewResolver.ResolveByModel(data);
     }
 
-    public bool Match(object data)
+    public bool Match(object? data)
     {
-        var result = data is ReactiveObject;
-        return result;
+        return data is ReactiveObject;
     }
 }

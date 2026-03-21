@@ -9,7 +9,9 @@ public class NodeTypeToIconConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var nodeType = (NodeType)value;
+        if (value is not NodeType nodeType)
+            return "\uf07b";
+
         return nodeType switch
         {
             NodeType.Connection => "\uf1c0",

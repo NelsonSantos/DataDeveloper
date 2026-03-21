@@ -8,7 +8,7 @@ namespace DataDeveloper.Converters;
 
 public class BoolToColorConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool val = value is bool b && b;
 
@@ -26,6 +26,6 @@ public class BoolToColorConverter : IValueConverter
         return val ? Brushes.Red : Brushes.Transparent;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

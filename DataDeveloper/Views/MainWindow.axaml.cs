@@ -14,7 +14,7 @@ public partial class MainWindow : Window, IMainWindow
 {
     //private readonly IServiceScopeFactory _scopeFactory;
     //private IServiceScope? _currentScope;
-    private MainWindowViewModel _viewModel;
+    private readonly MainWindowViewModel _viewModel;
     private readonly IWindowStateService _windowStateService;
     private Guid Id { get; } = Guid.NewGuid();
     public MainWindow(IWindowStateService windowStateService, MainWindowViewModel viewModel)

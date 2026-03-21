@@ -5,6 +5,6 @@ namespace DataDeveloper.Data.Providers.SqlServer;
 
 public class SqlServerConnectionSettings : ConnectionSettings
 {
-    [Reactive]public string Server { get; set; }
-    [Reactive]public string Database { get; set; }
+    [Reactive]public string Server { get; set; } = string.Empty;
+    [Reactive]public string Database { get; set; } = string.Empty;
 }

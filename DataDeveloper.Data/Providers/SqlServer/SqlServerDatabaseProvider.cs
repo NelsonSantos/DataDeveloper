@@ -16,8 +16,13 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
 
     public override DbConnection GetConnection()
     {
-        ConnectionSettings.UseTrustedConnection = true;
-        var connectionString = $"Server={ConnectionSettings.Server};Database={ConnectionSettings.Database};User Id={ConnectionSettings.User};Password={ConnectionSettings.Password};TrustServerCertificate={ConnectionSettings.UseTrustedConnection};";
+        var connectionString =
+            $"Server={ConnectionSettings.Server};" +
+            $"Database={ConnectionSettings.Database};" +
+            $"User Id={ConnectionSettings.User};" +
+            $"Password={ConnectionSettings.Password};" +
+            $"Encrypt={ConnectionSettings.Encrypt};" +
+            $"TrustServerCertificate={ConnectionSettings.TrustServerCertificate};";
         var conn = new SqlConnection(connectionString);
         return conn;
     }

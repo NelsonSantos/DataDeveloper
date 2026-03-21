@@ -20,8 +20,8 @@ public class TabTemplateSelector : IDataTemplate
 
     public TabTemplateSelector()
     {
-        var serviceProvider = (App.Current as App).ServiceProvider;
-        _viewResolver = serviceProvider.GetService<IViewResolverService>();
+        var app = App.Current as App ?? throw new InvalidOperationException("App is not initialized.");
+        _viewResolver = app.ServiceProvider.GetRequiredService<IViewResolverService>();
     }
 
     private Dictionary<Guid, Control> _controls = new();
@@ -34,9 +34,6 @@ public class TabTemplateSelector : IDataTemplate
         if (_controls.ContainsKey(tab.Id)) return _controls[tab.Id];
         
         var view = _viewResolver.ResolveByModel(tab);
-        
-        if (view == null) 
-            view = new TextBlock { Text = "Undefined type", VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center };
 
         _controls.Add(tab.Id, view);
 

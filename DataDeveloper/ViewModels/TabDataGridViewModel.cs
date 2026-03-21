@@ -71,7 +71,7 @@ public class TabDataGridViewModel : BaseTabContent
             RowNumber++;
             countRecords++;
             
-            var values = new object?[StatementResult.DataReader.FieldCount];
+            var values = new object[StatementResult.DataReader.FieldCount];
             StatementResult.DataReader.GetValues(values);
             this.Rows.Add(new RowValues(RowNumber, values));
             
@@ -91,7 +91,7 @@ public class TabDataGridViewModel : BaseTabContent
 
     public ColumnAlignment GetFieldAlignment(Type fieldType)
     {
-        return fieldType.FullName.ToLower() switch
+        return fieldType.FullName?.ToLowerInvariant() switch
         {
             "system.boolean" or
             "system.byte" or

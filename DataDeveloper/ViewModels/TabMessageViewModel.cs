@@ -17,10 +17,10 @@ public class TabMessageViewModel : BaseTabContent
         : base(TabType.Message, name, canClose, serviceProvider)
     {
         _filterId = filterId;
-        _eventAggregatorService = ServiceProvider.GetService<IEventAggregatorService>();
+        _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         _eventAggregatorService.Subscribe<ShowResultMessageEvent>(this, DisplayMessage, msg => msg.Id == _filterId);
     }
-    [Reactive] public string Message { get; set; }
+    [Reactive] public string Message { get; set; } = string.Empty;
 
     private void DisplayMessage(ShowResultMessageEvent message)
     {

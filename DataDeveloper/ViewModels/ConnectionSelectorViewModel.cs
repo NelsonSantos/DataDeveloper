@@ -43,7 +43,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Server = "",
                 Database = "",
                 User = "",
-                Password = ""
+                Password = "",
+                Encrypt = true,
+                TrustServerCertificate = false
             };
             Connections.Add(newConn);
             SelectedConnection = newConn;
@@ -80,6 +82,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     private void DuplicateConnection()
     {
+        if (SelectedConnection is null)
+            return;
+
         var duplicate = SelectedConnection.DatabaseType switch
         {
             DatabaseType.SqlServer => SelectedConnection.Map<SqlServerConnectionSettings>(),
@@ -95,6 +100,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     private async Task TestConnection(StyledElement element)
     {
+        if (SelectedConnection is null)
+            return;
+
         var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
         var result = databaseProvider.TestConnection();
         await this.ShowDialogAsync(
@@ -122,7 +130,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         if (result == ButtonResult.Yes)
         {
-            Connections.Remove(connectionModel);
+            if (connectionModel is not null)
+                Connections.Remove(connectionModel);
             SaveConnection(Guid.Empty);
         }
     }

@@ -27,7 +27,7 @@ public class TabConnectionViewModel : BaseTabContent
     {
         ConnectionSettings = connectionSettings;    
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
-        _dialogService = ServiceProvider.GetService<IDialogService>();
+        _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         
         this.Initialization = LoadConnection();
 
@@ -50,7 +50,7 @@ public class TabConnectionViewModel : BaseTabContent
 
     public async Task<bool> SaveChanges(TabQueryEditorViewModel tabQueryEditor, bool isSaveAs = false)
     {
-        var filePath = "";
+        string? filePath;
         if (isSaveAs || tabQueryEditor.File.IsNullOrEmpty())
         {
             var fileName = $"{tabQueryEditor.Name}{(tabQueryEditor.Name.EndsWith("sql", StringComparison.OrdinalIgnoreCase) ? "" : ".sql")}";
@@ -64,7 +64,7 @@ public class TabConnectionViewModel : BaseTabContent
         {
             filePath = tabQueryEditor.File;
         }
-        await File.WriteAllTextAsync(filePath, tabQueryEditor.SqlStatement);
+        await File.WriteAllTextAsync(filePath!, tabQueryEditor.SqlStatement);
         tabQueryEditor.File = filePath;
         tabQueryEditor.TextWasChanged = false;
         return true;
@@ -129,10 +129,31 @@ public class TabConnectionViewModel : BaseTabContent
 
     private async Task LoadConnection()
     {
-        await SchemaExplorer.InitializeSchemaNode();
-        
-        RootConnections.Clear();
-        RootConnections.Add(SchemaExplorer.RootConnections);
+        try
+        {
+            await SchemaExplorer.InitializeSchemaNode();
+            
+            RootConnections.Clear();
+            RootConnections.Add(SchemaExplorer.RootConnections);
+        }
+        catch (Exception ex)
+        {
+            RootConnections.Clear();
+            await _dialogService.ShowMessageAsync(BuildConnectionErrorMessage(ex), "Connection error");
+        }
+    }
+
+    private string BuildConnectionErrorMessage(Exception ex)
+    {
+        if (ex.Message.Contains("Certificate failed chain validation", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("Certificate name mismatch", StringComparison.OrdinalIgnoreCase))
+        {
+            return "TLS validation failed for this SQL Server connection.\n\n" +
+                   "If this is a legacy/local server that uses an untrusted certificate, edit the connection and enable 'Trust server certificate'.\n\n" +
+                   ex.Message;
+        }
+
+        return ex.Message;
     }
     
     public IConnectionSettings ConnectionSettings { get; }

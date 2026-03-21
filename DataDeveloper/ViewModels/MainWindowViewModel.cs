@@ -26,9 +26,9 @@ public class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _connectionDialogService = _serviceProvider.GetService<IConnectionDialogService>();
-        _eventAggregatorService = _serviceProvider.GetService<IEventAggregatorService>();
-        _dialogService = _serviceProvider.GetService<IDialogService>();
+        _connectionDialogService = _serviceProvider.GetRequiredService<IConnectionDialogService>();
+        _eventAggregatorService = _serviceProvider.GetRequiredService<IEventAggregatorService>();
+        _dialogService = _serviceProvider.GetRequiredService<IDialogService>();
         
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
 
@@ -138,7 +138,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void NewWindow()
     {
-        var newWindow = (MainWindow)_serviceProvider.CreateScope().ServiceProvider.GetService<IMainWindow>();
+        var newWindow = (MainWindow)_serviceProvider.CreateScope().ServiceProvider.GetRequiredService<IMainWindow>();
         newWindow.Show();
     }
 

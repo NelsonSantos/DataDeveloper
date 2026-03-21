@@ -6,7 +6,7 @@ namespace DataDeveloper.Data.Services;
 
 public class DatabaseProviderFactoryService
 {
-    public IDatabaseProvider? GetDatabaseProvider(IConnectionSettings connectionSettings)
+    public IDatabaseProvider GetDatabaseProvider(IConnectionSettings connectionSettings)
     {
         return connectionSettings.DatabaseType switch
         {
@@ -15,13 +15,13 @@ public class DatabaseProviderFactoryService
         };
     }
 
-    public ISchemaExplorer? GetSchemaExplorer(IConnectionSettings connectionSettings)
+    public ISchemaExplorer GetSchemaExplorer(IConnectionSettings connectionSettings)
     {
         var provider = GetDatabaseProvider(connectionSettings);
         return new SchemaExplorer(provider, connectionSettings);
     }
 
-    public IStatementExecutor? GetStatementExecutor(IConnectionSettings connectionSettings)
+    public IStatementExecutor GetStatementExecutor(IConnectionSettings connectionSettings)
     {
         return new StatementExecutor(connectionSettings);
     }

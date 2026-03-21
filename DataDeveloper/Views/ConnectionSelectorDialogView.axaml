@@ -101,7 +101,24 @@
                              IsEnabled="{Binding IsEditing}"
                              IsReadOnly="{Binding !IsEditing}"
                              PasswordChar="*" />
-                </Grid>           
+                </Grid>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                    <CheckBox Grid.Column="0"
+                              Content="Encrypt connection"
+                              IsChecked="{Binding SelectedConnection.Encrypt, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}" />
+                    <CheckBox Grid.Column="1"
+                              Content="Trust server certificate"
+                              IsChecked="{Binding SelectedConnection.TrustServerCertificate, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}" />
+                </Grid>
+
+                <TextBlock Text="Use 'Trust server certificate' only when the SQL Server certificate is not trusted on this machine."
+                           FontSize="11"
+                           Foreground="DarkGoldenrod"
+                           TextWrapping="Wrap" />
+
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Button  
                         Content="Test Connection" 

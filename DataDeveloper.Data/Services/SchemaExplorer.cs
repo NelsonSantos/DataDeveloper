@@ -17,7 +17,7 @@ public class SchemaExplorer : ISchemaExplorer
     }
 
     public IConnectionSettings ConnectionSettings { get; }
-    public ObservableCollection<SchemaNode> RootConnections { get; private set; }
+    public ObservableCollection<SchemaNode> RootConnections { get; private set; } = new();
     public async Task InitializeSchemaNode()
     {
         var connection = new SchemaNode(NodeType.Connection, ConnectionSettings.Name, isFolder: true, parent: null);

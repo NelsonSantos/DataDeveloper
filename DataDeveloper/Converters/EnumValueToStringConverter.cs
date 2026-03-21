@@ -8,9 +8,8 @@ public class EnumValueToResourceConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        // var uri = $"avares://DataDeveloper/Assets/Svg/{value?.ToString().ToLower()}.svg";
-        // return new Uri(uri);
-        var result = $"/Assets/Svg/{value?.ToString().ToLower()}.svg";
+        var valueText = value?.ToString()?.ToLowerInvariant() ?? string.Empty;
+        var result = $"/Assets/Svg/{valueText}.svg";
         return result;
     }
 

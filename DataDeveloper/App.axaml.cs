@@ -50,7 +50,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = (MainWindow)ServiceProvider.GetService<IMainWindow>();
+            desktop.MainWindow = (MainWindow)ServiceProvider.GetRequiredService<IMainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();

@@ -11,7 +11,7 @@ public class ViewResolverService : IViewResolverService
 {
     private readonly IServiceCollection _services;
     private readonly Dictionary<Type, Type> _map = new();
-    private IServiceProvider _provider;
+    private IServiceProvider? _provider;
     public ViewResolverService(IServiceCollection services)
     {
         _services = services;
@@ -34,12 +34,13 @@ public class ViewResolverService : IViewResolverService
         var vmType = viewModel.GetType();
         if (_map.TryGetValue(vmType, out var viewType))
         {
-            var view = (Control)_provider.GetService(viewType);
+            var view = (Control)(_provider?.GetRequiredService(viewType)
+                                 ?? throw new InvalidOperationException("View service provider is not configured."));
             view.DataContext = viewModel;
             return view;
         }
 
-        return null; //throw new InvalidOperationException($"There are no registered view for type {vmType.FullName}");
+        throw new InvalidOperationException($"There are no registered view for type {vmType.FullName}");
     }
 
     public Control ResolveByType<TType>()
@@ -52,10 +53,11 @@ public class ViewResolverService : IViewResolverService
         foreach (var pair in _map)
         {
             if (pair.Value != viewType) continue;
-            var model = _provider.GetService(pair.Key);
+            var model = _provider?.GetRequiredService(pair.Key)
+                        ?? throw new InvalidOperationException("View service provider is not configured.");
             return ResolveByModel(model);
         }
 
-        return null;
+        throw new InvalidOperationException($"There are no registered view for type {viewType.FullName}");
     }
 }

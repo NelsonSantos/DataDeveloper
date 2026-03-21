@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,23 +20,23 @@ namespace DataDeveloper.ViewModels;
 
 public class TabQueryEditorViewModel : BaseTabContent
 {
-    private string _queryText;
-    private IEventAggregatorService _eventAggregatorService;
-    private readonly Dictionary<string, int> _cachePages = new Dictionary<string, int>();
+    private readonly IEventAggregatorService _eventAggregatorService;
+    private readonly Dictionary<string, int> _cachePages = new();
     
-    public event EventHandler<int> ShowResultTool; 
+    public event EventHandler<int>? ShowResultTool; 
 
     public TabQueryEditorViewModel(IConnectionSettings connectionSettings, string name, string? file, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.QueryEditor, name, canClose, serviceProvider)
     {
-        _eventAggregatorService = this.ServiceProvider.GetService<IEventAggregatorService>();    
+        _eventAggregatorService = this.ServiceProvider.GetRequiredService<IEventAggregatorService>();    
         
         ConnectionSettings = connectionSettings;
         File = file;
 
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
-        CloseTabResultCommand = ReactiveCommand.Create<BaseTabContent>(CloseTabResult);
+        CloseTabResultCommand = ReactiveCommand.CreateFromTask<BaseTabContent>(CloseTabResult);
+        ShowResultCommand = ReactiveCommand.Create(() => { });
 
         Tabs.Add(new TabMessageViewModel("Message", false, filterId: this.Id, this.ServiceProvider));
 
@@ -61,15 +60,18 @@ public class TabQueryEditorViewModel : BaseTabContent
         _eventAggregatorService.Publish(new ShowCursorDataEvent(this.CursorOffSet, this.CursorLine, this.CursorColumn));
     }
 
-    private void CloseTabResult(BaseTabContent tabModel)
+    private async Task CloseTabResult(BaseTabContent tabModel)
     {
+        if (tabModel is TabDataGridViewModel dataGridTab && !dataGridTab.IsClosed)
+            await dataGridTab.CloseDataReader();
+
         Tabs.Remove(tabModel);
     }
 
     public IConnectionSettings ConnectionSettings { get; }
     [Reactive] public string? File { get; set; }
-    [Reactive] public string SqlStatement { get; set; }
-    [Reactive] public string SelectedStatement { get; set; }
+    [Reactive] public string SqlStatement { get; set; } = string.Empty;
+    [Reactive] public string SelectedStatement { get; set; } = string.Empty;
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
     [Reactive] public int CursorColumn { get; set; }
@@ -119,7 +121,9 @@ public class TabQueryEditorViewModel : BaseTabContent
             {
                 for (var i = (Tabs.Count - 1); i > 0; i--)
                 {
-                    var tab = Tabs[i] as TabDataGridViewModel;
+                    if (Tabs[i] is not TabDataGridViewModel tab)
+                        continue;
+
                     await tab.CloseDataReader();
                     Tabs.RemoveAt(i);
                 }
@@ -154,6 +158,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                     else
                     {
                         resultMessage.AppendLine($"{statementResult.DataReader.RecordsAffected} record(s) affected for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
+                        await statementResult.CloseDataReader();
                     }
                     statementResult.Watcher.Stop();
                 }
@@ -173,4 +178,3 @@ public class TabQueryEditorViewModel : BaseTabContent
         }
     }
 }
-

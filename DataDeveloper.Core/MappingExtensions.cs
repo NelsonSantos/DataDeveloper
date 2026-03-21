@@ -26,7 +26,7 @@ public static class MappingExtensions
         return convertObjToJson;
     }
 
-    private static T DeserializerJsonToObject<T>(string obj, JsonSerializerOptions? serializerOptions = null)
+    private static T? DeserializerJsonToObject<T>(string obj, JsonSerializerOptions? serializerOptions = null)
     {
         var convertJsonToObj = JsonSerializer.Deserialize<T>(obj, serializerOptions ?? GetJsonSerializerOptions());
         return convertJsonToObj;
@@ -68,16 +68,16 @@ public static class MappingExtensions
     //     }
     // }
 
-    public static T Map<T>(this object value, params object[] extraValues)
+    public static T? Map<T>(this object value, params object[] extraValues)
     {
         return Map<T>(value, null, extraValues);
     }
 
-    public static T Map<T>(this object value, JsonSerializerOptions? serializerOptions, params object[] extraValues)
+    public static T? Map<T>(this object value, JsonSerializerOptions? serializerOptions, params object[] extraValues)
     {
         try
         {
-            var response = default(T);
+            T? response = default;
             
             if (value == null) return response;
             
@@ -89,15 +89,17 @@ public static class MappingExtensions
                 {
 
                     var extraValuesJson = extraValues.Select(eo => eo == null ? "{}" : SerializerObjectToJson(eo, serializerOptions));
-                    var extraValuesDictionary = extraValuesJson.SelectMany(eoj => DeserializerJsonToObject<Dictionary<string, object>>(eoj, serializerOptions));
-                    var finalDictionary = DeserializerJsonToObject<Dictionary<string, object>>(convertToJson, serializerOptions);
+                    var extraValuesDictionary = extraValuesJson
+                        .Select(eoj => DeserializerJsonToObject<Dictionary<string, object>>(eoj, serializerOptions) ?? new Dictionary<string, object>())
+                        .SelectMany(dictionary => dictionary);
+                    var finalDictionary = DeserializerJsonToObject<Dictionary<string, object>>(convertToJson, serializerOptions) ?? new Dictionary<string, object>();
 
                     foreach (var keyValuePair in extraValuesDictionary)
                     {
-                        var added = finalDictionary.TryAdd(keyValuePair.Key, keyValuePair.Value);
+                        finalDictionary.TryAdd(keyValuePair.Key, keyValuePair.Value);
                     }
 
-                    return Map<T>(finalDictionary, serializerOptions, null);
+                    return Map<T>(finalDictionary, serializerOptions, Array.Empty<object>());
                 }
             }
 
@@ -110,7 +112,7 @@ public static class MappingExtensions
         }
         catch (InvalidCastException)
         {
-            return default(T);
+            return default;
         }
     }  
 }

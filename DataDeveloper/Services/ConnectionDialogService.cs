@@ -21,10 +21,10 @@ public class ConnectionDialogService : IConnectionDialogService
 
     public async Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow)
     {
-        var model = _serviceProvider.GetService<ConnectionSelectorViewModel>();
-        var dialog = _viewLocator.Build(model) as Window;
+        var model = _serviceProvider.GetRequiredService<ConnectionSelectorViewModel>();
+        var dialog = _viewLocator.Build(model) as Window
+                     ?? throw new InvalidOperationException("Connection dialog view could not be resolved.");
 
-        // Show the dialog modally
         var result = await dialog.ShowDialog<IConnectionSettings>(parentWindow);
 
         return result;
