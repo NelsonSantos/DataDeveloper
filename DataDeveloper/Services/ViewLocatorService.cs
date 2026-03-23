@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using DataDeveloper.Core;
 using DataDeveloper.Interfaces;
-using ReactiveUI;
 
 namespace DataDeveloper.Services;
 
@@ -24,6 +24,6 @@ public class ViewLocatorService : IDataTemplate
 
     public bool Match(object? data)
     {
-        return data is ReactiveObject;
+        return data is ViewModelBase;
     }
 }

@@ -8,12 +8,6 @@
     <TrimMode>copyused</TrimMode>
     <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <VersionPrefix>1.$([System.DateTime]::UtcNow.ToString(yyyy.MMdd))</VersionPrefix>
-    <VersionSuffix>$(VersionPrefix).$([System.DateTime]::UtcNow.ToString(mmss))</VersionSuffix>
-    <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</AssemblyVersion>
-    <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</AssemblyVersion>
-    <Version Condition=" '$(VersionSuffix)' == '' ">0.0.0.1</Version>
-    <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionSuffix)</Version>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <ApplicationIcon>Assets/Icons/AppIcon.ico</ApplicationIcon>
   </PropertyGroup>

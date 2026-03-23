@@ -5,8 +5,16 @@
              xmlns:views="clr-namespace:DataDeveloper.Views"
              xmlns:converters="clr-namespace:DataDeveloper.Converters"
              x:Class="DataDeveloper.App"
+             Name="Data Developer"
              RequestedThemeVariant="Dark"
              >
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About Data Developer" Click="OnAboutMenuClick" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Quit Data Developer" Click="OnQuitMenuClick" />
+        </NativeMenu>
+    </NativeMenu.Menu>
     <Application.Resources>
         <ResourceDictionary>
 

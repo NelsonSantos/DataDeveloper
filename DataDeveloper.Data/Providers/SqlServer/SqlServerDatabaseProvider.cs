@@ -44,8 +44,6 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
         sb.AppendLine("            THEN CAST(c.max_length / 2 AS VARCHAR)");
         sb.AppendLine("        WHEN t.name IN ('varchar', 'char', 'varbinary') AND c.max_length > 0 ");
         sb.AppendLine("            THEN CAST(c.max_length AS VARCHAR)");
-        sb.AppendLine("        WHEN c.max_length = -1 ");
-        sb.AppendLine("            THEN 'MAX'");
         sb.AppendLine("        ELSE CAST(c.max_length AS VARCHAR)");
         sb.AppendLine("    END AS Length,");
         sb.AppendLine("    c.precision AS Precision,");

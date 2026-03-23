@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using DataDeveloper.Core;
@@ -10,6 +13,9 @@ using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
 using Microsoft.Extensions.DependencyInjection;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
 using TabConnectionViewModel = DataDeveloper.ViewModels.TabConnectionViewModel;
 
 namespace DataDeveloper;
@@ -17,6 +23,7 @@ namespace DataDeveloper;
 public partial class App : Application
 {
     public IServiceProvider ServiceProvider { get; private set; } = null!;
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -74,5 +81,41 @@ public partial class App : Application
         resolver.Register<TabDataGridViewModel, TabDataGridView>();
         resolver.Register<TabMessageViewModel, TabMessageView>();
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
+    }
+
+    private async void OnAboutMenuClick(object? sender, EventArgs e)
+    {
+        var window = GetOwnerWindow();
+        var version = typeof(App).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?
+            .Split('+')[0]
+            ?? typeof(App).Assembly.GetName().Version?.ToString()
+            ?? "unknown";
+
+        await MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
+        {
+            ContentTitle = "About Data Developer",
+            ContentMessage = $"Data Developer\nVersion {version}",
+            ButtonDefinitions = ButtonEnum.Ok,
+            Icon = Icon.Info,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        }).ShowAsPopupAsync(window);
+    }
+
+    private void OnQuitMenuClick(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
+    }
+
+    private Window GetOwnerWindow()
+    {
+        var window = ApplicationLifetime switch
+        {
+            IClassicDesktopStyleApplicationLifetime desktop => desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow,
+            _ => null
+        };
+
+        return window ?? throw new InvalidOperationException("Failed to capture owner window.");
     }
 }
