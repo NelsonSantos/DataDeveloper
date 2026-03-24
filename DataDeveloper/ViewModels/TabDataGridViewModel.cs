@@ -73,7 +73,8 @@ public class TabDataGridViewModel : BaseTabContent
             
             var values = new object[StatementResult.DataReader.FieldCount];
             StatementResult.DataReader.GetValues(values);
-            this.Rows.Add(new RowValues(RowNumber, values));
+            var row = new RowValues(RowNumber, values);
+            this.Rows.Add(row);
             
             if (itemsPerPage > 0 && countRecords == itemsPerPage)
             {

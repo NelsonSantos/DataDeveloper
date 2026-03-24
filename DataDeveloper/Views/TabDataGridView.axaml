@@ -63,6 +63,7 @@
                   FontFamily="Consolas"
                   FontSize="12"
                   SelectionMode="Extended"
+                  ClipboardCopyMode="ExcludeHeader"
                   CanUserResizeColumns="True"
                   CanUserSortColumns="True"
         />

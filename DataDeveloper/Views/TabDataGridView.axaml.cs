@@ -3,7 +3,6 @@ using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using DataDeveloper.DataGrid;
 using DataDeveloper.Models;
@@ -20,10 +19,30 @@ public partial class TabDataGridView : UserControl
         DataGrid1.CopyingRowClipboardContent += DataGrid1OnCopyingRowClipboardContent;
     }
 
-
     private void DataGrid1OnCopyingRowClipboardContent(object? sender, DataGridRowClipboardEventArgs e)
     {
-        e.ClipboardRowContent.RemoveAll(cell => cell.Column.DisplayIndex == 0);
+        e.ClipboardRowContent.Clear();
+
+        if (e.IsColumnHeadersRow)
+        {
+            for (var columnIndex = 1; columnIndex < DataGrid1.Columns.Count; columnIndex++)
+            {
+                var column = DataGrid1.Columns[columnIndex];
+                e.ClipboardRowContent.Add(new DataGridClipboardCellContent(e.Item, column, column.Header?.ToString() ?? string.Empty));
+            }
+
+            return;
+        }
+
+        if (e.Item is not RowValues row)
+            return;
+
+        for (var columnIndex = 1; columnIndex < DataGrid1.Columns.Count; columnIndex++)
+        {
+            var column = DataGrid1.Columns[columnIndex];
+            var value = row.GetValueAt(columnIndex - 1);
+            e.ClipboardRowContent.Add(new DataGridClipboardCellContent(e.Item, column, value?.ToString() ?? "null"));
+        }
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -33,28 +52,26 @@ public partial class TabDataGridView : UserControl
 
         _model = this.DataContext as TabDataGridViewModel;
         if (_model != null)
-        {
             _model.Headers.CollectionChanged += HeadersOnCollectionChanged;
-        }
+
         base.OnDataContextChanged(e);
     }
 
     private void HeadersOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        var column = default(DataGridTemplateColumn);
+        DataGridTemplateColumn? column;
         if (e.Action == NotifyCollectionChangedAction.Reset)
         {
             DataGrid1.Columns.Clear();
-            column = new DataGridTemplateColumn()
+            column = new DataGridTemplateColumn
             {
                 Header = "",
                 CellTemplate = new FuncDataTemplate<object>((item, _) =>
                 {
-                    return new TextBlock()
+                    return new TextBlock
                     {
                         [!TextBlock.TextProperty] = new Avalonia.Data.Binding(nameof(RowValues.RowNumber)),
                     };
-                    
                 }, true),
                 IsReadOnly = true,
                 Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
@@ -68,12 +85,13 @@ public partial class TabDataGridView : UserControl
 
             foreach (ColumnHeader columnHeader in e.NewItems)
             {
-                column = new DataGridTemplateColumn()
+                var dataColumnIndex = DataGrid1.Columns.Count - 1;
+                column = new DataGridTemplateColumn
                 {
                     Header = columnHeader.Name,
                     CellTemplate = new FuncDataTemplate<RowValues>((item, _) =>
                     {
-                        var value = item?.Value;
+                        var value = item?.GetValueAt(dataColumnIndex);
                         var cell = new RenderCell();
                         cell.SetValue(RenderCell.HeaderProperty, columnHeader.Name);
                         cell.SetValue(RenderCell.TextProperty, value?.ToString() ?? "null");
@@ -82,11 +100,11 @@ public partial class TabDataGridView : UserControl
                         if (fontFamily is not null)
                             cell.SetValue(RenderCell.FontFamilyProperty, fontFamily);
                         return cell;
-                    },  true),
+                    }, true),
                     Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
                 };
                 DataGrid1.Columns.Add(column);
-            }            
+            }
         }
     }
 }
