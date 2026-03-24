@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace DataDeveloper.Models;
 
 public class RowValues
@@ -12,6 +14,15 @@ public class RowValues
     
     public int RowNumber { get; }
     public int CurrentIndex => _index;
+    public IReadOnlyList<object?> Values => _values;
+
+    public object? GetValueAt(int index)
+    {
+        return index >= 0 && index < _values.Length
+            ? _values[index]
+            : null;
+    }
+
     public object? Value{
         get
         {

@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Skia" Version="11.3.0" />
+        <PackageReference Include="Avalonia.Skia" Version="11.3.12" />
         <PackageReference Include="System.Resources.Extensions" Version="9.0.5" />
-        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
     </ItemGroup>
     
 </Project>
