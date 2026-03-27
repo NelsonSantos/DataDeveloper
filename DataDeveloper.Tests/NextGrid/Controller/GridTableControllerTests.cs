@@ -192,4 +192,22 @@ public sealed class GridTableControllerTests
         Assert.Equal(0, range.Start);
         Assert.True(range.EndExclusive >= 10);
     }
+
+    [Fact]
+    public void ExtendFocus_WithPageDown_ExtendsSelectionByVisibleRows()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        var selection = new GridSelectionModel();
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), selection);
+        controller.SetDimensions(100, 3);
+        controller.UpdateViewport(new GridViewportState(0, 0, 320, 174, 40, 34, 28));
+        selection.SelectCell(new GridCellAddress(0, 1));
+
+        var result = controller.ExtendFocus(GridNavigationDirection.PageDown, 5);
+
+        Assert.Equal(new GridCellAddress(5, 1), result.Cell);
+        Assert.True(selection.Contains(new GridCellAddress(0, 1)));
+        Assert.True(selection.Contains(new GridCellAddress(5, 1)));
+    }
 }

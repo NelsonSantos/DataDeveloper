@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using DataDeveloper.NextGrid.Clipboard;
 using DataDeveloper.NextGrid.Renderers;
 
 namespace DataDeveloper.NextGrid.UI;
@@ -21,6 +22,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private readonly GridColumnLayoutEngine _columnLayout = new(DefaultColumnWidth);
     private readonly GridTableController _tableController;
     private readonly GridRendererRegistry _rendererRegistry = new();
+    private readonly NextGridClipboardBuilder _clipboardBuilder;
     private readonly Typeface _typeface = new("Consolas");
     private readonly Pen _borderPen = new(Brushes.Gray, 1);
     private readonly IBrush _headerBrush = Brushes.LightGray;
@@ -37,6 +39,8 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private double _resizeAnchorX;
     private double _resizeOriginalWidth;
     private double _lastMeasuredRowHeaderWidth = 44;
+    private bool _isSelecting;
+    private GridRegionKind _selectionOriginRegion;
 
     private ObservableCollection<string>? _headersSubscription;
     private ObservableCollection<Type>? _typesSubscription;
@@ -112,6 +116,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var viewportEngine = new GridViewportEngine(_columnLayout);
         var selection = new GridSelectionModel();
         _tableController = new GridTableController(_columnLayout, layoutEngine, viewportEngine, selection);
+        _clipboardBuilder = new NextGridClipboardBuilder(_rendererRegistry);
         _rowRenderCache = new RowRenderCache(_typeface, _textBrush, GridRendererContext.Default);
         Focusable = true;
         PropertyChanged += OnControlPropertyChanged;
@@ -262,37 +267,88 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         }
 
         var hit = _tableController.HitTest(point.X, point.Y);
+        if (hit.Region == GridRegionKind.CornerHeader)
+        {
+            _tableController.Selection.SelectAll(Rows.Count, Headers.Count);
+            Focus();
+            InvalidateVisual();
+            return;
+        }
+
         _tableController.HandlePointerSelection(hit, e.KeyModifiers);
+        if (hit.Region is GridRegionKind.Cell or GridRegionKind.RowHeader or GridRegionKind.ColumnHeader)
+        {
+            _isSelecting = true;
+            _selectionOriginRegion = hit.Region;
+            e.Pointer.Capture(this);
+        }
+
         Focus();
         InvalidateVisual();
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_resizingColumnIndex is null)
-            return;
-
         var point = e.GetPosition(this);
-        var width = _resizeOriginalWidth + (point.X - _resizeAnchorX);
-        if (_columnLayout.SetWidth(_resizingColumnIndex.Value, width))
+        if (_resizingColumnIndex is not null)
         {
-            _rowRenderCache.InvalidateColumn(_resizingColumnIndex.Value);
-            RaiseScrollInvalidated(EventArgs.Empty);
-            InvalidateMeasure();
-            InvalidateVisual();
+            var width = _resizeOriginalWidth + (point.X - _resizeAnchorX);
+            if (_columnLayout.SetWidth(_resizingColumnIndex.Value, width))
+            {
+                _rowRenderCache.InvalidateColumn(_resizingColumnIndex.Value);
+                RaiseScrollInvalidated(EventArgs.Empty);
+                InvalidateMeasure();
+                InvalidateVisual();
+            }
+
+            e.Handled = true;
+            return;
         }
 
+        if (!_isSelecting)
+            return;
+
+        _tableController.SetDimensions(Rows.Count, Headers.Count);
+        UpdateControllerViewport();
+        var hit = _tableController.HitTest(point.X, point.Y);
+
+        switch (_selectionOriginRegion)
+        {
+            case GridRegionKind.Cell when hit.Region == GridRegionKind.Cell && hit.RowIndex >= 0 && hit.ColumnIndex >= 0:
+                _tableController.Selection.ExtendToCell(new GridCellAddress(hit.RowIndex, hit.ColumnIndex));
+                break;
+            case GridRegionKind.RowHeader when hit.RowIndex >= 0:
+                _tableController.Selection.ExtendToRow(hit.RowIndex, Headers.Count);
+                break;
+            case GridRegionKind.ColumnHeader when hit.ColumnIndex >= 0:
+                _tableController.Selection.ExtendToColumn(hit.ColumnIndex, Rows.Count);
+                break;
+            default:
+                return;
+        }
+
+        InvalidateVisual();
         e.Handled = true;
     }
 
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (_resizingColumnIndex is null)
+        if (_resizingColumnIndex is not null)
+        {
+            _resizingColumnIndex = null;
+            e.Pointer.Capture(null);
+            e.Handled = true;
             return;
+        }
 
-        _resizingColumnIndex = null;
-        e.Pointer.Capture(null);
-        e.Handled = true;
+        if (_isSelecting)
+        {
+            _isSelecting = false;
+            _selectionOriginRegion = GridRegionKind.None;
+            e.Pointer.Capture(null);
+            InvalidateVisual();
+            e.Handled = true;
+        }
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -313,6 +369,14 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             _ => (GridNavigationDirection?)null
         };
 
+        if (e.Key == Key.C &&
+            (e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta)))
+        {
+            CopySelectionToClipboard();
+            e.Handled = true;
+            return;
+        }
+
         if (direction is null)
             return;
 
@@ -321,10 +385,28 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var step = direction is GridNavigationDirection.PageUp or GridNavigationDirection.PageDown
             ? Math.Max(1, _tableController.VisibleRowCount)
             : 1;
-        var result = _tableController.MoveFocus(direction.Value, step);
+        var result = e.KeyModifiers.HasFlag(KeyModifiers.Shift)
+            ? _tableController.ExtendFocus(direction.Value, step)
+            : _tableController.MoveFocus(direction.Value, step);
         Offset = ToScrollViewerOffset(result.HorizontalOffset, result.VerticalOffset);
         InvalidateVisual();
         e.Handled = true;
+    }
+
+    private async void CopySelectionToClipboard()
+    {
+        if (_tableController.Selection.Ranges.Count == 0)
+            return;
+
+        var text = _clipboardBuilder.Build(_tableController.Selection.Ranges, Rows, ColumnTypes);
+        if (string.IsNullOrEmpty(text))
+            return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is null)
+            return;
+
+        await topLevel.Clipboard.SetTextAsync(text);
     }
 
     private void DrawHeaders(DrawingContext context, GridVisibleRange range)
@@ -625,6 +707,21 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         _tableController.SetDimensions(Rows.Count, Headers.Count);
         UpdateControllerViewport();
         return _tableController.HitTest(point.X, point.Y);
+    }
+
+    internal void DragSelectCellsForTest(GridCellAddress start, GridCellAddress end)
+    {
+        _tableController.SetDimensions(Rows.Count, Headers.Count);
+        UpdateControllerViewport();
+        _tableController.Selection.SelectCell(start);
+        _tableController.Selection.ExtendToCell(end);
+    }
+
+    internal bool SelectionContainsForTest(GridCellAddress cell)
+    {
+        _tableController.SetDimensions(Rows.Count, Headers.Count);
+        UpdateControllerViewport();
+        return _tableController.Selection.Contains(cell);
     }
 
     internal void SetScrollBarReserve(double horizontalReserve, double verticalReserve)

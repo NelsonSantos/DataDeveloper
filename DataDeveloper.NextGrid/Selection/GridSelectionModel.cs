@@ -55,6 +55,17 @@ public sealed class GridSelectionModel
             new GridCellAddress(Math.Max(startRowIndex, endRowIndex), columnCount - 1));
     }
 
+    public void SelectAll(int rowCount, int columnCount)
+    {
+        if (rowCount <= 0 || columnCount <= 0)
+        {
+            Clear();
+            return;
+        }
+
+        SelectRange(new GridCellAddress(0, 0), new GridCellAddress(rowCount - 1, columnCount - 1));
+    }
+
     public void ExtendToCell(GridCellAddress focus)
     {
         var anchor = AnchorCell ?? focus;

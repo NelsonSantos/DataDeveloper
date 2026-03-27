@@ -72,6 +72,24 @@ public sealed class NextGridControlUiTests
         window.Close();
     }
 
+    [AvaloniaFact]
+    public void DragSelection_CreatesRectangularRange()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 6);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        grid.DragSelectCellsForTest(new GridCellAddress(1, 1), new GridCellAddress(3, 4));
+
+        Assert.True(grid.SelectionContainsForTest(new GridCellAddress(1, 1)));
+        Assert.True(grid.SelectionContainsForTest(new GridCellAddress(2, 3)));
+        Assert.True(grid.SelectionContainsForTest(new GridCellAddress(3, 4)));
+        Assert.False(grid.SelectionContainsForTest(new GridCellAddress(0, 0)));
+        window.Close();
+    }
+
     private static NextGridControl CreateGrid(int rowCount, int columnCount)
     {
         var headers = new ObservableCollection<string>();

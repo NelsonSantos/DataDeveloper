@@ -86,4 +86,16 @@ public sealed class GridSelectionModelTests
         Assert.True(selection.Contains(new GridCellAddress(1, 3)));
         Assert.False(selection.Contains(new GridCellAddress(3, 2)));
     }
+
+    [Fact]
+    public void SelectAll_SelectsWholeGrid()
+    {
+        var selection = new GridSelectionModel();
+
+        selection.SelectAll(rowCount: 3, columnCount: 4);
+
+        Assert.True(selection.Contains(new GridCellAddress(0, 0)));
+        Assert.True(selection.Contains(new GridCellAddress(2, 3)));
+        Assert.False(selection.Contains(new GridCellAddress(3, 0)));
+    }
 }

@@ -201,6 +201,23 @@ public sealed class GridTableController
         return result;
     }
 
+    public GridNavigationResult ExtendFocus(GridNavigationDirection direction, int step)
+    {
+        var current = _selection.FocusCell ?? _selection.AnchorCell ?? new GridCellAddress(0, 0);
+        var nextCell = _navigationController.Navigate(
+            new GridNavigationRequest(current, direction, _rowCount, _columnCount, step));
+        var result = EnsureVisible(nextCell, direction);
+
+        _selection.ExtendToCell(result.Cell);
+        _viewport = _viewport with
+        {
+            HorizontalOffset = result.HorizontalOffset,
+            VerticalOffset = result.VerticalOffset
+        };
+
+        return result;
+    }
+
     public GridNavigationResult EnsureVisible(GridCellAddress cell, GridNavigationDirection? direction = null)
     {
         var movedLeft = direction == GridNavigationDirection.Left;

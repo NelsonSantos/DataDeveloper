@@ -80,6 +80,12 @@ public sealed class NextGridControl : UserControl
     internal GridHitTestResult HitTestAtLocalPointForTest(Point point) =>
         _presenter.HitTestAtLocalPointForTest(point);
 
+    internal void DragSelectCellsForTest(GridCellAddress start, GridCellAddress end) =>
+        _presenter.DragSelectCellsForTest(start, end);
+
+    internal bool SelectionContainsForTest(GridCellAddress cell) =>
+        _presenter.SelectionContainsForTest(cell);
+
     private void OnPresenterRequestBringIntoView(object? sender, RequestBringIntoViewEventArgs e)
     {
         if (ReferenceEquals(e.TargetObject, _presenter))
