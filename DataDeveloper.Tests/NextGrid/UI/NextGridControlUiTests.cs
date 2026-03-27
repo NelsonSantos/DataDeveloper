@@ -31,6 +31,25 @@ public sealed class NextGridControlUiTests
     }
 
     [AvaloniaFact]
+    public void FirstCellLocalHitTest_ReturnsFirstRow()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 4);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var cell = grid.GetCellBoundsForTest(0, 0);
+        var clickPoint = new Point(cell.X + Math.Min(12, cell.Width / 2), cell.Y + 1);
+        var hit = grid.HitTestAtLocalPointForTest(clickPoint);
+
+        Assert.Equal(GridRegionKind.Cell, hit.Region);
+        Assert.Equal(0, hit.RowIndex);
+        Assert.Equal(0, hit.ColumnIndex);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void Resize_RecomputesVisibleRowCount()
     {
         var grid = CreateGrid(rowCount: 200, columnCount: 4);

@@ -37,4 +37,37 @@ public sealed class GridNavigationControllerTests
 
         Assert.Equal(new GridCellAddress(99, 1), result);
     }
+
+    [Fact]
+    public void Navigate_PageDown_UsesStep()
+    {
+        var controller = new GridNavigationController();
+
+        var result = controller.Navigate(
+            new GridNavigationRequest(new GridCellAddress(10, 1), GridNavigationDirection.PageDown, 100, 3, 9));
+
+        Assert.Equal(new GridCellAddress(19, 1), result);
+    }
+
+    [Fact]
+    public void Navigate_Home_GoesToFirstColumn()
+    {
+        var controller = new GridNavigationController();
+
+        var result = controller.Navigate(
+            new GridNavigationRequest(new GridCellAddress(10, 3), GridNavigationDirection.Home, 100, 5));
+
+        Assert.Equal(new GridCellAddress(10, 0), result);
+    }
+
+    [Fact]
+    public void Navigate_End_GoesToLastColumn()
+    {
+        var controller = new GridNavigationController();
+
+        var result = controller.Navigate(
+            new GridNavigationRequest(new GridCellAddress(10, 1), GridNavigationDirection.End, 100, 5));
+
+        Assert.Equal(new GridCellAddress(10, 4), result);
+    }
 }

@@ -118,6 +118,24 @@ public sealed class GridTableControllerTests
     }
 
     [Fact]
+    public void HitTest_ReturnsFirstRowForPointNearTopOfFirstCell()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        columns.SetWidth(0, 120);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(20, 3);
+        controller.UpdateViewport(new GridViewportState(0, 0, 320, 200, 44, 34, 28));
+
+        var bounds = controller.GetCellBounds(0, 0);
+        var hit = controller.HitTest(bounds.X + 12, bounds.Y + 1);
+
+        Assert.Equal(GridRegionKind.Cell, hit.Region);
+        Assert.Equal(0, hit.RowIndex);
+        Assert.Equal(0, hit.ColumnIndex);
+    }
+
+    [Fact]
     public void EnsureVisible_ScrollsDownUsingVisibleRowCount()
     {
         var columns = new GridColumnLayoutEngine(100);
@@ -157,6 +175,21 @@ public sealed class GridTableControllerTests
         var range = controller.GetRowRenderRange();
 
         Assert.Equal(2, range.Start);
-        Assert.Equal(9, range.EndExclusive);
+        Assert.Equal(10, range.EndExclusive);
+    }
+
+    [Fact]
+    public void GetRowRenderRange_IncludesLastPartiallyVisibleRow()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(100, 3);
+        controller.UpdateViewport(new GridViewportState(0, 0, 320, 267, 44, 34, 28));
+
+        var range = controller.GetRowRenderRange();
+
+        Assert.Equal(0, range.Start);
+        Assert.True(range.EndExclusive >= 10);
     }
 }

@@ -60,13 +60,7 @@ public sealed class GridTableController
 
     public GridVisibleRange GetRowRenderRange(int overscan = 1)
     {
-        if (_rowCount <= 0)
-            return new GridVisibleRange(0, 0);
-
-        var start = Math.Max(0, TopRowIndex - Math.Max(0, overscan));
-        var visibleCount = Math.Max(1, VisibleRowCount);
-        var end = Math.Min(_rowCount, TopRowIndex + visibleCount + Math.Max(0, overscan));
-        return new GridVisibleRange(start, Math.Max(start, end));
+        return _viewportEngine.GetVisibleRows(_viewport, _rowCount, overscan);
     }
 
     public GridVisibleRange GetColumnRenderRange(int overscan = 1)
@@ -187,9 +181,14 @@ public sealed class GridTableController
 
     public GridNavigationResult MoveFocus(GridNavigationDirection direction)
     {
+        return MoveFocus(direction, 1);
+    }
+
+    public GridNavigationResult MoveFocus(GridNavigationDirection direction, int step)
+    {
         var current = _selection.FocusCell ?? new GridCellAddress(0, 0);
         var nextCell = _navigationController.Navigate(
-            new GridNavigationRequest(current, direction, _rowCount, _columnCount));
+            new GridNavigationRequest(current, direction, _rowCount, _columnCount, step));
         var result = EnsureVisible(nextCell, direction);
 
         _selection.SelectCell(result.Cell);

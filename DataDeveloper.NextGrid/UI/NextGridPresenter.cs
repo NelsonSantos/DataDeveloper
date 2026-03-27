@@ -27,7 +27,10 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private readonly IBrush _backgroundBrush = Brushes.White;
     private readonly IBrush _textBrush = Brushes.Black;
     private readonly IBrush _selectionBrush = Brushes.LightBlue;
+    private readonly RowRenderCache _rowRenderCache;
     private Vector _offset;
+    private double _horizontalScrollBarReserve;
+    private double _verticalScrollBarReserve;
     private bool _autoWidthPending = true;
     private readonly List<IGridCellRenderer?> _columnRenderers = [];
     private int? _resizingColumnIndex;
@@ -67,8 +70,8 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     }
 
     public Size Extent => new(
-        GetRowHeaderWidth() + _columnLayout.GetTotalWidth(),
-        HeaderHeight + (Rows.Count * RowHeight));
+        GetRowHeaderWidth() + _columnLayout.GetTotalWidth() + _verticalScrollBarReserve,
+        HeaderHeight + (Rows.Count * RowHeight) + _horizontalScrollBarReserve);
 
     public Vector Offset
     {
@@ -109,6 +112,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var viewportEngine = new GridViewportEngine(_columnLayout);
         var selection = new GridSelectionModel();
         _tableController = new GridTableController(_columnLayout, layoutEngine, viewportEngine, selection);
+        _rowRenderCache = new RowRenderCache(_typeface, _textBrush, GridRendererContext.Default);
         Focusable = true;
         PropertyChanged += OnControlPropertyChanged;
         PointerPressed += OnPointerPressed;
@@ -131,6 +135,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         var rowRange = _tableController.GetRowRenderRange();
         var columnRange = _tableController.GetColumnRenderRange();
+        _rowRenderCache.EnsureWindow(_tableController.TopRowIndex, Rows.Count, Headers.Count, Rows, ColumnTypes, GetColumnRenderer);
         var viewportInfo = new GridViewportInfo(
             rowRange,
             columnRange,
@@ -154,20 +159,21 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         if (!ReferenceEquals(target, this))
             return false;
 
-        var nextOffset = Offset;
+        var nextContentOffset = new Vector(GetContentOffsetX(), GetContentOffsetY());
         var contentViewportWidth = Math.Max(0, Viewport.Width - GetRowHeaderWidth());
         var contentViewportHeight = Math.Max(0, Viewport.Height - HeaderHeight);
 
-        if (targetRect.X < nextOffset.X)
-            nextOffset = new Vector(targetRect.X, nextOffset.Y);
-        else if (targetRect.Right > nextOffset.X + contentViewportWidth)
-            nextOffset = new Vector(targetRect.Right - contentViewportWidth, nextOffset.Y);
+        if (targetRect.X < nextContentOffset.X)
+            nextContentOffset = new Vector(targetRect.X, nextContentOffset.Y);
+        else if (targetRect.Right > nextContentOffset.X + contentViewportWidth)
+            nextContentOffset = new Vector(targetRect.Right - contentViewportWidth, nextContentOffset.Y);
 
-        if (targetRect.Y < nextOffset.Y)
-            nextOffset = new Vector(nextOffset.X, targetRect.Y);
-        else if (targetRect.Bottom > nextOffset.Y + contentViewportHeight)
-            nextOffset = new Vector(nextOffset.X, targetRect.Bottom - contentViewportHeight);
+        if (targetRect.Y < nextContentOffset.Y)
+            nextContentOffset = new Vector(nextContentOffset.X, targetRect.Y);
+        else if (targetRect.Bottom > nextContentOffset.Y + contentViewportHeight)
+            nextContentOffset = new Vector(nextContentOffset.X, targetRect.Bottom - contentViewportHeight);
 
+        var nextOffset = ToScrollViewerOffset(nextContentOffset.X, nextContentOffset.Y);
         var changed = nextOffset != Offset;
         Offset = nextOffset;
         return changed;
@@ -190,6 +196,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             ReplaceSubscription(ref _headersSubscription, Headers, OnCollectionChanged);
             _autoWidthPending = true;
             _columnRenderers.Clear();
+            _rowRenderCache.Clear();
         }
 
         if (e.Property == ColumnTypesProperty)
@@ -197,6 +204,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             ReplaceSubscription(ref _typesSubscription, ColumnTypes, OnCollectionChanged);
             _autoWidthPending = true;
             _columnRenderers.Clear();
+            _rowRenderCache.Clear();
         }
 
         if (e.Property == RowsProperty)
@@ -204,6 +212,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             ReplaceSubscription(ref _rowsSubscription, Rows, OnCollectionChanged);
             _autoWidthPending = true;
             _columnRenderers.Clear();
+            _rowRenderCache.Clear();
         }
 
         if (e.Property == BoundsProperty)
@@ -220,6 +229,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         {
             _autoWidthPending = true;
             _columnRenderers.Clear();
+            _rowRenderCache.Clear();
         }
 
         var rowHeaderWidthChanged = Math.Abs(GetRowHeaderWidth() - _lastMeasuredRowHeaderWidth) > 0.01d;
@@ -237,7 +247,6 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         if (Headers.Count == 0 || Rows.Count == 0)
             return;
 
-        Focus();
         var point = e.GetPosition(this);
         _tableController.SetDimensions(Rows.Count, Headers.Count);
         UpdateControllerViewport();
@@ -254,6 +263,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         var hit = _tableController.HitTest(point.X, point.Y);
         _tableController.HandlePointerSelection(hit, e.KeyModifiers);
+        Focus();
         InvalidateVisual();
     }
 
@@ -266,6 +276,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var width = _resizeOriginalWidth + (point.X - _resizeAnchorX);
         if (_columnLayout.SetWidth(_resizingColumnIndex.Value, width))
         {
+            _rowRenderCache.InvalidateColumn(_resizingColumnIndex.Value);
             RaiseScrollInvalidated(EventArgs.Empty);
             InvalidateMeasure();
             InvalidateVisual();
@@ -295,6 +306,10 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             Key.Down => GridNavigationDirection.Down,
             Key.Left => GridNavigationDirection.Left,
             Key.Right => GridNavigationDirection.Right,
+            Key.PageUp => GridNavigationDirection.PageUp,
+            Key.PageDown => GridNavigationDirection.PageDown,
+            Key.Home => GridNavigationDirection.Home,
+            Key.End => GridNavigationDirection.End,
             _ => (GridNavigationDirection?)null
         };
 
@@ -303,8 +318,11 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         _tableController.SetDimensions(Rows.Count, Headers.Count);
         UpdateControllerViewport();
-        var result = _tableController.MoveFocus(direction.Value);
-        Offset = new Vector(result.HorizontalOffset, result.VerticalOffset);
+        var step = direction is GridNavigationDirection.PageUp or GridNavigationDirection.PageDown
+            ? Math.Max(1, _tableController.VisibleRowCount)
+            : 1;
+        var result = _tableController.MoveFocus(direction.Value, step);
+        Offset = ToScrollViewerOffset(result.HorizontalOffset, result.VerticalOffset);
         InvalidateVisual();
         e.Handled = true;
     }
@@ -350,25 +368,71 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private void DrawCells(DrawingContext context, GridViewportInfo viewportInfo)
     {
         var rowHeaderWidth = _tableController.State.Viewport.RowHeaderWidth;
+        var verticalLines = new List<double>();
+        var horizontalLines = new List<double>();
+        double? maxVisibleRight = null;
+        double? maxVisibleBottom = null;
         var clip = new Rect(rowHeaderWidth, HeaderHeight, Math.Max(0, Bounds.Width - rowHeaderWidth), Math.Max(0, Bounds.Height - HeaderHeight));
         using (context.PushClip(clip))
         {
             for (var rowIndex = viewportInfo.Rows.Start; rowIndex < viewportInfo.Rows.EndExclusive; rowIndex++)
             {
                 var row = Rows[rowIndex];
+                var hasCachedRow = _rowRenderCache.TryGetRow(rowIndex, out var cachedRow);
+                GridCellBounds? firstBounds = null;
+                GridCellBounds? lastBounds = null;
 
                 for (var columnIndex = viewportInfo.Columns.Start; columnIndex < viewportInfo.Columns.EndExclusive; columnIndex++)
                 {
                     var bounds = _tableController.GetCellBounds(rowIndex, columnIndex);
+                    firstBounds ??= bounds;
+                    lastBounds = bounds;
+                    maxVisibleRight = Math.Max(maxVisibleRight ?? double.MinValue, bounds.X + bounds.Width);
+                    maxVisibleBottom = Math.Max(maxVisibleBottom ?? double.MinValue, bounds.Y + bounds.Height);
                     var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
                     var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, columnIndex)) ? _selectionBrush : _backgroundBrush;
-                    context.DrawRectangle(brush, _borderPen, rect);
+                    context.DrawRectangle(brush, null, rect);
+
+                    if (rowIndex == viewportInfo.Rows.Start)
+                        verticalLines.Add(bounds.X);
+                    if (columnIndex == viewportInfo.Columns.EndExclusive - 1)
+                        verticalLines.Add(bounds.X + bounds.Width);
+
+                    if (hasCachedRow && cachedRow is not null && columnIndex < cachedRow.Length && cachedRow[columnIndex] is not null)
+                    {
+                        DrawFormattedText(
+                            context,
+                            cachedRow[columnIndex].FormattedText,
+                            new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height),
+                            cachedRow[columnIndex].Alignment);
+                        continue;
+                    }
 
                     var value = columnIndex < row.Count ? row[columnIndex] : null;
                     var renderer = GetColumnRenderer(columnIndex, value);
                     var text = renderer.FormatValue(value, GridRendererContext.Default);
                     DrawText(context, text, new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), renderer.Alignment);
                 }
+
+                if (firstBounds.HasValue && lastBounds.HasValue)
+                {
+                    horizontalLines.Add(firstBounds.Value.Y);
+                    horizontalLines.Add(lastBounds.Value.Y + lastBounds.Value.Height);
+                }
+            }
+
+            var gridTop = HeaderHeight;
+            var gridBottom = Math.Max(gridTop, maxVisibleBottom ?? gridTop);
+            foreach (var x in verticalLines.Distinct().OrderBy(static v => v))
+            {
+                context.DrawLine(_borderPen, new Point(x, gridTop), new Point(x, gridBottom));
+            }
+
+            var gridLeft = rowHeaderWidth;
+            var gridRight = Math.Max(gridLeft, maxVisibleRight ?? gridLeft);
+            foreach (var y in horizontalLines.Distinct().OrderBy(static v => v))
+            {
+                context.DrawLine(_borderPen, new Point(gridLeft, y), new Point(gridRight, y));
             }
         }
     }
@@ -376,6 +440,11 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private void DrawText(DrawingContext context, string text, Rect rect, GridColumnAlignment alignment)
     {
         var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, _typeface, 12, _textBrush);
+        DrawFormattedText(context, formatted, rect, alignment);
+    }
+
+    private static void DrawFormattedText(DrawingContext context, FormattedText formatted, Rect rect, GridColumnAlignment alignment)
+    {
         var x = alignment switch
         {
             GridColumnAlignment.Right => rect.Right - formatted.Width - 6,
@@ -440,13 +509,30 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private void UpdateControllerViewport()
     {
         _tableController.UpdateViewport(new GridViewportState(
-            Offset.X,
-            Offset.Y,
+            GetContentOffsetX(),
+            GetContentOffsetY(),
             Viewport.Width,
             Viewport.Height,
             GetRowHeaderWidth(),
             HeaderHeight,
             RowHeight));
+    }
+
+    private double GetContentOffsetX()
+    {
+        return Math.Max(0, Offset.X - GetRowHeaderWidth());
+    }
+
+    private double GetContentOffsetY()
+    {
+        return Math.Max(0, Offset.Y - HeaderHeight);
+    }
+
+    private Vector ToScrollViewerOffset(double contentOffsetX, double contentOffsetY)
+    {
+        return new Vector(
+            Math.Max(0, contentOffsetX + GetRowHeaderWidth()),
+            Math.Max(0, contentOffsetY + HeaderHeight));
     }
 
     private Vector ClampOffset(Vector value)
@@ -532,5 +618,29 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         UpdateControllerViewport();
         var hit = _tableController.HitTest(point.X, point.Y);
         _tableController.HandlePointerSelection(hit, KeyModifiers.None);
+    }
+
+    internal GridHitTestResult HitTestAtLocalPointForTest(Point point)
+    {
+        _tableController.SetDimensions(Rows.Count, Headers.Count);
+        UpdateControllerViewport();
+        return _tableController.HitTest(point.X, point.Y);
+    }
+
+    internal void SetScrollBarReserve(double horizontalReserve, double verticalReserve)
+    {
+        horizontalReserve = Math.Max(0, horizontalReserve);
+        verticalReserve = Math.Max(0, verticalReserve);
+
+        if (Math.Abs(_horizontalScrollBarReserve - horizontalReserve) < 0.01d &&
+            Math.Abs(_verticalScrollBarReserve - verticalReserve) < 0.01d)
+            return;
+
+        _horizontalScrollBarReserve = horizontalReserve;
+        _verticalScrollBarReserve = verticalReserve;
+        Offset = ClampOffset(Offset);
+        RaiseScrollInvalidated(EventArgs.Empty);
+        InvalidateMeasure();
+        InvalidateVisual();
     }
 }

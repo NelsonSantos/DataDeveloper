@@ -4,4 +4,5 @@ public readonly record struct GridNavigationRequest(
     GridCellAddress CurrentCell,
     GridNavigationDirection Direction,
     int RowCount,
-    int ColumnCount);
+    int ColumnCount,
+    int Step = 1);

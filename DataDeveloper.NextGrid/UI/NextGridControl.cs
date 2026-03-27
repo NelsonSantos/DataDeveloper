@@ -1,12 +1,18 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.VisualTree;
 
 namespace DataDeveloper.NextGrid.UI;
 
 public sealed class NextGridControl : UserControl
 {
+    private const double ScrollBarSafetyMargin = 20;
+
     private readonly ScrollViewer _scrollViewer;
     private readonly NextGridPresenter _presenter;
 
@@ -47,12 +53,15 @@ public sealed class NextGridControl : UserControl
             VerticalScrollBarVisibility = ScrollBarVisibility.Visible,
             AllowAutoHide = false
         };
+        ScrollViewer.SetBringIntoViewOnFocusChange(_presenter, false);
 
         Content = _scrollViewer;
 
         _presenter.Bind(NextGridPresenter.HeadersProperty, this.GetBindingObservable(HeadersProperty));
         _presenter.Bind(NextGridPresenter.ColumnTypesProperty, this.GetBindingObservable(ColumnTypesProperty));
         _presenter.Bind(NextGridPresenter.RowsProperty, this.GetBindingObservable(RowsProperty));
+        _presenter.AddHandler(Control.RequestBringIntoViewEvent, OnPresenterRequestBringIntoView, RoutingStrategies.Bubble);
+        _scrollViewer.LayoutUpdated += OnScrollViewerLayoutUpdated;
     }
 
     internal GridCellAddress? GetFocusedCellForTest() => _presenter.GetFocusedCellForTest();
@@ -67,4 +76,34 @@ public sealed class NextGridControl : UserControl
 
     internal void SelectCellAtLocalPointForTest(Point point) =>
         _presenter.SelectCellAtLocalPointForTest(point);
+
+    internal GridHitTestResult HitTestAtLocalPointForTest(Point point) =>
+        _presenter.HitTestAtLocalPointForTest(point);
+
+    private void OnPresenterRequestBringIntoView(object? sender, RequestBringIntoViewEventArgs e)
+    {
+        if (ReferenceEquals(e.TargetObject, _presenter))
+            e.Handled = true;
+    }
+
+    private void OnScrollViewerLayoutUpdated(object? sender, EventArgs e)
+    {
+        var horizontalReserve = 0d;
+        var verticalReserve = 0d;
+
+        foreach (var scrollBar in _scrollViewer.GetVisualDescendants().OfType<ScrollBar>())
+        {
+            if (!scrollBar.IsVisible)
+                continue;
+
+            if (scrollBar.Orientation == Orientation.Horizontal)
+                horizontalReserve = Math.Max(horizontalReserve, scrollBar.Bounds.Height);
+            else if (scrollBar.Orientation == Orientation.Vertical)
+                verticalReserve = Math.Max(verticalReserve, scrollBar.Bounds.Width);
+        }
+
+        _presenter.SetScrollBarReserve(
+            horizontalReserve > 0 ? horizontalReserve + ScrollBarSafetyMargin : 0,
+            verticalReserve > 0 ? verticalReserve + ScrollBarSafetyMargin : 0);
+    }
 }

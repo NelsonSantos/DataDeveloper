@@ -5,5 +5,9 @@ public enum GridNavigationDirection
     Up,
     Down,
     Left,
-    Right
+    Right,
+    PageUp,
+    PageDown,
+    Home,
+    End
 }
