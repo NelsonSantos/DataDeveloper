@@ -153,7 +153,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                         Tabs.Add(tabResult);
                         this.SelectedTabIndex = index;
                         await tabResult.LoadData();
-                        resultMessage.AppendLine($"{tabResult.Rows.Count} record(s) returned for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
+                        resultMessage.AppendLine($"{tabResult.GridRows.Count} record(s) returned for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
                     }
                     else
                     {

@@ -46,6 +46,7 @@
     <ProjectReference Include="..\DataDeveloper.Antlr\DataDeveloper.Antlr.csproj" />
     <ProjectReference Include="..\DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj" />
     <ProjectReference Include="..\DataDeveloper.Data\DataDeveloper.Data.csproj" />
+    <ProjectReference Include="..\DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj" />
   </ItemGroup>
 
 </Project>

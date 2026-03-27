@@ -40,6 +40,8 @@ public class TabDataGridViewModel : BaseTabContent
     public async Task LoadData()
     {
         Headers.Clear();
+        GridHeaders.Clear();
+        GridColumnTypes.Clear();
         var columns = new List<ColumnHeader>();
         for (int i = 0; i < StatementResult.DataReader.FieldCount; i++)
         {
@@ -50,11 +52,13 @@ public class TabDataGridViewModel : BaseTabContent
                 Alignment = GetFieldAlignment(StatementResult.DataReader.GetFieldType(i))
             };
             columns.Add(columnHeader);
+            GridHeaders.Add(columnHeader.Name);
+            GridColumnTypes.Add(columnHeader.Type);
         }
 
         Headers.Add(columns);
         
-        this.Rows.Clear();
+        this.GridRows.Clear();
         await LoadNextPage(SelectedPage);
         
     }
@@ -73,8 +77,7 @@ public class TabDataGridViewModel : BaseTabContent
             
             var values = new object[StatementResult.DataReader.FieldCount];
             StatementResult.DataReader.GetValues(values);
-            var row = new RowValues(RowNumber, values);
-            this.Rows.Add(row);
+            this.GridRows.Add(values);
             
             if (itemsPerPage > 0 && countRecords == itemsPerPage)
             {
@@ -121,8 +124,10 @@ public class TabDataGridViewModel : BaseTabContent
     [Reactive] public bool IsClosed { get; set; }
     [Reactive] public int RowNumber { get; set; }
     [Reactive] public int SelectedPage { get; set; }
-    public ObservableCollection<RowValues> Rows { get; } = new();
     public ObservableCollection<ColumnHeader> Headers { get; } = new();
+    public ObservableCollection<string> GridHeaders { get; } = new();
+    public ObservableCollection<Type> GridColumnTypes { get; } = new();
+    public ObservableCollection<IReadOnlyList<object?>> GridRows { get; } = new();
     public ObservableCollection<int> Pages { get; } = new() { 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, };
     public ReactiveCommand<Unit, Unit> LoadNextPageCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadAllRecordsCommand { get; }
