@@ -20,11 +20,40 @@
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>    
-    <Grid RowDefinitions="Auto,*" ColumnDefinitions="1*,Auto,3*" Margin="0">
-        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,*">
+    <Grid x:Name="RootGrid" RowDefinitions="Auto,*" ColumnDefinitions="Auto,1*,Auto,3*" Margin="0">
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Background="LightGray" Height="0.5" Opacity="0.5" />
+        <Border x:Name="SchemaExplorerRail"
+                Grid.Row="1"
+                Grid.Column="0"
+                Width="36"
+                Background="#2B2B2B"
+                BorderBrush="#2D2D30"
+                BorderThickness="0,0,1,0"
+                >
+            <Button x:Name="ToggleSchemaExplorerButton"
+                    Width="28"
+                    Height="28"
+                    Margin="4"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Click="ToggleSchemaExplorer_Click"
+                    ToolTip.Tip="Show or hide schema explorer">
+                <TextBlock x:Name="SchemaRailIcon"
+                           FontFamily="{StaticResource FontAwesomeSolid}"
+                           FontSize="13"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="&#xf0e8;"/>
+            </Button>
+        </Border>
+        <Grid x:Name="SchemaExplorerPanel" Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,*">
             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="#3C3F41">
                 <Button 
+                    x:Name="RefreshButton"
                     Grid.Column="0"  
                     HorizontalAlignment="Right" 
                     Margin="4" 
@@ -36,6 +65,7 @@
                     </StackPanel>
                 </Button>
                 <Button 
+                    x:Name="NewQueryButton"
                     Grid.Column="2"  
                     HorizontalAlignment="Right" 
                     Margin="4" 
@@ -47,7 +77,7 @@
                     </StackPanel>
                 </Button>
             </Grid>
-            <TreeView 
+            <TreeView x:Name="SchemaTreeView"
                 Grid.Row="1" 
                 ItemsSource="{Binding RootConnections}">
                 <TreeView.Styles>
@@ -86,9 +116,9 @@
                 </TreeView.DataTemplates>
             </TreeView>
         </Grid>
-        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" ResizeDirection="Columns" />
+        <GridSplitter x:Name="SchemaExplorerSplitter" Grid.Row="1" Grid.Column="2" Width="5" ResizeDirection="Columns" />
         <TabControl 
-            Grid.Row="1" Grid.Column="2" 
+            Grid.Row="1" Grid.Column="3" 
             ItemsSource="{Binding QueryEditors}" 
             SelectedIndex="{Binding SelectedEditor, Mode=TwoWay}" 
             Padding="0" Margin="0">
