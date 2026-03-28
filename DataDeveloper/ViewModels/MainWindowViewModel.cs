@@ -31,6 +31,7 @@ public class MainWindowViewModel : ViewModelBase
         _dialogService = _serviceProvider.GetRequiredService<IDialogService>();
         
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
+        _eventAggregatorService.Subscribe<ShowExecutionStatusEvent>(this, ShowExecutionStatusEvent);
 
         this.NewWindowCommand = ReactiveCommand.Create(NewWindow);
         this.NewConnectionCommand = ReactiveCommand.CreateFromTask<StyledElement>(NewConnection);
@@ -115,6 +116,8 @@ public class MainWindowViewModel : ViewModelBase
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
     [Reactive] public int CursorColumn { get; set; }
+    [Reactive] public bool IsExecutionStatusVisible { get; set; }
+    [Reactive] public string ExecutionStatusMessage { get; set; } = string.Empty;
 
     public bool HasConnections
     {
@@ -168,5 +171,11 @@ public class MainWindowViewModel : ViewModelBase
         this.CursorOffSet = message.CursorOffSet;
         this.CursorLine = message.CursorLine;
         this.CursorColumn = message.CursorColumn;
+    }
+
+    private void ShowExecutionStatusEvent(ShowExecutionStatusEvent message)
+    {
+        IsExecutionStatusVisible = message.IsVisible;
+        ExecutionStatusMessage = message.Message;
     }
 }

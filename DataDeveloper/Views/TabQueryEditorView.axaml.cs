@@ -19,6 +19,7 @@ namespace DataDeveloper.Views;
 public partial class TabQueryEditorView : UserControl
 {
     private GridLength _previousTabHeight = new(200);
+    private const double FallbackExpandedResultsHeight = 200;
     private TabQueryEditorViewModel? _viewModel;
     private readonly TabTemplateSelector? _templateSelector;
     private readonly CompletionInteractionState _completionInteractionState = new();
@@ -64,7 +65,7 @@ public partial class TabQueryEditorView : UserControl
         _viewModel.ResultsHeaderHeight = StackPanelResult.Bounds.Height;
         _viewModel.ShowResultTool += ViewModelOnShowResultTool;
         _viewModel.Tabs.CollectionChanged += TabsOnCollectionChanged;
-        this.ToggleTabs();
+        ApplyResultsPanelState();
     }
 
     private void TabsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -82,7 +83,7 @@ public partial class TabQueryEditorView : UserControl
 
     private void ViewModelOnShowResultTool(object? sender, int e)
     {
-        ToggleTabs();
+        ApplyResultsPanelState();
     }
 
     private void ToggleTabs_Click(object? sender, RoutedEventArgs e)
@@ -91,29 +92,43 @@ public partial class TabQueryEditorView : UserControl
             return;
 
         _viewModel.ResultIsMinimized = !_viewModel.ResultIsMinimized;
-        ToggleTabs();
+        ApplyResultsPanelState();
     }
 
-    private void ToggleTabs()
+    private void ApplyResultsPanelState()
     {
         if (_viewModel is null)
             return;
 
         var tabRow = RootGrid.RowDefinitions[3];
+        var collapsedHeight = StackPanelResult.Bounds.Height;
+        var currentActualHeight = tabRow.ActualHeight;
 
-        if (!_viewModel.ResultIsMinimized)
+        if (_viewModel.ResultIsMinimized)
         {
-            tabRow.Height = _previousTabHeight;
-            Splitter.IsVisible = true;
-            _viewModel.ResultIsMinimized = false;
-        }
-        else
-        {
-            _previousTabHeight = tabRow.Height;
-            tabRow.Height = new GridLength(StackPanelResult.Bounds.Height);
+            if (currentActualHeight > collapsedHeight + 1)
+                _previousTabHeight = tabRow.Height;
+
+            tabRow.Height = new GridLength(collapsedHeight);
             Splitter.IsVisible = false;
-            _viewModel.ResultIsMinimized = true;
+            return;
         }
+
+        if (currentActualHeight <= collapsedHeight + 1)
+        {
+            var expandedHeight = IsExpandedHeightCandidate(_previousTabHeight, collapsedHeight)
+                ? _previousTabHeight
+                : new GridLength(FallbackExpandedResultsHeight);
+
+            tabRow.Height = expandedHeight;
+        }
+
+        Splitter.IsVisible = true;
+    }
+
+    private static bool IsExpandedHeightCandidate(GridLength length, double collapsedHeight)
+    {
+        return !length.IsAbsolute || length.Value > collapsedHeight + 1;
     }
 
     private async void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)

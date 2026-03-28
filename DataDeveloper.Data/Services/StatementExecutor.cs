@@ -32,7 +32,7 @@ public class StatementExecutor : IStatementExecutor
                 var connection = _databaseProvider.GetConnection();
                 var reader = await connection.ExecuteReaderAsync(statement, commandType: CommandType.Text);
                 
-                result.Add(new StatementResult(reader, sqlStatement, watcher));
+                result.Add(new StatementResult(reader, connection, sqlStatement, watcher));
                 
                 watcher.Stop();
             }

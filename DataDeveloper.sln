@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Antlr", "Data
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Tests", "DataDeveloper.Tests\DataDeveloper.Tests.csproj", "{2931C0B3-C706-4735-9A54-0A17968DC8EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.NextGrid", "DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj", "{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,18 @@ Global
 		{2931C0B3-C706-4735-9A54-0A17968DC8EC}.Release|x64.Build.0 = Release|Any CPU
 		{2931C0B3-C706-4735-9A54-0A17968DC8EC}.Release|x86.ActiveCfg = Release|Any CPU
 		{2931C0B3-C706-4735-9A54-0A17968DC8EC}.Release|x86.Build.0 = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|x64.Build.0 = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Debug|x86.Build.0 = Debug|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|x64.ActiveCfg = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|x64.Build.0 = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|x86.ActiveCfg = Release|Any CPU
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,5 +123,6 @@ Global
 		{A4835CC5-C00D-4F16-943F-D57B3A8547CD} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
 		{C228BF58-BD11-40FB-B356-196CDFE2F5C3} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
 		{6575A120-9D75-4C77-A384-A198BC7A4F41} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
+		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
 	EndGlobalSection
 EndGlobal

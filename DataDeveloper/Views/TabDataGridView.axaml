@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:nextGrid="clr-namespace:DataDeveloper.NextGrid.UI;assembly=DataDeveloper.NextGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.TabDataGridView">
     <Design.DataContext>
@@ -54,18 +55,19 @@
             </Border>
         </Grid>        
         <Border Grid.Row="2" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <DataGrid Grid.Row="3" 
-                  x:Name="DataGrid1" 
-                  AutoGenerateColumns="False" 
-                  RowHeaderWidth="200"
-                  ItemsSource="{Binding Rows}"
-                  FrozenColumnCount="1"
-                  FontFamily="Consolas"
-                  FontSize="12"
-                  SelectionMode="Extended"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="True"
-        />
+        <nextGrid:NextGridControl Grid.Row="3"
+                                  Headers="{Binding GridHeaders}"
+                                  ColumnTypes="{Binding GridColumnTypes}"
+                                  Rows="{Binding GridRows}"
+                                  GridFontFamily="{StaticResource MonospaceFont}"
+                                  GridFontSize="12"
+                                  CellBackground="#2B2B2B"
+                                  CellForeground="#CCCCCC"
+                                  HeaderBackground="#3C3F41"
+                                  HeaderForeground="#BBBBBB"
+                                  GridLine="#3C3F41"
+                                  SelectionBackground="#2E6F95"
+                                  Background="#2B2B2B"/>
     </Grid>
     
 </UserControl>
