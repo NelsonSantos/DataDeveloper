@@ -23,12 +23,6 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private readonly GridTableController _tableController;
     private readonly GridRendererRegistry _rendererRegistry = new();
     private readonly NextGridClipboardBuilder _clipboardBuilder;
-    private readonly Typeface _typeface = new("Consolas");
-    private readonly Pen _borderPen = new(Brushes.Gray, 1);
-    private readonly IBrush _headerBrush = Brushes.LightGray;
-    private readonly IBrush _backgroundBrush = Brushes.White;
-    private readonly IBrush _textBrush = Brushes.Black;
-    private readonly IBrush _selectionBrush = Brushes.LightBlue;
     private readonly RowRenderCache _rowRenderCache;
     private Vector _offset;
     private double _horizontalScrollBarReserve;
@@ -55,6 +49,30 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     public static readonly StyledProperty<ObservableCollection<IReadOnlyList<object?>>> RowsProperty =
         AvaloniaProperty.Register<NextGridPresenter, ObservableCollection<IReadOnlyList<object?>>>(nameof(Rows), defaultValue: []);
 
+    public static readonly StyledProperty<FontFamily> GridFontFamilyProperty =
+        AvaloniaProperty.Register<NextGridPresenter, FontFamily>(nameof(GridFontFamily), defaultValue: new FontFamily("Consolas"));
+
+    public static readonly StyledProperty<double> GridFontSizeProperty =
+        AvaloniaProperty.Register<NextGridPresenter, double>(nameof(GridFontSize), defaultValue: 12d);
+
+    public static readonly StyledProperty<IBrush> CellBackgroundProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(CellBackground), defaultValue: Brushes.White);
+
+    public static readonly StyledProperty<IBrush> CellForegroundProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(CellForeground), defaultValue: Brushes.Black);
+
+    public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(HeaderBackground), defaultValue: Brushes.LightGray);
+
+    public static readonly StyledProperty<IBrush> HeaderForegroundProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(HeaderForeground), defaultValue: Brushes.Black);
+
+    public static readonly StyledProperty<IBrush> GridLineProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(GridLine), defaultValue: Brushes.Gray);
+
+    public static readonly StyledProperty<IBrush> SelectionBackgroundProperty =
+        AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(SelectionBackground), defaultValue: Brushes.LightBlue);
+
     public ObservableCollection<string> Headers
     {
         get => GetValue(HeadersProperty);
@@ -71,6 +89,54 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     {
         get => GetValue(RowsProperty);
         set => SetValue(RowsProperty, value);
+    }
+
+    public FontFamily GridFontFamily
+    {
+        get => GetValue(GridFontFamilyProperty);
+        set => SetValue(GridFontFamilyProperty, value);
+    }
+
+    public double GridFontSize
+    {
+        get => GetValue(GridFontSizeProperty);
+        set => SetValue(GridFontSizeProperty, value);
+    }
+
+    public IBrush CellBackground
+    {
+        get => GetValue(CellBackgroundProperty);
+        set => SetValue(CellBackgroundProperty, value);
+    }
+
+    public IBrush CellForeground
+    {
+        get => GetValue(CellForegroundProperty);
+        set => SetValue(CellForegroundProperty, value);
+    }
+
+    public IBrush HeaderBackground
+    {
+        get => GetValue(HeaderBackgroundProperty);
+        set => SetValue(HeaderBackgroundProperty, value);
+    }
+
+    public IBrush HeaderForeground
+    {
+        get => GetValue(HeaderForegroundProperty);
+        set => SetValue(HeaderForegroundProperty, value);
+    }
+
+    public IBrush GridLine
+    {
+        get => GetValue(GridLineProperty);
+        set => SetValue(GridLineProperty, value);
+    }
+
+    public IBrush SelectionBackground
+    {
+        get => GetValue(SelectionBackgroundProperty);
+        set => SetValue(SelectionBackgroundProperty, value);
     }
 
     public Size Extent => new(
@@ -117,12 +183,13 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var selection = new GridSelectionModel();
         _tableController = new GridTableController(_columnLayout, layoutEngine, viewportEngine, selection);
         _clipboardBuilder = new NextGridClipboardBuilder(_rendererRegistry);
-        _rowRenderCache = new RowRenderCache(_typeface, _textBrush, GridRendererContext.Default);
+        _rowRenderCache = new RowRenderCache();
         Focusable = true;
         PropertyChanged += OnControlPropertyChanged;
         PointerPressed += OnPointerPressed;
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
+        PointerExited += OnPointerExited;
         KeyDown += OnKeyDown;
     }
 
@@ -140,7 +207,17 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         var rowRange = _tableController.GetRowRenderRange();
         var columnRange = _tableController.GetColumnRenderRange();
-        _rowRenderCache.EnsureWindow(_tableController.TopRowIndex, Rows.Count, Headers.Count, Rows, ColumnTypes, GetColumnRenderer);
+        _rowRenderCache.EnsureWindow(
+            _tableController.TopRowIndex,
+            Rows.Count,
+            Headers.Count,
+            Rows,
+            ColumnTypes,
+            GetTypeface(),
+            GridFontSize,
+            CellForeground,
+            GridRendererContext.Default,
+            GetColumnRenderer);
         var viewportInfo = new GridViewportInfo(
             rowRange,
             columnRange,
@@ -220,6 +297,21 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             _rowRenderCache.Clear();
         }
 
+        if (e.Property == GridFontFamilyProperty ||
+            e.Property == GridFontSizeProperty ||
+            e.Property == CellBackgroundProperty ||
+            e.Property == CellForegroundProperty ||
+            e.Property == HeaderBackgroundProperty ||
+            e.Property == HeaderForegroundProperty ||
+            e.Property == GridLineProperty ||
+            e.Property == SelectionBackgroundProperty)
+        {
+            _autoWidthPending = true;
+            _rowRenderCache.Clear();
+            InvalidateMeasure();
+            InvalidateVisual();
+        }
+
         if (e.Property == BoundsProperty)
         {
             Offset = ClampOffset(Offset);
@@ -292,6 +384,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var point = e.GetPosition(this);
         if (_resizingColumnIndex is not null)
         {
+            Cursor = new Cursor(StandardCursorType.SizeWestEast);
             var width = _resizeOriginalWidth + (point.X - _resizeAnchorX);
             if (_columnLayout.SetWidth(_resizingColumnIndex.Value, width))
             {
@@ -304,6 +397,10 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             e.Handled = true;
             return;
         }
+
+        Cursor = TryGetResizeColumnIndex(point, out _)
+            ? new Cursor(StandardCursorType.SizeWestEast)
+            : new Cursor(StandardCursorType.Arrow);
 
         if (!_isSelecting)
             return;
@@ -336,6 +433,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         if (_resizingColumnIndex is not null)
         {
             _resizingColumnIndex = null;
+            Cursor = new Cursor(StandardCursorType.Arrow);
             e.Pointer.Capture(null);
             e.Handled = true;
             return;
@@ -349,6 +447,12 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             InvalidateVisual();
             e.Handled = true;
         }
+    }
+
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (_resizingColumnIndex is null)
+            Cursor = new Cursor(StandardCursorType.Arrow);
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -414,7 +518,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var state = _tableController.State;
         var rowHeaderWidth = state.Viewport.RowHeaderWidth;
         var corner = _tableController.GetCornerHeaderBounds();
-        context.DrawRectangle(_headerBrush, _borderPen, new Rect(corner.X, corner.Y, corner.Width, corner.Height));
+        context.DrawRectangle(HeaderBackground, GetBorderPen(), new Rect(corner.X, corner.Y, corner.Width, corner.Height));
 
         var clip = new Rect(rowHeaderWidth, 0, Math.Max(0, Bounds.Width - rowHeaderWidth), HeaderHeight);
         using (context.PushClip(clip))
@@ -423,8 +527,8 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             {
                 var bounds = _tableController.GetColumnHeaderBounds(columnIndex);
                 var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-                context.DrawRectangle(_headerBrush, _borderPen, rect);
-                DrawText(context, Headers[columnIndex], new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), GridColumnAlignment.Left);
+                context.DrawRectangle(HeaderBackground, GetBorderPen(), rect);
+                DrawText(context, Headers[columnIndex], new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), GridColumnAlignment.Left, HeaderForeground);
             }
         }
     }
@@ -440,9 +544,9 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             {
                 var bounds = _tableController.GetRowHeaderBounds(rowIndex);
                 var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-                var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, 0)) ? _selectionBrush : _headerBrush;
-                context.DrawRectangle(brush, _borderPen, rect);
-                DrawText(context, (rowIndex + 1).ToString(CultureInfo.InvariantCulture), new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), GridColumnAlignment.Left);
+                var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, 0)) ? SelectionBackground : HeaderBackground;
+                context.DrawRectangle(brush, GetBorderPen(), rect);
+                DrawText(context, (rowIndex + 1).ToString(CultureInfo.InvariantCulture), new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), GridColumnAlignment.Left, HeaderForeground);
             }
         }
     }
@@ -472,7 +576,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                     maxVisibleRight = Math.Max(maxVisibleRight ?? double.MinValue, bounds.X + bounds.Width);
                     maxVisibleBottom = Math.Max(maxVisibleBottom ?? double.MinValue, bounds.Y + bounds.Height);
                     var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-                    var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, columnIndex)) ? _selectionBrush : _backgroundBrush;
+                    var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, columnIndex)) ? SelectionBackground : CellBackground;
                     context.DrawRectangle(brush, null, rect);
 
                     if (rowIndex == viewportInfo.Rows.Start)
@@ -493,7 +597,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                     var value = columnIndex < row.Count ? row[columnIndex] : null;
                     var renderer = GetColumnRenderer(columnIndex, value);
                     var text = renderer.FormatValue(value, GridRendererContext.Default);
-                    DrawText(context, text, new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), renderer.Alignment);
+                    DrawText(context, text, new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), renderer.Alignment, CellForeground);
                 }
 
                 if (firstBounds.HasValue && lastBounds.HasValue)
@@ -505,23 +609,24 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
             var gridTop = HeaderHeight;
             var gridBottom = Math.Max(gridTop, maxVisibleBottom ?? gridTop);
+            var borderPen = GetBorderPen();
             foreach (var x in verticalLines.Distinct().OrderBy(static v => v))
             {
-                context.DrawLine(_borderPen, new Point(x, gridTop), new Point(x, gridBottom));
+                context.DrawLine(borderPen, new Point(x, gridTop), new Point(x, gridBottom));
             }
 
             var gridLeft = rowHeaderWidth;
             var gridRight = Math.Max(gridLeft, maxVisibleRight ?? gridLeft);
             foreach (var y in horizontalLines.Distinct().OrderBy(static v => v))
             {
-                context.DrawLine(_borderPen, new Point(gridLeft, y), new Point(gridRight, y));
+                context.DrawLine(borderPen, new Point(gridLeft, y), new Point(gridRight, y));
             }
         }
     }
 
-    private void DrawText(DrawingContext context, string text, Rect rect, GridColumnAlignment alignment)
+    private void DrawText(DrawingContext context, string text, Rect rect, GridColumnAlignment alignment, IBrush foregroundBrush)
     {
-        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, _typeface, 12, _textBrush);
+        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, GetTypeface(), GridFontSize, foregroundBrush);
         DrawFormattedText(context, formatted, rect, alignment);
     }
 
@@ -548,14 +653,14 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         for (var columnIndex = 0; columnIndex < Headers.Count; columnIndex++)
         {
-            _columnLayout.TrackWidth(columnIndex, MeasureTextWidth(Headers[columnIndex]) + 16);
+            _columnLayout.TrackWidth(columnIndex, MeasureTextWidth(Headers[columnIndex], HeaderForeground) + 16);
 
             for (var rowIndex = 0; rowIndex < Rows.Count; rowIndex++)
             {
                 var row = Rows[rowIndex];
                 var value = columnIndex < row.Count ? row[columnIndex] : null;
                 var renderer = GetColumnRenderer(columnIndex, value);
-                var width = renderer.MeasureWidth(value, GridRendererContext.Default, MeasureTextWidth) + 16;
+                var width = renderer.MeasureWidth(value, GridRendererContext.Default, text => MeasureTextWidth(text, CellForeground)) + 16;
                 _columnLayout.TrackWidth(columnIndex, width);
             }
         }
@@ -564,17 +669,21 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         _autoWidthPending = false;
     }
 
-    private double MeasureTextWidth(string text)
+    private double MeasureTextWidth(string text, IBrush foregroundBrush)
     {
-        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, _typeface, 12, _textBrush);
+        var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, GetTypeface(), GridFontSize, foregroundBrush);
         return formatted.Width;
     }
 
     private double GetRowHeaderWidth()
     {
         var countText = Math.Max(1, Rows.Count).ToString(CultureInfo.InvariantCulture);
-        return Math.Max(44, MeasureTextWidth(countText) + 16);
+        return Math.Max(44, MeasureTextWidth(countText, HeaderForeground) + 16);
     }
+
+    private Typeface GetTypeface() => new(GridFontFamily);
+
+    private Pen GetBorderPen() => new(GridLine, 1);
 
     private static void ReplaceSubscription<T>(
         ref ObservableCollection<T>? current,

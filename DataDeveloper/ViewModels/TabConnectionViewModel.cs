@@ -160,6 +160,7 @@ public class TabConnectionViewModel : BaseTabContent
     public ISchemaExplorer SchemaExplorer { get; }
     public Task Initialization { get; private set; }
     [Reactive] public int SelectedEditor { get; set; }
+    [Reactive] public bool IsSchemaExplorerMinimized { get; set; }
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
     public ReactiveCommand<TabQueryEditorViewModel, bool> CloseTabQueryEditorCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }

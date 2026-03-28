@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
@@ -109,28 +110,40 @@ public class TabQueryEditorViewModel : BaseTabContent
     private async Task ExecuteQuery()
     {
         this.StatementIsRunning = true;
+        _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Executing query..."));
         await Task.Delay(100);
 
         try
         {
             var statementExecutor = ConnectionSettings.GetStatementExecutor();
+            var previousResultTabs = Tabs.OfType<TabDataGridViewModel>().ToList();
+            var cleanupWatcher = Stopwatch.StartNew();
+
+            if (previousResultTabs.Count > 0)
+            {
+                _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Closing previous result set..."));
+                await Task.Delay(100);
+                await Task.WhenAll(
+                    previousResultTabs
+                        .Where(tab => !tab.IsClosed)
+                        .Select(tab => Task.Run(async () => await tab.CloseDataReader())));
+            }
+
+            cleanupWatcher.Stop();
+
+            foreach (var previousTab in previousResultTabs)
+                Tabs.Remove(previousTab);
 
             var statementResults = await statementExecutor.ExecuteStatement(SelectedStatement.IsNullOrEmpty() ? SqlStatement : SelectedStatement);
 
             if (statementResults.Any())
             {
-                for (var i = (Tabs.Count - 1); i > 0; i--)
-                {
-                    if (Tabs[i] is not TabDataGridViewModel tab)
-                        continue;
-
-                    await tab.CloseDataReader();
-                    Tabs.RemoveAt(i);
-                }
-
                 var index = 0;
                 var statementCount = 0;
                 var resultMessage = new StringBuilder();
+                if (cleanupWatcher.Elapsed > TimeSpan.Zero && previousResultTabs.Count > 0)
+                    resultMessage.AppendLine($"Previous result cleanup took {cleanupWatcher.Elapsed:c}\r\n");
+
                 foreach (var statementResult in statementResults)
                 {
                     statementResult.Watcher.Start();
@@ -146,6 +159,8 @@ public class TabQueryEditorViewModel : BaseTabContent
                     if (hasRows)
                     {
                         index++;
+                        _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Loading first rows..."));
+                        await Task.Delay(100);
                         
                         var tabResult = new TabDataGridViewModel(statementResult, _cachePages[statementResult.Statement], resultName, true, this.ServiceProvider);
                         tabResult.WhenAnyValue(vm => vm.SelectedPage).Subscribe(page => _cachePages[statementResult.Statement] = page);
@@ -174,6 +189,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         {
             this.ResultIsMinimized = false;
             this.StatementIsRunning = false;
+            _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
             this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
     }

@@ -58,7 +58,16 @@
         <nextGrid:NextGridControl Grid.Row="3"
                                   Headers="{Binding GridHeaders}"
                                   ColumnTypes="{Binding GridColumnTypes}"
-                                  Rows="{Binding GridRows}" />
+                                  Rows="{Binding GridRows}"
+                                  GridFontFamily="{StaticResource MonospaceFont}"
+                                  GridFontSize="12"
+                                  CellBackground="#2B2B2B"
+                                  CellForeground="#CCCCCC"
+                                  HeaderBackground="#3C3F41"
+                                  HeaderForeground="#BBBBBB"
+                                  GridLine="#3C3F41"
+                                  SelectionBackground="#2E6F95"
+                                  Background="#2B2B2B"/>
     </Grid>
     
 </UserControl>

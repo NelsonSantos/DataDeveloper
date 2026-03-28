@@ -9,18 +9,8 @@ internal sealed class RowRenderCache
 {
     private readonly ConcurrentDictionary<int, CellRenderCacheEntry[]> _rows = new();
     private readonly object _sync = new();
-    private readonly Typeface _typeface;
-    private readonly IBrush _textBrush;
-    private readonly GridRendererContext _context;
     private int _windowStart = -1;
     private int _windowEndExclusive = -1;
-
-    public RowRenderCache(Typeface typeface, IBrush textBrush, GridRendererContext context)
-    {
-        _typeface = typeface;
-        _textBrush = textBrush;
-        _context = context;
-    }
 
     public bool TryGetRow(int rowIndex, out CellRenderCacheEntry[]? row)
     {
@@ -59,6 +49,10 @@ internal sealed class RowRenderCache
         int columnCount,
         IReadOnlyList<IReadOnlyList<object?>> rows,
         IReadOnlyList<Type> columnTypes,
+        Typeface typeface,
+        double fontSize,
+        IBrush textBrush,
+        GridRendererContext context,
         Func<int, object?, IGridCellRenderer> getRenderer)
     {
         if (rowCount <= 0 || columnCount <= 0)
@@ -76,7 +70,7 @@ internal sealed class RowRenderCache
             _windowEndExclusive = endExclusive;
         }
 
-        _ = Task.Run(() => PopulateWindow(start, endExclusive, columnCount, rows, columnTypes, getRenderer));
+        _ = Task.Run(() => PopulateWindow(start, endExclusive, columnCount, rows, columnTypes, typeface, fontSize, textBrush, context, getRenderer));
     }
 
     private void PopulateWindow(
@@ -85,6 +79,10 @@ internal sealed class RowRenderCache
         int columnCount,
         IReadOnlyList<IReadOnlyList<object?>> rows,
         IReadOnlyList<Type> columnTypes,
+        Typeface typeface,
+        double fontSize,
+        IBrush textBrush,
+        GridRendererContext context,
         Func<int, object?, IGridCellRenderer> getRenderer)
     {
         var next = new Dictionary<int, CellRenderCacheEntry[]>(Math.Max(0, endExclusive - start));
@@ -96,10 +94,10 @@ internal sealed class RowRenderCache
             {
                 var value = columnIndex < sourceRow.Count ? sourceRow[columnIndex] : null;
                 var renderer = getRenderer(columnIndex, value);
-                var text = renderer.FormatValue(value, _context);
+                var text = renderer.FormatValue(value, context);
                 cells[columnIndex] = new CellRenderCacheEntry(
                     text,
-                    new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, _typeface, 12, _textBrush),
+                    new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, fontSize, textBrush),
                     renderer.Alignment);
             }
 

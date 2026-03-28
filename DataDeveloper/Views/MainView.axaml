@@ -62,8 +62,25 @@
             
         </Grid>
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Background="#2D2D30" Height="24" VerticalAlignment="Bottom">
-            <Grid ColumnDefinitions="*,Auto,20" Margin="8,0">
-                <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" FontFamily="{StaticResource MonospaceFont}">
+            <Grid ColumnDefinitions="*,Auto,20,Auto,20" Margin="8,0">
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="6"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            IsVisible="{Binding IsExecutionStatusVisible}">
+                    <TextBlock Text="{Binding ExecutionStatusMessage}"
+                               Foreground="LightGray"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource MonospaceFont}"
+                               />
+                    <ProgressBar Width="80"
+                                 Height="8"
+                                 IsIndeterminate="True"
+                                 VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Grid.Column="3" VerticalAlignment="Center" FontSize="11" FontFamily="{StaticResource MonospaceFont}" HorizontalAlignment="Right">
                     <Run Text="Cursor -> " Foreground="Gray"/>
                     <Run Text="Lin:" Foreground="Gray"/>
                     <Run Text="{Binding CursorLine}" />

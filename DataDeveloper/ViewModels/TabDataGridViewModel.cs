@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 using DataDeveloper.DataGrid;
@@ -33,8 +34,11 @@ public class TabDataGridViewModel : BaseTabContent
 
     public async Task CloseDataReader()
     {
+        if (IsClosed)
+            return;
+
         await StatementResult.CloseDataReader();
-        this.IsClosed = true;
+        await Dispatcher.UIThread.InvokeAsync(() => this.IsClosed = true);
     }
 
     public async Task LoadData()
