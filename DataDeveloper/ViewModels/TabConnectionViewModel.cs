@@ -9,6 +9,7 @@ using DataDeveloper.Data.Models;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Views;
 using DynamicData;
 using ReactiveUI;
@@ -145,11 +146,20 @@ public class TabConnectionViewModel : BaseTabContent
 
     private string BuildConnectionErrorMessage(Exception ex)
     {
-        if (ex.Message.Contains("Certificate failed chain validation", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("Certificate name mismatch", StringComparison.OrdinalIgnoreCase))
+        if (ConnectionSettings.DatabaseType == DatabaseType.SqlServer &&
+            (ex.Message.Contains("Certificate failed chain validation", StringComparison.OrdinalIgnoreCase) ||
+             ex.Message.Contains("Certificate name mismatch", StringComparison.OrdinalIgnoreCase)))
         {
             return "TLS validation failed for this SQL Server connection.\n\n" +
                    "If this is a legacy/local server that uses an untrusted certificate, edit the connection and enable 'Trust server certificate'.\n\n" +
+                   ex.Message;
+        }
+
+        if (ConnectionSettings.DatabaseType == DatabaseType.MySql &&
+            ex.Message.Contains("ssl", StringComparison.OrdinalIgnoreCase))
+        {
+            return "TLS validation failed for this MySQL connection.\n\n" +
+                   "If the server uses TLS with a certificate that is not trusted on this machine, edit the connection and enable 'Trust server certificate'.\n\n" +
                    ex.Message;
         }
 

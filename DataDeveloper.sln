@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Tests", "Data
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.NextGrid", "DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj", "{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Teste", "Teste", "{731F0731-3D84-4B85-AE63-9CECB1B445C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

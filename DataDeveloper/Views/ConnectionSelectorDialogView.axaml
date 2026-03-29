@@ -53,11 +53,17 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Button Grid.Row="1" Grid.Column="0" 
-                    Content="Add new connection" 
-                    Command="{Binding AddCommand}" HorizontalAlignment="Right"
-                    Margin="0, 10, 10, 0"
-                    />
+            <StackPanel Grid.Row="1" Grid.Column="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,10,10,0">
+                <ComboBox Width="140"
+                          ItemsSource="{Binding AvailableDatabaseTypes}"
+                          SelectedItem="{Binding SelectedDatabaseType, Mode=TwoWay}" />
+                <Button Content="Add new connection"
+                        Command="{Binding AddCommand}" />
+            </StackPanel>
 
             <!-- Connection detail view -->
             <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Spacing="8">
@@ -86,6 +92,15 @@
                     Text="{Binding SelectedConnection.Database, Mode=TwoWay}"
                     IsEnabled="{Binding IsEditing}"
                     IsReadOnly="{Binding !IsEditing}" />
+
+                <Grid RowDefinitions="Auto,Auto"
+                      IsVisible="{Binding IsMySqlConnectionSelected}">
+                    <TextBlock Grid.Row="0" Text="Port" />
+                    <TextBox Grid.Row="1"
+                             Text="{Binding SelectedConnection.Port, Mode=TwoWay}"
+                             IsEnabled="{Binding IsEditing}"
+                             IsReadOnly="{Binding !IsEditing}" />
+                </Grid>
 
                 <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="8">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Username" />
@@ -117,7 +132,14 @@
                 <TextBlock Text="Use 'Trust server certificate' only when the SQL Server certificate is not trusted on this machine."
                            FontSize="11"
                            Foreground="DarkGoldenrod"
-                           TextWrapping="Wrap" />
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsSqlServerConnectionSelected}" />
+
+                <TextBlock Text="For MySQL, use 'Encrypt connection' to require TLS. 'Trust server certificate' relaxes certificate validation."
+                           FontSize="11"
+                           Foreground="DarkGoldenrod"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsMySqlConnectionSelected}" />
 
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Button  

@@ -16,30 +16,32 @@ namespace DataDeveloper.Services;
 
 public static class SqlCompletionProvider
 {
+    private const string IdentifierPattern = @"(?:\[[^\]]+\]|`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)";
+
     private static readonly Regex AliasRegex = new(
-        @"(?ix)
+        $@"(?ix)
         \b(?:from|join|update|into)\s+
-        (?<table>(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)(?:\.(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*))?)
+        (?<table>{IdentifierPattern}(?:\.{IdentifierPattern})?)
         \s+(?:as\s+)?
-        (?<alias>\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)",
+        (?<alias>{IdentifierPattern})",
         RegexOptions.Compiled);
     private static readonly Regex InsertTargetRegex = new(
-        @"(?ix)\binsert\s+into\s+(?<table>(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)(?:\.(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*))?)",
+        $@"(?ix)\binsert\s+into\s+(?<table>{IdentifierPattern}(?:\.{IdentifierPattern})?)",
         RegexOptions.Compiled);
     private static readonly Regex UpdateTargetRegex = new(
-        @"(?ix)\bupdate\s+(?<table>(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)(?:\.(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*))?)",
+        $@"(?ix)\bupdate\s+(?<table>{IdentifierPattern}(?:\.{IdentifierPattern})?)",
         RegexOptions.Compiled);
     private static readonly Regex DeleteTargetRegex = new(
-        @"(?ix)\bdelete(?:\s+\w+)?\s+from\s+(?<table>(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)(?:\.(?:\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*))?)",
+        $@"(?ix)\bdelete(?:\s+\w+)?\s+from\s+(?<table>{IdentifierPattern}(?:\.{IdentifierPattern})?)",
         RegexOptions.Compiled);
 
     private static readonly Regex CteRegex = new(
-        @"(?ix)
+        $@"(?ix)
         (?:
             \bwith\s+
           | ,
         )
-        (?<name>\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)
+        (?<name>{IdentifierPattern})
         \s*
         (?:\((?<columns>[^)]*)\)\s*)?
         as\s*\(",
@@ -84,6 +86,16 @@ public static class SqlCompletionProvider
 
         if (insertedText == "(" && context.IsInsideInsertColumnList)
             return new CompletionRequest(context with { Trigger = CompletionTrigger.Columns });
+
+        if (insertedText.All(char.IsWhiteSpace))
+        {
+            return context.Trigger switch
+            {
+                CompletionTrigger.Columns => new CompletionRequest(context),
+                CompletionTrigger.Objects => new CompletionRequest(context),
+                _ => null
+            };
+        }
 
         if (!insertedText.All(ch => char.IsLetterOrDigit(ch) || ch == '_'))
             return null;
@@ -178,6 +190,7 @@ public static class SqlCompletionProvider
             cache.Tables.Add(tableNode.Name);
             cache.TableNodes[tableNode.Name] = tableNode;
             cache.TableNodes[$"[{tableNode.Name}]"] = tableNode;
+            cache.TableNodes[$"`{tableNode.Name}`"] = tableNode;
         }
 
         cache.TablesLoaded = true;
@@ -293,7 +306,7 @@ public static class SqlCompletionProvider
             return null;
 
         var index = caretOffset - 1;
-        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_'))
+        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_' || editorText[index] == ']' || editorText[index] == '`'))
             index--;
 
         if (index < 0 || editorText[index] != '.')
@@ -301,7 +314,7 @@ public static class SqlCompletionProvider
 
         var end = index;
         index--;
-        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_'))
+        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_' || editorText[index] == '[' || editorText[index] == ']' || editorText[index] == '`'))
             index--;
 
         var objectName = editorText[(index + 1)..end];
@@ -498,7 +511,7 @@ public static class SqlCompletionProvider
 
     private static string NormalizeIdentifier(string value)
     {
-        return value.Trim().Trim('[', ']');
+        return value.Trim().Trim('[', ']', '`');
     }
 
     private static string[] ParseExplicitCteColumns(string columnsValue)
@@ -612,7 +625,7 @@ public static class SqlCompletionProvider
         if (string.IsNullOrWhiteSpace(expression))
             return string.Empty;
 
-        var asMatch = Regex.Match(expression, @"(?ix)\bas\s+(?<alias>\[[^\]]+\]|[A-Za-z_][A-Za-z0-9_]*)\s*$");
+        var asMatch = Regex.Match(expression, $@"(?ix)\bas\s+(?<alias>{IdentifierPattern})\s*$");
         if (asMatch.Success)
             return NormalizeIdentifier(asMatch.Groups["alias"].Value);
 

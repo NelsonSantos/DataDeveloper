@@ -12,35 +12,33 @@ public class CompletionInteractionStateTests
 
         var request = state.HandleTextEntered(" ");
 
-        Assert.Null(request);
+        Assert.False(request);
     }
 
     [Fact]
-    public void HandleTextEntered_WhitespaceAfterWindowWhitespaceInput_ReopensLastAutoRequest()
+    public void HandleTextEntered_WhitespaceAfterWindowWhitespaceInput_Reopens()
     {
         var state = new CompletionInteractionState();
-        var request = SqlCompletionProvider.GetManualCompletionRequest("select ", "select ".Length);
 
-        state.RememberAutoCompletion(request);
+        state.RememberAutoCompletion();
         state.ShouldRequestInsertion(" ", hasCompletionWindow: true);
 
         var reopened = state.HandleTextEntered(" ");
 
-        Assert.Same(request, reopened);
+        Assert.True(reopened);
     }
 
     [Fact]
     public void ShouldRequestInsertion_WhitespaceWithOpenWindow_DoesNotInsertAndArmsReopen()
     {
         var state = new CompletionInteractionState();
-        var request = SqlCompletionProvider.GetManualCompletionRequest("select ", "select ".Length);
-        state.RememberAutoCompletion(request);
+        state.RememberAutoCompletion();
 
         var shouldInsert = state.ShouldRequestInsertion(" ", hasCompletionWindow: true);
         var reopened = state.HandleTextEntered(" ");
 
         Assert.False(shouldInsert);
-        Assert.Same(request, reopened);
+        Assert.True(reopened);
     }
 
     [Fact]
@@ -67,13 +65,24 @@ public class CompletionInteractionStateTests
     public void ResetWhitespaceReopen_ClearsPendingReopen()
     {
         var state = new CompletionInteractionState();
-        var request = SqlCompletionProvider.GetManualCompletionRequest("select ", "select ".Length);
-        state.RememberAutoCompletion(request);
+        state.RememberAutoCompletion();
         state.ShouldRequestInsertion(" ", hasCompletionWindow: true);
         state.ResetWhitespaceReopen();
 
         var reopened = state.HandleTextEntered(" ");
 
-        Assert.Null(reopened);
+        Assert.False(reopened);
+    }
+
+    [Fact]
+    public void ShouldRequestInsertion_WhitespaceWithManualWindow_DoesNotArmReopen()
+    {
+        var state = new CompletionInteractionState();
+
+        var shouldInsert = state.ShouldRequestInsertion(" ", hasCompletionWindow: true);
+        var reopened = state.HandleTextEntered(" ");
+
+        Assert.False(shouldInsert);
+        Assert.False(reopened);
     }
 }
