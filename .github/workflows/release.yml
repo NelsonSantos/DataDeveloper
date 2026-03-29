@@ -1,5 +1,8 @@
 name: Release
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -47,11 +50,12 @@ jobs:
     needs: resolve-version
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         rid: [osx-x64, osx-arm64]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
       - name: Build macOS package
@@ -60,7 +64,7 @@ jobs:
           CONFIGURATION: Release
           VERSION: ${{ needs.resolve-version.outputs.version }}
       - name: Upload macOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-${{ matrix.rid }}
           path: artifacts/macos/${{ matrix.rid }}/DataDeveloper-${{ matrix.rid }}.zip
@@ -69,8 +73,8 @@ jobs:
     needs: resolve-version
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
       - name: Build Windows publish
@@ -91,7 +95,7 @@ jobs:
           "/DPublishDir=$((Resolve-Path 'artifacts/windows/win-x64/publish').Path)"
           "/DPlatform=win-x64"
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-win-x64
           path: artifacts/windows/win-x64/DataDeveloper-win-x64-setup.exe
@@ -100,8 +104,8 @@ jobs:
     needs: resolve-version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
       - name: Build Linux publish
@@ -116,17 +120,17 @@ jobs:
       - name: Build AppImage
         run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-linux-x64
           path: artifacts/linux/linux-x64/DataDeveloper-linux-x64.AppImage
 
   publish-release:
     needs: [resolve-version, build-macos, build-windows, build-linux]
-    if: needs.resolve-version.outputs.create_release == 'true'
+    if: needs.resolve-version.outputs.create_release == 'true' && needs.build-macos.result == 'success' && needs.build-windows.result == 'success' && needs.build-linux.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: release-artifacts
       - name: Publish GitHub Release
