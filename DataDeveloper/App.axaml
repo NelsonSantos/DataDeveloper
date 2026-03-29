@@ -76,8 +76,6 @@
         <FluentTheme />
         
         <StyleInclude Source="avares://DataDeveloper/Themes/SelectableTextBlock.axaml" />
-        <StyleInclude Source="avares://DataDeveloper/Themes/DataGridStyles.axaml" />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 
@@ -115,17 +113,5 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
-        <Style Selector="DataGridCell.left-alignment-column TextBlock">
-            <Setter Property="TextAlignment" Value="Left"/>
-        </Style>
-        
-        <Style Selector="DataGridCell.center-alignment-column TextBlock">
-            <Setter Property="TextAlignment" Value="Center"/>
-        </Style>
-
-        <Style Selector="DataGridCell.right-alignment-column TextBlock">
-            <Setter Property="TextAlignment" Value="Right"/>
-        </Style>
-      
     </Application.Styles>
 </Application>

@@ -1,0 +1,140 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (example: 26.0329.1)
+        required: true
+        type: string
+      create_release:
+        description: Publish a GitHub Release
+        required: true
+        default: true
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      create_release: ${{ steps.version.outputs.create_release }}
+    steps:
+      - id: version
+        shell: bash
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+            CREATE_RELEASE="true"
+          else
+            VERSION="${{ inputs.version }}"
+            TAG="v${VERSION}"
+            CREATE_RELEASE="${{ inputs.create_release }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "create_release=$CREATE_RELEASE" >> "$GITHUB_OUTPUT"
+
+  build-macos:
+    needs: resolve-version
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        rid: [osx-x64, osx-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build macOS package
+        run: ./scripts/build-macos-release.sh ${{ matrix.rid }}
+        env:
+          CONFIGURATION: Release
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DataDeveloper-${{ matrix.rid }}
+          path: artifacts/macos/${{ matrix.rid }}/DataDeveloper-${{ matrix.rid }}.zip
+
+  build-windows:
+    needs: resolve-version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build Windows publish
+        shell: bash
+        run: ./scripts/build-windows-release.sh win-x64
+        env:
+          CONFIGURATION: Release
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup -y
+      - name: Build Windows installer
+        shell: powershell
+        run: >
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          "packaging/windows/DataDeveloper.iss"
+          "/DAppVersion=${{ needs.resolve-version.outputs.version }}"
+          "/DPublishDir=$((Resolve-Path 'artifacts/windows/win-x64/publish').Path)"
+          "/DPlatform=win-x64"
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DataDeveloper-win-x64
+          path: artifacts/windows/win-x64/DataDeveloper-win-x64-setup.exe
+
+  build-linux:
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build Linux publish
+        run: ./scripts/build-linux-release.sh linux-x64
+        env:
+          CONFIGURATION: Release
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+      - name: Download appimagetool
+        run: |
+          curl -L https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
+          chmod +x appimagetool
+      - name: Build AppImage
+        run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DataDeveloper-linux-x64
+          path: artifacts/linux/linux-x64/DataDeveloper-linux-x64.AppImage
+
+  publish-release:
+    needs: [resolve-version, build-macos, build-windows, build-linux]
+    if: needs.resolve-version.outputs.create_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.resolve-version.outputs.tag }}
+          name: ${{ needs.resolve-version.outputs.tag }}
+          files: |
+            release-artifacts/**/*.zip
+            release-artifacts/**/*.exe
+            release-artifacts/**/*.AppImage

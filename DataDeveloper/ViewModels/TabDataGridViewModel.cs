@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Avalonia.Threading;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
-using DataDeveloper.DataGrid;
 using DataDeveloper.Enums;
 using DataDeveloper.Models;
 using DynamicData;

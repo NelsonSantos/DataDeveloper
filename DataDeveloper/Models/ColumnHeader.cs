@@ -1,6 +1,5 @@
 using System;
-using DataDeveloper.Data.Enums;
-using DataDeveloper.DataGrid;
+using DataDeveloper.Enums;
 
 namespace DataDeveloper.Models;
 

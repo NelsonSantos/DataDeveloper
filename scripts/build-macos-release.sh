@@ -9,6 +9,7 @@ APP_NAME="DataDeveloper"
 DEFAULT_RUNTIME="osx-x64"
 RUNTIME_IDENTIFIER="${1:-$DEFAULT_RUNTIME}"
 CONFIGURATION="${CONFIGURATION:-Release}"
+VERSION_OVERRIDE="${VERSION:-}"
 PUBLISH_ROOT="$ROOT_DIR/artifacts/macos/$RUNTIME_IDENTIFIER"
 PUBLISH_DIR="$PUBLISH_ROOT/publish"
 APP_BUNDLE="$PUBLISH_ROOT/$APP_NAME.app"
@@ -18,6 +19,7 @@ RESOURCES_DIR="$CONTENTS_DIR/Resources"
 ICONSET_DIR="$PUBLISH_ROOT/AppIcon.iconset"
 ICON_SOURCE="$ROOT_DIR/DataDeveloper/Assets/Icons/AppIcon.png"
 PLIST_TEMPLATE="$ROOT_DIR/packaging/macos/Info.plist.template"
+NUGET_SOURCE="${NUGET_SOURCE:-https://api.nuget.org/v3/index.json}"
 
 if ! command -v dotnet >/dev/null 2>&1; then
   echo "dotnet nao encontrado."
@@ -37,14 +39,28 @@ fi
 mkdir -p "$PUBLISH_ROOT"
 rm -rf "$PUBLISH_DIR" "$APP_BUNDLE" "$ICONSET_DIR"
 
-VERSION="$(dotnet msbuild "$PROJECT_PATH" -nologo -getProperty:Version | tail -n 1 | tr -d '\r')"
+VERSION_MSBUILD_ARGS=()
+if [[ -n "$VERSION_OVERRIDE" ]]; then
+  VERSION_MSBUILD_ARGS+=("-p:Version=$VERSION_OVERRIDE" "-p:VersionPrefix=$VERSION_OVERRIDE")
+fi
+
+VERSION="$(dotnet msbuild "$PROJECT_PATH" -nologo "${VERSION_MSBUILD_ARGS[@]}" -getProperty:Version | tail -n 1 | tr -d '\r')"
 ASSEMBLY_NAME="$(dotnet msbuild "$PROJECT_PATH" -nologo -getProperty:AssemblyName | tail -n 1 | tr -d '\r')"
+
+dotnet restore "$PROJECT_PATH" \
+  -r "$RUNTIME_IDENTIFIER" \
+  -p:RestoreIgnoreFailedSources=true \
+  "${VERSION_MSBUILD_ARGS[@]}" \
+  --source "$NUGET_SOURCE"
 
 dotnet publish "$PROJECT_PATH" \
   -c "$CONFIGURATION" \
   -r "$RUNTIME_IDENTIFIER" \
   --self-contained true \
+  --no-restore \
+  --source "$NUGET_SOURCE" \
   -p:RestoreIgnoreFailedSources=true \
+  "${VERSION_MSBUILD_ARGS[@]}" \
   -p:PublishSingleFile=false \
   -p:PublishTrimmed=false \
   -p:UseAppHost=true \

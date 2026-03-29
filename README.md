@@ -14,4 +14,8 @@ DataDeveloper currently supports SQL Server and MySQL, with provider-aware behav
 - Select ranges, rows, columns, and copy results to the clipboard
 - Resize columns and navigate results with keyboard shortcuts
 - Track query execution and previous-result cleanup from the status bar
-- Run unit and opt-in integration tests for supported providers
+- Run on macOS, Windows, and Linux
+
+## Releases
+
+- GitHub Releases: https://github.com/NelsonSantos/DataDeveloper/releases

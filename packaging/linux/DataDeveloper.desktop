@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=__APP_NAME__
+Exec=AppRun
+Icon=DataDeveloper
+Categories=Development;Database;
+Comment=SQL workspace for SQL Server and MySQL
+Terminal=false
+X-AppImage-Version=__VERSION__

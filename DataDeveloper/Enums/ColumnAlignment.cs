@@ -1,4 +1,4 @@
-namespace DataDeveloper.DataGrid;
+namespace DataDeveloper.Enums;
 
 public enum ColumnAlignment
 {

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifiers>osx-x64;osx-arm64;win-x64;linux-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
     <TrimMode>copyused</TrimMode>
@@ -44,7 +45,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataDeveloper.Antlr\DataDeveloper.Antlr.csproj" />
-    <ProjectReference Include="..\DataDeveloper.DataGrid\DataDeveloper.DataGrid.csproj" />
     <ProjectReference Include="..\DataDeveloper.Data\DataDeveloper.Data.csproj" />
     <ProjectReference Include="..\DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj" />
   </ItemGroup>
