@@ -1,31 +1,17 @@
 # DataDeveloper
-a SQL Statement manager for DBMS SQL Server (for now)
+A desktop SQL workspace focused on database exploration, query authoring, and result analysis.
 
-## macOS release
+DataDeveloper currently supports SQL Server and MySQL, with provider-aware behavior across connection management, schema browsing, SQL completion, query execution, and result visualization.
 
-To generate a self-contained macOS release with `.app`:
+## Features
 
-```bash
-./scripts/build-macos-release.sh
-```
-
-For another runtime:
-
-```bash
-./scripts/build-macos-release.sh osx-arm64
-```
-
-Output:
-
-- `artifacts/macos/<rid>/DataDeveloper.app`
-- `artifacts/macos/<rid>/DataDeveloper-<rid>.zip`
-
-## Next steps
-
-- [ ] generate and validate the `osx-arm64` release as well
-- [ ] add universal packaging, if it makes sense to distribute a single app for Intel and Apple Silicon
-- [ ] configure signing with `Developer ID Application` instead of ad-hoc signing
-- [ ] configure Apple notarization to avoid Gatekeeper blocking on other machines
-- [ ] validate app launch and execution on a clean macOS machine without the .NET SDK installed
-- [ ] decide whether distribution will be via `.zip`, `.dmg`, or both
-- [ ] automate the release build in CI, if it makes sense
+- Manage saved database connections for SQL Server and MySQL
+- Browse database schema from a dedicated explorer panel
+- Open multiple query editors per connection
+- Execute SQL statements and inspect results in tabbed result views
+- Use provider-aware SQL completion for tables and columns
+- Navigate query results with the custom `NextGrid` control
+- Select ranges, rows, columns, and copy results to the clipboard
+- Resize columns and navigate results with keyboard shortcuts
+- Track query execution and previous-result cleanup from the status bar
+- Run unit and opt-in integration tests for supported providers
