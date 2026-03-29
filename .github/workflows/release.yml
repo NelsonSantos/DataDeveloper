@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version (example: 26.0329.1)
+        description: "Release version (example: 26.0329.1)"
         required: true
         type: string
       create_release:
-        description: Publish a GitHub Release
+        description: "Publish a GitHub Release"
         required: true
         default: true
         type: boolean
