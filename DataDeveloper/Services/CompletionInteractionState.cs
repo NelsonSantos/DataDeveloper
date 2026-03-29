@@ -2,27 +2,27 @@ namespace DataDeveloper.Services;
 
 internal sealed class CompletionInteractionState
 {
-    private CompletionRequest? _lastAutoCompletionRequest;
+    private bool _hasActiveAutoCompletion;
     private bool _reopenCompletionOnWhitespace;
 
-    public void RememberAutoCompletion(CompletionRequest request)
+    public void RememberAutoCompletion()
     {
-        _lastAutoCompletionRequest = request;
+        _hasActiveAutoCompletion = true;
     }
 
-    public CompletionRequest? HandleTextEntered(string? text)
+    public bool HandleTextEntered(string? text)
     {
         if (string.IsNullOrEmpty(text) || !char.IsWhiteSpace(text[0]))
         {
             _reopenCompletionOnWhitespace = false;
-            return null;
+            return false;
         }
 
-        if (!_reopenCompletionOnWhitespace || _lastAutoCompletionRequest is null)
-            return null;
+        if (!_reopenCompletionOnWhitespace)
+            return false;
 
         _reopenCompletionOnWhitespace = false;
-        return _lastAutoCompletionRequest;
+        return true;
     }
 
     public bool ShouldRequestInsertion(string? text, bool hasCompletionWindow)
@@ -32,7 +32,7 @@ internal sealed class CompletionInteractionState
 
         if (char.IsWhiteSpace(text[0]))
         {
-            _reopenCompletionOnWhitespace = true;
+            _reopenCompletionOnWhitespace = _hasActiveAutoCompletion;
             return false;
         }
 
@@ -43,5 +43,6 @@ internal sealed class CompletionInteractionState
     public void ResetWhitespaceReopen()
     {
         _reopenCompletionOnWhitespace = false;
+        _hasActiveAutoCompletion = false;
     }
 }

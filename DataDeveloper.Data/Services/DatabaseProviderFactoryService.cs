@@ -1,5 +1,6 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.SqlServer;
 
 namespace DataDeveloper.Data.Services;
@@ -11,6 +12,7 @@ public class DatabaseProviderFactoryService
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => new SqlServerDatabaseProvider((SqlServerConnectionSettings)connectionSettings),
+            DatabaseType.MySql => new MySqlDatabaseProvider((MySqlConnectionSettings)connectionSettings),
             _ => throw new NotImplementedException($"Database type {connectionSettings.DatabaseType} is not implemented")
         };
     }

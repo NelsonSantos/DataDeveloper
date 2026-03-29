@@ -12,6 +12,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Services;
@@ -33,20 +34,11 @@ public class ConnectionSelectorViewModel : ViewModelBase
         _fileService = fileService;
         _databaseProviderFactoryService = databaseProviderFactoryService;
         LoadConnections();
+        SelectedDatabaseType = DatabaseType.SqlServer;
         
         AddCommand = ReactiveCommand.Create(() =>
         {
-            var newConn = new SqlServerConnectionSettings
-            {
-                Id = Guid.NewGuid(),
-                Name = "New Connection name",
-                Server = "",
-                Database = "",
-                User = "",
-                Password = "",
-                Encrypt = true,
-                TrustServerCertificate = false
-            };
+            var newConn = CreateConnectionSettings(SelectedDatabaseType);
             Connections.Add(newConn);
             SelectedConnection = newConn;
             IsEditing = true;
@@ -59,7 +51,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         EditCommand = ReactiveCommand.Create<ConnectionSettings>(
             (connectionModel) =>
             {
-                IsEditing = true; 
+                IsEditing = true;
                 SelectedConnection = connectionModel;
             }
         );
@@ -85,9 +77,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (SelectedConnection is null)
             return;
 
-        var duplicate = SelectedConnection.DatabaseType switch
+        ConnectionSettings? duplicate = SelectedConnection.DatabaseType switch
         {
-            DatabaseType.SqlServer => SelectedConnection.Map<SqlServerConnectionSettings>(),
+            DatabaseType.SqlServer => (ConnectionSettings?)SelectedConnection.Map<SqlServerConnectionSettings>(),
+            DatabaseType.MySql => (ConnectionSettings?)SelectedConnection.Map<MySqlConnectionSettings>(),
             _ => null
         };
         if (duplicate == null) throw new Exception("Type not recognized");
@@ -137,12 +130,27 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
+    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } = [DatabaseType.SqlServer, DatabaseType.MySql];
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
     {
         get => _selectedConnection;
-        set => this.RaiseAndSetIfChanged(ref _selectedConnection, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedConnection, value);
+            if (value is not null)
+                SelectedDatabaseType = value.DatabaseType;
+            this.RaisePropertyChanged(nameof(IsMySqlConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsSqlServerConnectionSelected));
+        }
+    }
+
+    private DatabaseType _selectedDatabaseType;
+    public DatabaseType SelectedDatabaseType
+    {
+        get => _selectedDatabaseType;
+        set => this.RaiseAndSetIfChanged(ref _selectedDatabaseType, value);
     }
 
     private bool _isEditing;
@@ -151,6 +159,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
         get => _isEditing;
         set => this.RaiseAndSetIfChanged(ref _isEditing, value);
     }    
+
+    public bool IsMySqlConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.MySql;
+    public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
     
     public SqlConnectionInfo? ConnectionInfo { get; private set; }
 
@@ -206,5 +217,38 @@ public class ConnectionSelectorViewModel : ViewModelBase
         Connections.Clear();
         if (sortedList is not null)
             Connections.AddRange(sortedList.OrderBy(s => s.Name));
+    }
+
+    private static ConnectionSettings CreateConnectionSettings(DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            DatabaseType.SqlServer => new SqlServerConnectionSettings
+            {
+                Id = Guid.NewGuid(),
+                Name = "New SQL Server connection",
+                Server = "",
+                Database = "",
+                User = "",
+                Password = "",
+                Encrypt = true,
+                TrustServerCertificate = false,
+                DatabaseType = DatabaseType.SqlServer
+            },
+            DatabaseType.MySql => new MySqlConnectionSettings
+            {
+                Id = Guid.NewGuid(),
+                Name = "New MySQL connection",
+                Server = "",
+                Database = "",
+                User = "",
+                Password = "",
+                Port = 3306,
+                Encrypt = false,
+                TrustServerCertificate = true,
+                DatabaseType = DatabaseType.MySql
+            },
+            _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")
+        };
     }
 }

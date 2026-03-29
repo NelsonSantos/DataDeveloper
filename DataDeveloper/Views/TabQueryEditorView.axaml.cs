@@ -133,10 +133,10 @@ public partial class TabQueryEditorView : UserControl
 
     private async void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
     {
-        var reopenRequest = _completionInteractionState.HandleTextEntered(e.Text);
-        if (reopenRequest is not null)
+        var shouldReopen = _completionInteractionState.HandleTextEntered(e.Text);
+        if (shouldReopen)
         {
-            _pendingCompletionRequest = reopenRequest;
+            _pendingCompletionRequest = SqlCompletionProvider.GetAutoCompletionRequest(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset, e.Text);
             Dispatcher.UIThread.Post(() =>
             {
                 if (_pendingCompletionRequest is null)
@@ -192,7 +192,7 @@ public partial class TabQueryEditorView : UserControl
             return;
 
         if (rememberAsAutoRequest)
-            _completionInteractionState.RememberAutoCompletion(request);
+            _completionInteractionState.RememberAutoCompletion();
 
         _completionWindow?.Close();
         _completionWindow = new CompletionWindow(SqlEditor.TextArea);
