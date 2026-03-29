@@ -102,12 +102,16 @@ jobs:
 
   build-linux:
     needs: resolve-version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
+      - name: Install Linux packaging dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2 desktop-file-utils
       - name: Build Linux publish
         run: ./scripts/build-linux-release.sh linux-x64
         env:
@@ -118,7 +122,7 @@ jobs:
           curl -L https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
           chmod +x appimagetool
       - name: Build AppImage
-        run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64
+        run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v5
         with:
