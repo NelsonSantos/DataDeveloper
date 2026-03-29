@@ -18,3 +18,6 @@
 - Do not introduce new SQL Server-only behavior without handling the MySQL equivalent, or without explicitly documenting and approving the limitation.
 - When implementing provider-dependent parsing, completion, navigation, execution, or UI behavior, validate the impact on both providers.
 - When adding database-dependent behavior tests, cover both SQL Server and MySQL whenever applicable.
+- For every new provider added in the future, implement provider tests from the start.
+- New providers must include, at minimum, unit coverage for provider factory wiring, connection settings serialization, schema SQL, and completion/execution behavior where applicable.
+- When feasible, add opt-in integration tests for each new provider using real configured connections, following the same pattern used for SQL Server and MySQL.
