@@ -17,7 +17,11 @@ public abstract class DatabaseProviderBase<TConnectionSettings> : IDatabaseProvi
     public TConnectionSettings ConnectionSettings { get; }
     public abstract DbConnection GetConnection();
     public abstract string GetTableStatement();
+    public abstract string GetViewStatement();
     public abstract string GetColumnStatement();
+    public abstract string GetProcedureStatement();
+    public abstract string GetFunctionStatement();
+    public abstract string GetRoutineParameterStatement();
 
     public TestConnectionResult TestConnection()
     {

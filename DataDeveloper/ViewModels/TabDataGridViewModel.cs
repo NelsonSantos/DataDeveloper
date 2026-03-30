@@ -42,17 +42,21 @@ public class TabDataGridViewModel : BaseTabContent
 
     public async Task LoadData()
     {
+        var dataReader = StatementResult.DataReader;
+        if (dataReader is null)
+            return;
+
         Headers.Clear();
         GridHeaders.Clear();
         GridColumnTypes.Clear();
         var columns = new List<ColumnHeader>();
-        for (int i = 0; i < StatementResult.DataReader.FieldCount; i++)
+        for (int i = 0; i < dataReader.FieldCount; i++)
         {
             var columnHeader = new ColumnHeader()
             {
-                Name = StatementResult.DataReader.GetName(i),
-                Type = StatementResult.DataReader.GetFieldType(i),
-                Alignment = GetFieldAlignment(StatementResult.DataReader.GetFieldType(i))
+                Name = dataReader.GetName(i),
+                Type = dataReader.GetFieldType(i),
+                Alignment = GetFieldAlignment(dataReader.GetFieldType(i))
             };
             columns.Add(columnHeader);
             GridHeaders.Add(columnHeader.Name);
@@ -68,18 +72,22 @@ public class TabDataGridViewModel : BaseTabContent
 
     private async Task LoadNextPage(int itemsPerPage = 0)
     {
+        var dataReader = StatementResult.DataReader;
+        if (dataReader is null)
+            return;
+
         var countRecords = 0;
         StatementResult.Watcher.Start();
         this.IsBusy = true;
         await Task.Delay(100);
         var readedUntilEnd = true;
-        while (StatementResult.DataReader.Read())
+        while (dataReader.Read())
         {
             RowNumber++;
             countRecords++;
             
-            var values = new object[StatementResult.DataReader.FieldCount];
-            StatementResult.DataReader.GetValues(values);
+            var values = new object[dataReader.FieldCount];
+            dataReader.GetValues(values);
             this.GridRows.Add(values);
             
             if (itemsPerPage > 0 && countRecords == itemsPerPage)

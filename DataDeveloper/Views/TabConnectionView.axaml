@@ -84,6 +84,9 @@
                     <Style Selector="TreeViewItem">
                         <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
                         <Setter Property="behaviors:TreeViewExpansionBehavior.SchemaExplorer" Value="{Binding DataContext.SchemaExplorer, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0" />
+                        <Setter Property="MinHeight" Value="20" />
                     </Style>
                 </TreeView.Styles>        
                 <TreeView.DataTemplates>
@@ -91,13 +94,13 @@
                         DataType="{x:Type models:SchemaNode}"
                         ItemsSource="{Binding Children}"
                         >
-                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="5">
+                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4" PointerPressed="SchemaNode_PointerPressed">
                             <TextBlock 
                                 Grid.Column="0" 
                                 FontFamily="{StaticResource FontAwesomeRegular}" 
                                 Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" 
                                 VerticalAlignment="Center"
-                                Margin="4"
+                                Margin="2"
                                 />
                             <TextBlock 
                                 Grid.Column="0" 
@@ -107,10 +110,10 @@
                                 VerticalAlignment="Bottom"
                                 Foreground="Goldenrod"
                                 FontSize="10"
-                                Margin="8,8,0,0"
+                                Margin="6,6,0,0"
                             />
-                            <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,3,0,0" />
-                            <TextBlock Grid.Column="2" Text="{Binding Details}" VerticalAlignment="Center" Margin="0,3,0,0" FontSize="11" Foreground="Gray" />
+                            <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,1,0,0" />
+                            <TextBlock Grid.Column="2" Text="{Binding Details}" VerticalAlignment="Center" Margin="0,1,0,0" FontSize="11" Foreground="Gray" />
                         </Grid>
                     </TreeDataTemplate>
                 </TreeView.DataTemplates>

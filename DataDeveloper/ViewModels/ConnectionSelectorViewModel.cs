@@ -10,11 +10,11 @@ using Avalonia;
 using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
-using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
+using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DynamicData;
 using MsBox.Avalonia;
@@ -24,15 +24,15 @@ namespace DataDeveloper.ViewModels;
 
 public class ConnectionSelectorViewModel : ViewModelBase
 {
-    private readonly AppDataFileService _fileService;
+    private readonly IConnectionSettingsRepository _connectionSettingsRepository;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
-    private const string ConnectionsFolder = "connections";
-    private const string FilePath = "connections.json";
+    private readonly ISecretStore _secretStore;
 
-    public ConnectionSelectorViewModel(AppDataFileService fileService, DatabaseProviderFactoryService databaseProviderFactoryService)
+    public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore)
     {
-        _fileService = fileService;
+        _connectionSettingsRepository = connectionSettingsRepository;
         _databaseProviderFactoryService = databaseProviderFactoryService;
+        _secretStore = secretStore;
         LoadConnections();
         SelectedDatabaseType = DatabaseType.SqlServer;
         
@@ -44,7 +44,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             IsEditing = true;
         });
 
-        ApplyCommand = ReactiveCommand.CreateFromTask<StyledElement>(ApplyAsync,
+        ApplyCommand = ReactiveCommand.CreateFromTask<StyledElement>(ApplyOnlyAsync,
             this.WhenAnyValue(x => x.IsEditing)
         );
 
@@ -52,6 +52,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
             (connectionModel) =>
             {
                 IsEditing = true;
+                if (connectionModel is not null)
+                    _connectionSettingsRepository.LoadPassword(connectionModel);
                 SelectedConnection = connectionModel;
             }
         );
@@ -77,6 +79,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (SelectedConnection is null)
             return;
 
+        _connectionSettingsRepository.LoadPassword(SelectedConnection);
         ConnectionSettings? duplicate = SelectedConnection.DatabaseType switch
         {
             DatabaseType.SqlServer => (ConnectionSettings?)SelectedConnection.Map<SqlServerConnectionSettings>(),
@@ -96,6 +99,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (SelectedConnection is null)
             return;
 
+        await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
         var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
         var result = databaseProvider.TestConnection();
         await this.ShowDialogAsync(
@@ -124,8 +128,13 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (result == ButtonResult.Yes)
         {
             if (connectionModel is not null)
+            {
+                _connectionSettingsRepository.Delete(connectionModel);
                 Connections.Remove(connectionModel);
-            SaveConnection(Guid.Empty);
+            }
+
+            SelectedConnection = Connections.FirstOrDefault();
+            IsEditing = false;
         }
     }
 
@@ -162,6 +171,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     public bool IsMySqlConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.MySql;
     public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
+    public bool IsSecureStorageUnavailable => !_secretStore.IsAvailable;
+    public string SecureStorageWarningMessage => _secretStore.UnavailableReason ?? string.Empty;
     
     public SqlConnectionInfo? ConnectionInfo { get; private set; }
 
@@ -176,20 +187,40 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     private async Task OkAsync(StyledElement element)
     {
-        await ApplyAsync(element);
+        var applied = await ApplyAsync(element);
+        if (!applied || SelectedConnection is null)
+            return;
+
+        await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
         var window = element.GetParentWindow();
         window?.Close(SelectedConnection);
     }
 
-    private async Task ApplyAsync(StyledElement element)
+    private async Task ApplyOnlyAsync(StyledElement element)
+    {
+        await ApplyAsync(element);
+    }
+
+    private async Task<bool> ApplyAsync(StyledElement element)
     {
         if (SelectedConnection == null)
         {
             await this.ShowDialogAsync(element, "Connection...", "There is no connection selected to save!", ButtonEnum.Ok, Icon.Info);
-            return;
+            return false;
         }
 
-        SaveConnection(SelectedConnection.Id);
+        await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
+
+        if (!_secretStore.IsAvailable && !string.IsNullOrWhiteSpace(SelectedConnection.Password))
+        {
+            await this.ShowDialogAsync(element, "Secure storage unavailable",
+                $"{_secretStore.UnavailableReason}\n\nThe connection can be saved only after secure credential storage is available or the password field is left blank.",
+                ButtonEnum.Ok, Icon.Warning);
+            return false;
+        }
+
+        await SaveConnectionAsync(SelectedConnection);
+        return true;
     }
 
     private async Task<ButtonResult> ShowDialogAsync(StyledElement element, string title, string messagge, ButtonEnum button, Icon icon)
@@ -201,19 +232,21 @@ public class ConnectionSelectorViewModel : ViewModelBase
         return await box.ShowAsPopupAsync(window);
     }
 
-    private void SaveConnection(Guid connectionId)
+    private async Task SaveConnectionAsync(ConnectionSettings connectionSettings)
     {
-        _fileService.SaveJson(FilePath, Connections, ConnectionsFolder, new ConnectionSettingsConverter());
+        await Task.Run(() => _connectionSettingsRepository.Save(connectionSettings));
         
         IsEditing = false;
-        LoadConnections();
-        
-        SelectedConnection = Connections.FirstOrDefault(c => c.Id == connectionId);
+
+        var sortedConnections = Connections.OrderBy(connection => connection.Name).ToList();
+        Connections.Clear();
+        Connections.AddRange(sortedConnections);
+        SelectedConnection = connectionSettings;
     }
 
     private void LoadConnections()
     {
-        var sortedList  = _fileService.LoadJson<List<ConnectionSettings>>(FilePath, ConnectionsFolder, new ConnectionSettingsConverter());
+        var sortedList = _connectionSettingsRepository.LoadAll();
         Connections.Clear();
         if (sortedList is not null)
             Connections.AddRange(sortedList.OrderBy(s => s.Name));

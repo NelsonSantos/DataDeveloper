@@ -40,9 +40,9 @@ public static class TreeViewExpansionBehavior
             treeViewItem.DataContext is SchemaNode node &&
             GetSchemaExplorer(treeViewItem) is ISchemaExplorer schemaExplorer)
         {
-            if (node.NodeType == NodeType.Columns && node.Next?.NodeType == NodeType.None)
+            if (node.CanLoad && node.Next?.NodeType == NodeType.None)
             {
-                await schemaExplorer.LoadTableColumnsAsync(node);
+                await schemaExplorer.LoadNodeAsync(node);
             }
         }
     }

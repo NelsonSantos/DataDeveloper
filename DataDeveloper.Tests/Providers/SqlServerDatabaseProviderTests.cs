@@ -51,4 +51,48 @@ public class SqlServerDatabaseProviderTests
         Assert.Contains("sys.types", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("OBJECT_ID(@TableName)", sql, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void GetViewStatement_UsesInformationSchemaViews()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings());
+
+        var sql = provider.GetViewStatement();
+
+        Assert.Contains("information_schema.views", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void GetProcedureStatement_UsesInformationSchemaRoutines()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings());
+
+        var sql = provider.GetProcedureStatement();
+
+        Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("routine_type = 'PROCEDURE'", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void GetFunctionStatement_UsesInformationSchemaRoutines()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings());
+
+        var sql = provider.GetFunctionStatement();
+
+        Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("routine_type = 'FUNCTION'", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void GetRoutineParameterStatement_UsesInformationSchemaParameters()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings());
+
+        var sql = provider.GetRoutineParameterStatement();
+
+        Assert.Contains("information_schema.parameters", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("specific_name = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("is_nullable", sql, StringComparison.OrdinalIgnoreCase);
+    }
 }

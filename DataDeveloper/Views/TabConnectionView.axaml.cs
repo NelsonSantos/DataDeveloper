@@ -1,6 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia;
+using Avalonia.Input;
 using Avalonia.Media;
+using DataDeveloper.Data.Enums;
+using DataDeveloper.Data.Models;
+using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 
 namespace DataDeveloper.Views;
@@ -72,5 +80,106 @@ public partial class TabConnectionView : UserControl
         NewQueryButton.IsVisible = true;
         ToggleSchemaExplorerButton.Background = RailSelectedBackground;
         SchemaRailIcon.Foreground = RailSelectedForeground;
+    }
+
+    private void SchemaNode_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
+            return;
+
+        if (sender is not Control control || control.DataContext is not SchemaNode node)
+            return;
+
+        var menu = BuildContextMenu(node);
+        if (menu is null)
+            return;
+
+        control.ContextMenu = menu;
+        menu.Open(control);
+        e.Handled = true;
+    }
+
+    private ContextMenu? BuildContextMenu(SchemaNode node)
+    {
+        if (DataContext is not TabConnectionViewModel viewModel)
+            return null;
+
+        var items = new List<object>();
+
+        if (node.NodeType is NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Column or NodeType.Parameter)
+        {
+            items.Add(CreateMenuItem("Copy name", async () => await CopyToClipboardAsync(node.Name)));
+            items.Add(CreateMenuItem("Copy qualified name", async () =>
+                await CopyToClipboardAsync(DatabaseObjectScriptBuilder.BuildQualifiedName(viewModel.ConnectionSettings, node))));
+        }
+
+        if (node.NodeType is NodeType.Table or NodeType.View)
+        {
+            if (items.Count > 0)
+                items.Add(new Separator());
+
+            items.Add(CreateMenuItem("Open select script", () =>
+            {
+                viewModel.OpenQueryEditorWithScript(DatabaseObjectScriptBuilder.BuildSelectRowsScript(viewModel.ConnectionSettings, node));
+                return Task.CompletedTask;
+            }));
+
+            items.Add(CreateMenuItem("Open count script", () =>
+            {
+                viewModel.OpenQueryEditorWithScript(DatabaseObjectScriptBuilder.BuildCountRowsScript(viewModel.ConnectionSettings, node));
+                return Task.CompletedTask;
+            }));
+        }
+
+        if (node.NodeType == NodeType.Procedure)
+        {
+            if (items.Count > 0)
+                items.Add(new Separator());
+
+            items.Add(CreateMenuItem("Open execute script", async () =>
+            {
+                await EnsureRoutineParametersLoadedAsync(node, viewModel);
+                viewModel.OpenQueryEditorWithScript(DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(viewModel.ConnectionSettings, node));
+            }));
+        }
+
+        if (node.NodeType == NodeType.Function)
+        {
+            if (items.Count > 0)
+                items.Add(new Separator());
+
+            items.Add(CreateMenuItem("Open select function script", async () =>
+            {
+                await EnsureRoutineParametersLoadedAsync(node, viewModel);
+                viewModel.OpenQueryEditorWithScript(DatabaseObjectScriptBuilder.BuildSelectFunctionScript(viewModel.ConnectionSettings, node));
+            }));
+        }
+
+        return items.Count == 0 ? null : new ContextMenu { ItemsSource = items };
+    }
+
+    private MenuItem CreateMenuItem(string header, Func<Task> action)
+    {
+        var menuItem = new MenuItem { Header = header };
+        menuItem.Click += async (_, _) => await action();
+        return menuItem;
+    }
+
+    private async Task CopyToClipboardAsync(string text)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard is null)
+            return;
+
+        await topLevel.Clipboard.SetTextAsync(text);
+    }
+
+    private static async Task EnsureRoutineParametersLoadedAsync(SchemaNode node, TabConnectionViewModel viewModel)
+    {
+        var parameterFolder = node.Children.FirstOrDefault(child => child.NodeType == NodeType.Parameters);
+        if (parameterFolder is null || !parameterFolder.CanLoad)
+            return;
+
+        await viewModel.SchemaExplorer.LoadNodeAsync(parameterFolder);
     }
 }

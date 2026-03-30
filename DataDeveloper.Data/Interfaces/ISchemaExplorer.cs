@@ -8,4 +8,5 @@ public interface ISchemaExplorer
     Task InitializeSchemaNode();
     ObservableCollection<SchemaNode> RootConnections { get; }
     Task LoadTableColumnsAsync(SchemaNode table);
+    Task LoadNodeAsync(SchemaNode node);
 }

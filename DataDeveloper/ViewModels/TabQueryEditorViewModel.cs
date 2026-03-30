@@ -13,6 +13,7 @@ using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
+using DataDeveloper.Services;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +45,11 @@ public class TabQueryEditorViewModel : BaseTabContent
         this.WhenAnyValue(vm => vm.CursorOffSet).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorLine).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorColumn).Subscribe(_ => ShowCursorData());
-        this.WhenAnyValue(vm => vm.SqlStatement).Subscribe(_ => TextWasChanged = SqlStatement == null ? false : true);
+        this.WhenAnyValue(vm => vm.SqlStatement).Subscribe(_ =>
+        {
+            TextWasChanged = SqlStatement == null ? false : true;
+            RefreshDetectedParameters();
+        });
         this.WhenAnyValue(vm => vm.File).Subscribe(newFileName =>
         {
             if (System.IO.File.Exists(newFileName))
@@ -73,6 +78,7 @@ public class TabQueryEditorViewModel : BaseTabContent
     [Reactive] public string? File { get; set; }
     [Reactive] public string SqlStatement { get; set; } = string.Empty;
     [Reactive] public string SelectedStatement { get; set; } = string.Empty;
+    [Reactive] public int SelectedStatementLength { get; set; }
     [Reactive] public int CursorOffSet { get; set; }
     [Reactive] public int CursorLine { get; set; }
     [Reactive] public int CursorColumn { get; set; }
@@ -82,8 +88,10 @@ public class TabQueryEditorViewModel : BaseTabContent
     [Reactive] public bool StatementIsRunning { get; set; }
     [Reactive] public bool ResultIsMinimized { get; set; } = true;
     [Reactive] public int SelectedTabIndex { get; set; }
+    public bool HasDetectedParameters => ParameterValues.Count > 0;
     
     public ObservableCollection<BaseTabContent> Tabs { get; } = new();
+    public ObservableCollection<QueryParameterValue> ParameterValues { get; } = new();
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
     public ReactiveCommand<BaseTabContent, Unit> CloseTabResultCommand { get; }
@@ -118,6 +126,8 @@ public class TabQueryEditorViewModel : BaseTabContent
             var statementExecutor = ConnectionSettings.GetStatementExecutor();
             var previousResultTabs = Tabs.OfType<TabDataGridViewModel>().ToList();
             var cleanupWatcher = Stopwatch.StartNew();
+            var statementToExecute = SelectedStatementLength > 0 ? SelectedStatement : SqlStatement;
+            var parameterValues = BuildParameterValuesForExecution(statementToExecute);
 
             if (previousResultTabs.Count > 0)
             {
@@ -134,7 +144,7 @@ public class TabQueryEditorViewModel : BaseTabContent
             foreach (var previousTab in previousResultTabs)
                 Tabs.Remove(previousTab);
 
-            var statementResults = await statementExecutor.ExecuteStatement(SelectedStatement.IsNullOrEmpty() ? SqlStatement : SelectedStatement);
+            var statementResults = (await statementExecutor.ExecuteStatement(statementToExecute, parameterValues)).ToList();
 
             if (statementResults.Any())
             {
@@ -148,15 +158,15 @@ public class TabQueryEditorViewModel : BaseTabContent
                 {
                     statementResult.Watcher.Start();
                     statementCount++;
-                    
-                    var hasRows = statementResult.DataReader.HasRows;
+
+                    var hasDataReader = statementResult.HasDataReader;
 
                     var resultName = $"result {statementCount:00}";
                     
                     if (!_cachePages.ContainsKey(statementResult.Statement))
                         _cachePages[statementResult.Statement] = 100;
                     
-                    if (hasRows)
+                    if (hasDataReader)
                     {
                         index++;
                         _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Loading first rows..."));
@@ -172,7 +182,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                     }
                     else
                     {
-                        resultMessage.AppendLine($"{statementResult.DataReader.RecordsAffected} record(s) affected for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
+                        resultMessage.AppendLine($"{statementResult.RecordsAffected} record(s) affected for {resultName} in {statementResult.Watcher.Elapsed:c}\r\n");
                         await statementResult.CloseDataReader();
                     }
                     statementResult.Watcher.Stop();
@@ -192,5 +202,36 @@ public class TabQueryEditorViewModel : BaseTabContent
             _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
             this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
+    }
+
+    private void RefreshDetectedParameters()
+    {
+        var detectedParameters = SqlParameterDetector.ExtractParameters(SqlStatement);
+        var existingValues = ParameterValues.ToDictionary(parameter => parameter.Name, parameter => parameter.Value, StringComparer.OrdinalIgnoreCase);
+
+        ParameterValues.Clear();
+        foreach (var parameter in detectedParameters)
+        {
+            existingValues.TryGetValue(parameter, out var existingValue);
+            ParameterValues.Add(new QueryParameterValue(parameter, existingValue));
+        }
+
+        this.RaisePropertyChanged(nameof(HasDetectedParameters));
+    }
+
+    private IReadOnlyDictionary<string, object?>? BuildParameterValuesForExecution(string sql)
+    {
+        var parametersInStatement = SqlParameterDetector.ExtractParameters(sql);
+        if (parametersInStatement.Count == 0)
+            return null;
+
+        var values = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var parameterName in parametersInStatement)
+        {
+            var parameter = ParameterValues.FirstOrDefault(item => string.Equals(item.Name, parameterName, StringComparison.OrdinalIgnoreCase));
+            values[parameterName] = SqlParameterValueConverter.Convert(parameter?.Value, parameter?.IsNull ?? true);
+        }
+
+        return values;
     }
 }

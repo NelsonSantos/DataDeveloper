@@ -68,6 +68,8 @@ public partial class App : Application
         services.AddTransient<MainWindowViewModel>();
         services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
         services.AddSingleton<AppDataFileService>();
+        services.AddSingleton<ISecretStore, PlatformSecretStore>();
+        services.AddSingleton<IConnectionSettingsRepository, SqliteConnectionSettingsRepository>();
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<DatabaseProviderFactoryService>();

@@ -128,6 +128,14 @@ public class TabConnectionViewModel : BaseTabContent
         this.SelectedEditor = this.QueryEditors.Count - 1;
     }
 
+    public void OpenQueryEditorWithScript(string sqlStatement)
+    {
+        AddQueryEditor();
+        var queryEditor = QueryEditors[this.SelectedEditor];
+        queryEditor.SqlStatement = sqlStatement;
+        queryEditor.TextWasChanged = false;
+    }
+
     private async Task LoadConnection()
     {
         try

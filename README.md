@@ -6,12 +6,16 @@ DataDeveloper currently supports SQL Server and MySQL, with provider-aware behav
 ## Features
 
 - Manage saved database connections for SQL Server and MySQL
+- Store saved connections in a local app-state database
+- Store connection credentials using the operating system secure storage
 - Browse database schema from a dedicated explorer panel
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
 - Use provider-aware SQL completion for tables and columns
 - Navigate query results with the custom `NextGrid` control
+- Detect `@parameters` in SQL and fill them through a side panel in the editor
 - Select ranges, rows, columns, and copy results to the clipboard
+- Use context menus in the schema explorer to copy names and open SQL templates for tables, views, procedures, and functions
 - Resize columns and navigate results with keyboard shortcuts
 - Track query execution and previous-result cleanup from the status bar
 - Run on macOS, Windows, and Linux

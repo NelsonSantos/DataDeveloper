@@ -9,7 +9,11 @@ public interface IDatabaseProvider
     DbConnection GetConnection();
     TestConnectionResult TestConnection();
     string GetTableStatement();
+    string GetViewStatement();
     string GetColumnStatement();
+    string GetProcedureStatement();
+    string GetFunctionStatement();
+    string GetRoutineParameterStatement();
 }
 
 public interface IDatabaseProvider<TConnectionSettings> : IDatabaseProvider 

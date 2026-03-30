@@ -45,6 +45,16 @@ public class MySqlDatabaseProvider : DatabaseProviderBase<MySqlConnectionSetting
                """;
     }
 
+    public override string GetViewStatement()
+    {
+        return """
+               select table_name as name
+               from information_schema.views
+               where table_schema = database()
+               order by table_name;
+               """;
+    }
+
     public override string GetColumnStatement()
     {
         var sb = new StringBuilder();
@@ -68,5 +78,51 @@ public class MySqlDatabaseProvider : DatabaseProviderBase<MySqlConnectionSetting
         sb.AppendLine("order by c.ordinal_position;");
 
         return sb.ToString();
+    }
+
+    public override string GetProcedureStatement()
+    {
+        return """
+               select
+                   routine_name as Name,
+                   specific_name as SpecificName
+               from information_schema.routines
+               where routine_schema = database()
+                 and routine_type = 'PROCEDURE'
+               order by routine_name;
+               """;
+    }
+
+    public override string GetFunctionStatement()
+    {
+        return """
+               select
+                   routine_name as Name,
+                   specific_name as SpecificName,
+                   data_type as DataType
+               from information_schema.routines
+               where routine_schema = database()
+                 and routine_type = 'FUNCTION'
+               order by routine_name;
+               """;
+    }
+
+    public override string GetRoutineParameterStatement()
+    {
+        return """
+               select
+                   coalesce(parameter_name, 'return') as Name,
+                   data_type as DataType,
+                   coalesce(character_maximum_length, 0) as Length,
+                   coalesce(numeric_precision, 0) as Precision,
+                   coalesce(numeric_scale, 0) as Scale,
+                   case when is_nullable = 'YES' then 1 else 0 end as IsNullable,
+                   parameter_mode as Mode,
+                   ordinal_position as Position
+               from information_schema.parameters
+               where specific_schema = database()
+                 and specific_name = @SpecificName
+               order by ordinal_position;
+               """;
     }
 }

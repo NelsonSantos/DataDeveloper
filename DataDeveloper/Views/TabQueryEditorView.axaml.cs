@@ -51,6 +51,7 @@ public partial class TabQueryEditorView : UserControl
 
         SqlEditor.Bind(TextEditorBindingHelper.BindableTextProperty, new Binding(nameof(TabQueryEditorViewModel.SqlStatement)) { Mode = BindingMode.TwoWay });
         SqlEditor.Bind(TextEditorBindingHelper.BindableSelectedTextProperty, new Binding(nameof(TabQueryEditorViewModel.SelectedStatement)));
+        SqlEditor.Bind(TextEditorBindingHelper.BindableSelectionLengthProperty, new Binding(nameof(TabQueryEditorViewModel.SelectedStatementLength)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretOffsetProperty, new Binding(nameof(TabQueryEditorViewModel.CursorOffSet)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretLineProperty, new Binding(nameof(TabQueryEditorViewModel.CursorLine)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretColumnProperty, new Binding(nameof(TabQueryEditorViewModel.CursorColumn)));

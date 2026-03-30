@@ -141,6 +141,12 @@
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsMySqlConnectionSelected}" />
 
+                <TextBlock Text="{Binding SecureStorageWarningMessage}"
+                           FontSize="11"
+                           Foreground="IndianRed"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsSecureStorageUnavailable}" />
+
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Button  
                         Content="Test Connection" 

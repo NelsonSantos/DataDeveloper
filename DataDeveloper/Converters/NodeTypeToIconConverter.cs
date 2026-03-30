@@ -16,7 +16,11 @@ public class NodeTypeToIconConverter : IValueConverter
         {
             NodeType.Connection => "\uf1c0",
             NodeType.Table => "\uf00b",
+            NodeType.View => "\uf06e",
+            NodeType.Procedure => "\uf085",
+            NodeType.Function => "\uf661",
             NodeType.Column => "\uf0ca",
+            NodeType.Parameter => "\uf1de",
             _ => "\uf07b"
         };
     }

@@ -31,6 +31,11 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
     {
         return "select table_name as name from information_schema.tables where table_type = 'BASE TABLE'";
     }
+
+    public override string GetViewStatement()
+    {
+        return "select table_name as name from information_schema.views order by table_name";
+    }
     
     public override string GetColumnStatement()
     {
@@ -66,5 +71,46 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
         sb.AppendLine("    c.column_id;");
         
         return sb.ToString();
-    }    
+    }
+
+    public override string GetProcedureStatement()
+    {
+        return """
+               select
+                   routine_name as Name
+               from information_schema.routines
+               where routine_type = 'PROCEDURE'
+               order by routine_name;
+               """;
+    }
+
+    public override string GetFunctionStatement()
+    {
+        return """
+               select
+                   routine_name as Name,
+                   data_type as DataType
+               from information_schema.routines
+               where routine_type = 'FUNCTION'
+               order by routine_name;
+               """;
+    }
+
+    public override string GetRoutineParameterStatement()
+    {
+        return """
+               select
+                   coalesce(p.parameter_name, '@RETURN_VALUE') as Name,
+                   p.data_type as DataType,
+                   coalesce(p.character_maximum_length, 0) as Length,
+                   coalesce(p.numeric_precision, 0) as Precision,
+                   coalesce(p.numeric_scale, 0) as Scale,
+                   cast(0 as bit) as IsNullable,
+                   p.parameter_mode as Mode,
+                   p.ordinal_position as Position
+               from information_schema.parameters p
+               where p.specific_name = @SpecificName
+               order by p.ordinal_position;
+               """;
+    }
 }

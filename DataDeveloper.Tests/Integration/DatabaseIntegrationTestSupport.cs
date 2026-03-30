@@ -1,15 +1,15 @@
-using System.Text.Json;
 using DataDeveloper.Data;
-using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Services;
+using DataDeveloper.Core;
 using Microsoft.Extensions.DependencyInjection;
+using DataDeveloper.Interfaces;
+using DataDeveloper.Services;
 
 namespace DataDeveloper.Tests.Integration;
 
 internal static class DatabaseIntegrationTestSupport
 {
-    private const string DefaultConnectionsPath = "/Users/nelsosantos/Documents/Library/Application Support/DataDeveloper/connections/connections.json";
     private const string IntegrationFlag = "RUN_DB_INTEGRATION_TESTS";
 
     public static bool ShouldRunIntegrationTests()
@@ -21,17 +21,17 @@ internal static class DatabaseIntegrationTestSupport
 
     public static ConnectionSettings? TryLoadConnection(string connectionName)
     {
-        var path = Environment.GetEnvironmentVariable("DATADEVELOPER_CONNECTIONS_FILE");
-        if (string.IsNullOrWhiteSpace(path))
-            path = DefaultConnectionsPath;
+        var appDataFileService = new AppDataFileService();
+        ISecretStore secretStore = new PlatformSecretStore(appDataFileService);
+        var repository = new SqliteConnectionSettingsRepository(appDataFileService, secretStore);
+        var connection = repository.LoadAll()
+            .FirstOrDefault(c => string.Equals(c.Name, connectionName, StringComparison.OrdinalIgnoreCase));
 
-        if (!File.Exists(path))
+        if (connection is null)
             return null;
 
-        var json = File.ReadAllText(path);
-        var options = MappingExtensions.GetJsonSerializerOptions(new ConnectionSettingsConverter());
-        var connections = JsonSerializer.Deserialize<List<ConnectionSettings>>(json, options);
-        return connections?.FirstOrDefault(c => string.Equals(c.Name, connectionName, StringComparison.OrdinalIgnoreCase));
+        repository.LoadPassword(connection);
+        return connection;
     }
 
     public static void EnsureDatabaseServices()

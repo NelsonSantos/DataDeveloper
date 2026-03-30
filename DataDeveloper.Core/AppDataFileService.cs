@@ -67,6 +67,16 @@ public class AppDataFileService
         return content is not null ? JsonSerializer.Deserialize<T>(content, MappingExtensions.GetJsonSerializerOptions(converters)) : default;
     }
 
+    public string GetDirectory(string? subfolder = null)
+    {
+        return EnsureSubfolder(subfolder);
+    }
+
+    public string GetFullPath(string fileName, string? subfolder = null)
+    {
+        return Path.Combine(EnsureSubfolder(subfolder), fileName);
+    }
+
     private string EnsureSubfolder(string? subfolder)
     {
         if (string.IsNullOrWhiteSpace(subfolder))

@@ -32,17 +32,59 @@
                 <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04d;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
             </Button>
         </StackPanel>
-        <avaloniaEdit:TextEditor 
-            Grid.Row="1"
-            x:Name="SqlEditor"
-            FontFamily="{StaticResource MonospaceFont}"
-            ShowLineNumbers="True"
-            SyntaxHighlighting="SQL"
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Visible"
-            Background="#202424"
-            Text="select * from payment"
-        />
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+            <avaloniaEdit:TextEditor 
+                Grid.Column="0"
+                x:Name="SqlEditor"
+                FontFamily="{StaticResource MonospaceFont}"
+                ShowLineNumbers="True"
+                SyntaxHighlighting="SQL"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Visible"
+                Background="#202424"
+                Text="select * from payment"
+            />
+            <Border Grid.Column="1"
+                IsVisible="{Binding HasDetectedParameters}"
+                Background="#2B2B2B"
+                BorderBrush="#4A4A4A"
+                BorderThickness="1,0,0,0"
+                Width="320">
+            <Grid RowDefinitions="Auto,Auto,*">
+                <TextBlock Text="Parameters"
+                           Margin="10,10,10,6"
+                           FontWeight="SemiBold"
+                           Foreground="White" />
+                <Grid Grid.Row="1" ColumnDefinitions="120,Auto,*" Margin="10,0,10,6" ColumnSpacing="8">
+                    <TextBlock Grid.Column="0" Text="Name" Foreground="#BBBBBB" FontSize="11" />
+                    <TextBlock Grid.Column="1" Text="Null" Foreground="#BBBBBB" FontSize="11" />
+                    <TextBlock Grid.Column="2" Text="Value" Foreground="#BBBBBB" FontSize="11" />
+                </Grid>
+                <ScrollViewer Grid.Row="2" Margin="10,0,10,10" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding ParameterValues}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="120,Auto,*" ColumnSpacing="8" Margin="0,0,0,6">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Name}"
+                                               VerticalAlignment="Center"
+                                               FontFamily="{StaticResource MonospaceFont}" />
+                                    <CheckBox Grid.Column="1"
+                                              IsChecked="{Binding IsNull, Mode=TwoWay}"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center" />
+                                    <TextBox Grid.Column="2"
+                                             Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding !IsNull}"
+                                             Watermark="null" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+        </Grid>
         <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
         <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">
             <StackPanel x:Name="StackPanelResult" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">

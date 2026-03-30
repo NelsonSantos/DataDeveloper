@@ -22,6 +22,12 @@ public static class TextEditorBindingHelper
             typeof(TextEditorBindingHelper),
             default!,
             defaultBindingMode: BindingMode.OneWayToSource);
+
+    public static readonly AttachedProperty<int> BindableSelectionLengthProperty =
+        AvaloniaProperty.RegisterAttached<TextEditor, int>(
+            "BindableSelectionLength",
+            typeof(TextEditorBindingHelper),
+            defaultBindingMode: BindingMode.OneWayToSource);
     
     public static readonly AttachedProperty<int> BindableCaretOffsetProperty =
         AvaloniaProperty.RegisterAttached<TextEditor, int>(
@@ -55,6 +61,12 @@ public static class TextEditorBindingHelper
 
     public static void SetBindableSelectedText(TextEditor editor, string value) =>
         editor.SetValue(BindableSelectedTextProperty, value);
+
+    public static int GetBindableSelectionLength(TextEditor editor) =>
+        editor.GetValue(BindableSelectionLengthProperty);
+
+    public static void SetBindableSelectionLength(TextEditor editor, int value) =>
+        editor.SetValue(BindableSelectionLengthProperty, value);
 
     public static int GetBindableCaretOffset(TextEditor editor) =>
         editor.GetValue(BindableCaretOffsetProperty);
@@ -94,6 +106,12 @@ public static class TextEditorBindingHelper
         });
 
         BindableSelectedTextProperty.Changed.Subscribe(args =>
+        {
+            if (args.Sender is TextEditor editor)
+                AttachEvents(editor);
+        });
+
+        BindableSelectionLengthProperty.Changed.Subscribe(args =>
         {
             if (args.Sender is TextEditor editor)
                 AttachEvents(editor);
@@ -169,15 +187,8 @@ public static class TextEditorBindingHelper
 
     private static void DebouncedSelectionUpdate(TextEditor editor)
     {
-        var state = _states.GetOrCreateValue(editor);
-        state.SelectionDebounce?.Stop();
-        state.SelectionDebounce = new DispatcherTimer { Interval = DebounceDelay };
-        state.SelectionDebounce.Tick += (_, _) =>
-        {
-            state.SelectionDebounce?.Stop();
-            SetBindableSelectedText(editor, editor.SelectedText ?? "");
-        };
-        state.SelectionDebounce.Start();
+        SetBindableSelectedText(editor, editor.SelectedText ?? string.Empty);
+        SetBindableSelectionLength(editor, editor.SelectionLength);
     }
 
     private static void DebouncedCaretUpdate(TextEditor editor)

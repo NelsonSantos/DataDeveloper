@@ -4,5 +4,5 @@ namespace DataDeveloper.Data.Interfaces;
 
 public interface IStatementExecutor
 {
-    Task<IEnumerable<StatementResult>> ExecuteStatement(string sqlStatement);
+    Task<IEnumerable<StatementResult>> ExecuteStatement(string sqlStatement, IReadOnlyDictionary<string, object?>? parameters = null);
 }

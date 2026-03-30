@@ -41,7 +41,7 @@ public class StatementSplitter
                 if (startIndex != null && endIndex != null)
                 {
                     var statement = sqlText.Substring(startIndex.Value, endIndex.Value - startIndex.Value + 1);
-                    if (!string.IsNullOrWhiteSpace(statement))
+                    if (ContainsExecutableTokens(statement))
                         statements.Add(statement.Trim());
                 }
                 startIndex = null;
@@ -63,11 +63,34 @@ public class StatementSplitter
         if (startIndex != null && endIndex != null)
         {
             var statement = sqlText.Substring(startIndex.Value, endIndex.Value - startIndex.Value + 1);
-            if (!string.IsNullOrWhiteSpace(statement))
+            if (ContainsExecutableTokens(statement))
                 statements.Add(statement.Trim());
         }
 
         return statements;
+    }
+
+    private static bool ContainsExecutableTokens(string statement)
+    {
+        var input = new AntlrInputStream(statement);
+        var lexer = new TSqlLexer(input);
+        var tokens = new CommonTokenStream(lexer);
+        tokens.Fill();
+
+        foreach (var token in tokens.GetTokens())
+        {
+            if (token.Type == TokenConstants.EOF ||
+                token.Type == TSqlLexer.SPACE ||
+                token.Type == TSqlLexer.COMMENT ||
+                token.Type == TSqlLexer.LINE_COMMENT)
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
 // public class StatementSplitter
