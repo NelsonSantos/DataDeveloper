@@ -1,0 +1,112 @@
+name: Release Notes Draft
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'release-notes/**'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  generate-release-notes:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes draft
+        id: notes
+        uses: actions/github-script@v7
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const beforeSha = process.env.BEFORE_SHA;
+            const currentSha = process.env.CURRENT_SHA;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const commit = await github.rest.repos.getCommit({
+              owner,
+              repo,
+              ref: currentSha
+            });
+
+            let pullRequest = null;
+            const associatedPullRequests = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: currentSha
+            });
+
+            if (associatedPullRequests.data.length > 0)
+              pullRequest = associatedPullRequests.data[0];
+
+            const releaseNotesDirectory = path.join(process.env.GITHUB_WORKSPACE, 'release-notes');
+            fs.mkdirSync(releaseNotesDirectory, { recursive: true });
+
+            const shortSha = currentSha.substring(0, 7);
+            const timestamp = new Date().toISOString().replace(/[:]/g, '-');
+            const fileName = `${timestamp}-${shortSha}.md`;
+            const filePath = path.join(releaseNotesDirectory, fileName);
+
+            const title = pullRequest?.title ?? commit.data.commit.message.split('\n')[0];
+            const prLine = pullRequest
+              ? `- Source PR: #${pullRequest.number} ${pullRequest.html_url}`
+              : '- Source PR: not found';
+
+            const prBody = pullRequest?.body?.trim()
+              ? pullRequest.body.trim()
+              : '_No PR description provided._';
+
+            const notes = [
+              `# Release Notes Draft`,
+              ``,
+              `- Created at: ${new Date().toISOString()}`,
+              `- Commit: ${shortSha}`,
+              prLine,
+              ``,
+              `## Summary`,
+              `- ${title}`,
+              ``,
+              `## PR Context`,
+              prBody,
+              ``,
+              `## Included Commits`,
+              `<!-- Filled by workflow from ${beforeSha}..${currentSha} -->`,
+              ``
+            ].join('\n');
+
+            fs.writeFileSync(filePath, notes);
+
+            core.setOutput('file_name', fileName);
+            core.setOutput('file_path', filePath);
+
+      - name: Append commit list
+        shell: bash
+        run: |
+          FILE="release-notes/${{ steps.notes.outputs.file_name }}"
+          if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+            git log --format='- %h %s' -n 20 >> "$FILE"
+          else
+            git log --format='- %h %s' "${{ github.event.before }}..${{ github.sha }}" >> "$FILE"
+          fi
+
+      - name: Commit release notes draft
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "release-notes/${{ steps.notes.outputs.file_name }}"
+          git commit -m "docs: add release notes draft for ${{ github.sha }} [skip ci]"
+          git push
