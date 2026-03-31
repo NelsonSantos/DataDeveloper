@@ -14,11 +14,10 @@ using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
+using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DynamicData;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
 
 namespace DataDeveloper.ViewModels;
 
@@ -27,12 +26,14 @@ public class ConnectionSelectorViewModel : ViewModelBase
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private readonly ISecretStore _secretStore;
+    private readonly IDialogService _dialogService;
 
-    public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore)
+    public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore, IDialogService dialogService)
     {
         _connectionSettingsRepository = connectionSettingsRepository;
         _databaseProviderFactoryService = databaseProviderFactoryService;
         _secretStore = secretStore;
+        _dialogService = dialogService;
         LoadConnections();
         SelectedDatabaseType = DatabaseType.SqlServer;
         
@@ -104,12 +105,11 @@ public class ConnectionSelectorViewModel : ViewModelBase
         await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
         var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
         var result = databaseProvider.TestConnection();
-        await this.ShowDialogAsync(
-            element,
-            "Connection...",
+        await _dialogService.ShowDialogAsync(
             result.Success ? result.ResultMessage : $"Could not connect to database\r\n\r\n{result.ResultMessage}",
-            ButtonEnum.Ok,
-            result.Success ? Icon.Success : Icon.Error);
+            "Connection...",
+            DialogButtons.Ok,
+            result.Success ? DialogIcon.Success : DialogIcon.Error);
     }
 
     private void CancelAsync(StyledElement element)
@@ -125,9 +125,13 @@ public class ConnectionSelectorViewModel : ViewModelBase
         IsEditing = true; 
         SelectedConnection = connectionModel;
 
-        var result = await this.ShowDialogAsync(element, "Connection...", "Are you sure to delete this connection?", ButtonEnum.YesNo, Icon.Question);
+        var result = await _dialogService.ShowDialogAsync(
+            "Are you sure to delete this connection?",
+            "Connection...",
+            DialogButtons.YesNo,
+            DialogIcon.Question);
 
-        if (result == ButtonResult.Yes)
+        if (result == DialogResult.Yes)
         {
             if (connectionModel is not null)
             {
@@ -207,7 +211,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     {
         if (SelectedConnection == null)
         {
-            await this.ShowDialogAsync(element, "Connection...", "There is no connection selected to save!", ButtonEnum.Ok, Icon.Info);
+            await _dialogService.ShowDialogAsync("There is no connection selected to save!", "Connection...");
             return false;
         }
 
@@ -215,26 +219,16 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         if (!_secretStore.IsAvailable && !string.IsNullOrWhiteSpace(SelectedConnection.Password))
         {
-            await this.ShowDialogAsync(
-                element,
-                "Secure storage unavailable",
+            await _dialogService.ShowDialogAsync(
                 $"{_secretStore.UnavailableReason}\n\nThe connection can be saved only after secure credential storage is available or the password field is left blank.",
-                ButtonEnum.Ok,
-                Icon.Warning);
+                "Secure storage unavailable",
+                DialogButtons.Ok,
+                DialogIcon.Warning);
             return false;
         }
 
         await SaveConnectionAsync(SelectedConnection);
         return true;
-    }
-
-    private async Task<ButtonResult> ShowDialogAsync(StyledElement element, string title, string messagge, ButtonEnum button, Icon icon)
-    {
-        var window = element.GetParentWindow();
-        var box = MessageBoxManager
-            .GetMessageBoxStandard(title, messagge, button, icon);
-
-        return await box.ShowAsPopupAsync(window);
     }
 
     private async Task SaveConnectionAsync(ConnectionSettings connectionSettings)
