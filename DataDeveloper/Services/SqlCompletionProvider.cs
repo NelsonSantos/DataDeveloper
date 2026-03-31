@@ -34,6 +34,9 @@ public static class SqlCompletionProvider
     private static readonly Regex DeleteTargetRegex = new(
         $@"(?ix)\bdelete(?:\s+\w+)?\s+from\s+(?<table>{IdentifierPattern}(?:\.{IdentifierPattern})?)",
         RegexOptions.Compiled);
+    private static readonly Regex SetKeywordRegex = new(
+        @"(?ix)\bset\b",
+        RegexOptions.Compiled);
 
     private static readonly Regex CteRegex = new(
         $@"(?ix)
@@ -435,37 +438,43 @@ public static class SqlCompletionProvider
 
     private static string? DetectTargetTableName(string textBeforeCaret)
     {
+        Match? latestMatch = null;
         foreach (var regex in new[] { UpdateTargetRegex, InsertTargetRegex, DeleteTargetRegex })
         {
-            var match = regex.Match(textBeforeCaret);
-            if (!match.Success)
-                continue;
-
-            var tableName = NormalizeIdentifier(match.Groups["table"].Value);
-            if (tableName.Contains('.'))
-                tableName = tableName.Split('.').Last();
-
-            return string.IsNullOrWhiteSpace(tableName) ? null : tableName;
+            var match = GetLastMatch(regex, textBeforeCaret);
+            if (match.Success && (latestMatch is null || match.Index > latestMatch.Index))
+                latestMatch = match;
         }
 
-        return null;
+        if (latestMatch is null)
+            return null;
+
+        var tableName = NormalizeIdentifier(latestMatch.Groups["table"].Value);
+        if (tableName.Contains('.'))
+            tableName = tableName.Split('.').Last();
+
+        return string.IsNullOrWhiteSpace(tableName) ? null : tableName;
     }
 
     private static bool IsInsideInsertColumnList(string textBeforeCaret)
     {
-        var insertMatch = InsertTargetRegex.Match(textBeforeCaret);
+        var insertMatch = GetLastMatch(InsertTargetRegex, textBeforeCaret);
         if (!insertMatch.Success)
             return false;
 
-        var valuesIndex = textBeforeCaret.IndexOf("values", StringComparison.OrdinalIgnoreCase);
-        var selectIndex = textBeforeCaret.IndexOf("select", StringComparison.OrdinalIgnoreCase);
+        var searchStartIndex = insertMatch.Index + insertMatch.Length;
+        var valuesIndex = textBeforeCaret.IndexOf("values", searchStartIndex, StringComparison.OrdinalIgnoreCase);
+        var selectIndex = textBeforeCaret.IndexOf("select", searchStartIndex, StringComparison.OrdinalIgnoreCase);
         var stopIndex = new[] { valuesIndex, selectIndex }
             .Where(index => index >= 0)
             .DefaultIfEmpty(textBeforeCaret.Length)
             .Min();
 
+        if (stopIndex < searchStartIndex)
+            return false;
+
         var slice = textBeforeCaret[..stopIndex];
-        var openParenIndex = slice.IndexOf('(', insertMatch.Index + insertMatch.Length);
+        var openParenIndex = slice.IndexOf('(', searchStartIndex);
         if (openParenIndex < 0)
             return false;
 
@@ -490,11 +499,11 @@ public static class SqlCompletionProvider
 
     private static bool IsInsideUpdateSetList(string textBeforeCaret)
     {
-        var updateMatch = UpdateTargetRegex.Match(textBeforeCaret);
+        var updateMatch = GetLastMatch(UpdateTargetRegex, textBeforeCaret);
         if (!updateMatch.Success)
             return false;
 
-        var setMatch = Regex.Match(textBeforeCaret, @"(?ix)\bset\b");
+        var setMatch = GetLastMatch(SetKeywordRegex, textBeforeCaret);
         if (!setMatch.Success || setMatch.Index < updateMatch.Index)
             return false;
 
@@ -508,6 +517,15 @@ public static class SqlCompletionProvider
         .Min();
 
         return setMatch.Index < stopIndex;
+    }
+
+    private static Match GetLastMatch(Regex regex, string text)
+    {
+        Match? lastMatch = null;
+        foreach (Match match in regex.Matches(text))
+            lastMatch = match;
+
+        return lastMatch ?? Match.Empty;
     }
 
     private static string NormalizeIdentifier(string value)
