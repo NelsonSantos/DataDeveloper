@@ -208,6 +208,34 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal("Second updated", reloadedSecond.Name);
     }
 
+    [Fact]
+    public void LoadPassword_DoesNotOverwriteClearedPassword_WhenAlreadyLoaded()
+    {
+        var repository = CreateRepository();
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            CredentialId = Guid.NewGuid(),
+            Name = "SQL",
+            DatabaseType = DatabaseType.SqlServer,
+            Server = "sql.local",
+            Database = "master",
+            User = "sa",
+            Password = "secret"
+        };
+
+        repository.Save(connection);
+
+        var loaded = Assert.IsType<SqlServerConnectionSettings>(Assert.Single(repository.LoadAll()));
+        repository.LoadPassword(loaded);
+        loaded.Password = string.Empty;
+
+        repository.LoadPassword(loaded);
+
+        Assert.Equal(string.Empty, loaded.Password);
+        Assert.True(loaded.IsPasswordLoaded);
+    }
+
     private SqliteConnectionSettingsRepository CreateRepository(ISecretStore? secretStore = null)
     {
         return new SqliteConnectionSettingsRepository(

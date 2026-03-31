@@ -8,19 +8,28 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Dto;
-using MsBox.Avalonia.Enums;
+using DataDeveloper.ViewModels;
+using DataDeveloper.Views;
 
 namespace DataDeveloper.Services;
 
 public class DialogService : IDialogService
 {
+    public async Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info)
+    {
+        var owner = GetOwnerWindow();
+        var dialog = new AppDialogWindow(AppDialogViewModel.Create(message, title, buttons, icon));
+
+        return await dialog.ShowDialog<DialogResult>(owner);
+    }
+
     private Window GetOwnerWindow()
     {
         var window = Application.Current?.ApplicationLifetime switch
         {
-            IClassicDesktopStyleApplicationLifetime desktop => desktop.Windows.FirstOrDefault(w => w.IsActive),
+            IClassicDesktopStyleApplicationLifetime desktop => desktop.Windows.FirstOrDefault(w => w.IsActive)
+                ?? desktop.Windows.FirstOrDefault(w => w.IsVisible)
+                ?? desktop.MainWindow,
             _ => null
         };
         return window ?? throw new Exception("Failed to capture owner window.");
@@ -28,35 +37,12 @@ public class DialogService : IDialogService
 
     public async Task<DialogResult> ShowDialogResult(string message, string? title = null)
     {
-        var messageBox = MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
-        {
-            ContentTitle = title ?? string.Empty,
-            ContentMessage = message,
-            ButtonDefinitions = ButtonEnum.YesNoCancel,
-            Icon = Icon.Question,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        });
-        var result = await messageBox.ShowAsPopupAsync(GetOwnerWindow());
-
-        return result switch
-        {
-            ButtonResult.Yes => DialogResult.Yes,
-            ButtonResult.No => DialogResult.No,
-            ButtonResult.Cancel => DialogResult.Cancel,
-            _ => DialogResult.Cancel
-        };
+        return await ShowDialogAsync(message, title, DialogButtons.YesNoCancel, DialogIcon.Question);
     }
 
     public async Task ShowMessageAsync(string message, string? title = null)
     {
-        await MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
-        {
-            ContentTitle = title ?? string.Empty,
-            ContentMessage = message,
-            ButtonDefinitions = ButtonEnum.Ok,
-            Icon = Icon.Info,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        }).ShowAsPopupAsync(GetOwnerWindow());
+        _ = await ShowDialogAsync(message, title, DialogButtons.Ok, DialogIcon.Info);
     }
 
     public async Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null)
@@ -102,5 +88,5 @@ public class DialogService : IDialogService
         });
 
         return files.FirstOrDefault()?.TryGetLocalPath();
-    }    
+    }
 }

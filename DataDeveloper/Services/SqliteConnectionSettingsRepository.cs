@@ -96,13 +96,13 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
     {
         ArgumentNullException.ThrowIfNull(connectionSettings);
 
-        if (connectionSettings.CredentialId is null || !string.IsNullOrEmpty(connectionSettings.Password))
+        if (connectionSettings.IsPasswordLoaded)
+            return;
+
+        if (connectionSettings.CredentialId is null)
         {
-            if (connectionSettings.CredentialId is null)
-            {
-                connectionSettings.IsPasswordLoaded = true;
-                connectionSettings.LoadedPasswordSnapshot = string.Empty;
-            }
+            connectionSettings.IsPasswordLoaded = true;
+            connectionSettings.LoadedPasswordSnapshot = connectionSettings.Password;
             return;
         }
 

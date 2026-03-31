@@ -13,9 +13,6 @@ using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
 using Microsoft.Extensions.DependencyInjection;
-using MsBox.Avalonia;
-using MsBox.Avalonia.Dto;
-using MsBox.Avalonia.Enums;
 using TabConnectionViewModel = DataDeveloper.ViewModels.TabConnectionViewModel;
 
 namespace DataDeveloper;
@@ -87,21 +84,14 @@ public partial class App : Application
 
     private async void OnAboutMenuClick(object? sender, EventArgs e)
     {
-        var window = GetOwnerWindow();
         var version = typeof(App).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?
             .Split('+')[0]
             ?? typeof(App).Assembly.GetName().Version?.ToString()
             ?? "unknown";
 
-        await MessageBoxManager.GetMessageBoxStandard(new MessageBoxStandardParams
-        {
-            ContentTitle = "About Data Developer",
-            ContentMessage = $"Data Developer\nVersion {version}",
-            ButtonDefinitions = ButtonEnum.Ok,
-            Icon = Icon.Info,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner
-        }).ShowAsPopupAsync(window);
+        var dialogService = ServiceProvider.GetRequiredService<IDialogService>();
+        await dialogService.ShowMessageAsync($"Data Developer\nVersion {version}", "About Data Developer");
     }
 
     private void OnQuitMenuClick(object? sender, EventArgs e)
@@ -110,14 +100,4 @@ public partial class App : Application
             desktop.Shutdown();
     }
 
-    private Window GetOwnerWindow()
-    {
-        var window = ApplicationLifetime switch
-        {
-            IClassicDesktopStyleApplicationLifetime desktop => desktop.Windows.FirstOrDefault(w => w.IsActive) ?? desktop.MainWindow,
-            _ => null
-        };
-
-        return window ?? throw new InvalidOperationException("Failed to capture owner window.");
-    }
 }
