@@ -203,6 +203,19 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public void AutoRequest_InsertColumnList_AfterPreviousSelect_DoesNotThrowAndReturnsColumnsTrigger()
+    {
+        var sql = "select * from clientes;\ninsert into pedidos (";
+
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, "(");
+
+        Assert.NotNull(request);
+        Assert.True(request!.Context.IsInsideInsertColumnList);
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal("pedidos", request.Context.TargetTableName);
+    }
+
+    [Fact]
     public void ManualRequest_AfterPostgresQuotedUpdateSet_ReturnsColumnsTrigger()
     {
         var sql = "update \"clientes\" set ";
