@@ -4,6 +4,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
+using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqlServer;
 using Xunit;
 
@@ -66,6 +67,31 @@ public class ConnectionSettingsConverterTests
     }
 
     [Fact]
+    public void Deserialize_ReturnsPostgresConnectionSettings_ForPostgresPayload()
+    {
+        const string json = """
+                            {
+                              "Id":"25222222-2222-2222-2222-222222222222",
+                              "Name":"Postgres",
+                              "DatabaseType":"PostgresSql",
+                              "Server":"localhost",
+                              "Database":"app",
+                              "User":"postgres",
+                              "Password":"pwd",
+                              "Port":5433,
+                              "Encrypt":true,
+                              "TrustServerCertificate":false
+                            }
+                            """;
+
+        var connection = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<PostgresConnectionSettings>(connection);
+        Assert.Equal(DatabaseType.PostgresSql, typed.DatabaseType);
+        Assert.Equal(5433, typed.Port);
+    }
+
+    [Fact]
     public void Serialize_RoundTripsSqlServerConnectionSettings()
     {
         ConnectionSettings connection = new SqlServerConnectionSettings
@@ -112,5 +138,30 @@ public class ConnectionSettingsConverterTests
         var typed = Assert.IsType<MySqlConnectionSettings>(deserialized);
         Assert.Equal((uint)3306, typed.Port);
         Assert.Equal(DatabaseType.MySql, typed.DatabaseType);
+    }
+
+    [Fact]
+    public void Serialize_RoundTripsPostgresConnectionSettings()
+    {
+        ConnectionSettings connection = new PostgresConnectionSettings
+        {
+            Id = Guid.Parse("54444444-4444-4444-4444-444444444444"),
+            Name = "Postgres",
+            DatabaseType = DatabaseType.PostgresSql,
+            Server = "localhost",
+            Database = "app",
+            User = "postgres",
+            Password = "pwd",
+            Port = 5432,
+            Encrypt = true,
+            TrustServerCertificate = false
+        };
+
+        var json = JsonSerializer.Serialize(connection, SerializerOptions);
+        var deserialized = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<PostgresConnectionSettings>(deserialized);
+        Assert.Equal(5432, typed.Port);
+        Assert.Equal(DatabaseType.PostgresSql, typed.DatabaseType);
     }
 }

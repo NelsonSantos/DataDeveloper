@@ -94,7 +94,7 @@
                     IsReadOnly="{Binding !IsEditing}" />
 
                 <Grid RowDefinitions="Auto,Auto"
-                      IsVisible="{Binding IsMySqlConnectionSelected}">
+                      IsVisible="{Binding IsPortConnectionSelected}">
                     <TextBlock Grid.Row="0" Text="Port" />
                     <TextBox Grid.Row="1"
                              Text="{Binding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -140,6 +140,12 @@
                            Foreground="DarkGoldenrod"
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsMySqlConnectionSelected}" />
+
+                <TextBlock Text="For PostgreSQL, use 'Encrypt connection' to enable SSL/TLS. 'Trust server certificate' skips certificate validation."
+                           FontSize="11"
+                           Foreground="DarkGoldenrod"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsPostgresConnectionSelected}" />
 
                 <TextBlock Text="{Binding SecureStorageWarningMessage}"
                            FontSize="11"

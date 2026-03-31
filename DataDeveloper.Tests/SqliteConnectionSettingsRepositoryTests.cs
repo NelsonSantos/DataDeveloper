@@ -1,6 +1,7 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
+using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
@@ -106,6 +107,39 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(mySql.Port, loadedMySql.Port);
         repository.LoadPassword(loadedMySql);
         Assert.Equal(mySql.Password, loadedMySql.Password);
+    }
+
+    [Fact]
+    public void SaveAll_AndLoadAll_RoundTripsPostgresConnection()
+    {
+        var secretStore = new InMemorySecretStore();
+        var repository = CreateRepository(secretStore: secretStore);
+        var postgres = new PostgresConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            CredentialId = Guid.NewGuid(),
+            Name = "Postgres",
+            DatabaseType = DatabaseType.PostgresSql,
+            Server = "postgres.local",
+            Database = "app",
+            Port = 5433,
+            User = "postgres",
+            Password = "postgres-secret",
+            Encrypt = true,
+            TrustServerCertificate = false
+        };
+
+        repository.SaveAll([postgres]);
+
+        var loaded = repository.LoadAll();
+
+        var loadedPostgres = Assert.IsType<PostgresConnectionSettings>(Assert.Single(loaded));
+        Assert.Equal(postgres.CredentialId, loadedPostgres.CredentialId);
+        Assert.Equal(postgres.Server, loadedPostgres.Server);
+        Assert.Equal(postgres.Database, loadedPostgres.Database);
+        Assert.Equal(postgres.Port, loadedPostgres.Port);
+        repository.LoadPassword(loadedPostgres);
+        Assert.Equal(postgres.Password, loadedPostgres.Password);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
+using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Services;
 using Xunit;
@@ -36,6 +37,19 @@ public class DatabaseObjectScriptBuilderTests
     }
 
     [Fact]
+    public void BuildSelectRowsScript_UsesPostgresLimitSyntax()
+    {
+        var node = CreateNode(NodeType.Table, "public.orders");
+        var settings = new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql };
+
+        var script = DatabaseObjectScriptBuilder.BuildSelectRowsScript(settings, node);
+
+        Assert.Contains("select *", script, System.StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("from \"public\".\"orders\"", script, System.StringComparison.Ordinal);
+        Assert.Contains("limit 100;", script, System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void BuildExecuteProcedureScript_UsesProviderSpecificSyntax()
     {
         var procedureNode = CreateNode(NodeType.Procedure, "ProcessOrders");
@@ -65,9 +79,13 @@ public class DatabaseObjectScriptBuilderTests
         var mySqlScript = DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(
             new MySqlConnectionSettings { DatabaseType = DatabaseType.MySql },
             procedureNode);
+        var postgresScript = DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(
+            new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql },
+            procedureNode);
 
         Assert.Equal("exec [ProcessOrders] @id = @id, @result = @result output;", sqlServerScript);
         Assert.Equal("call `ProcessOrders`(@id, @result);", mySqlScript);
+        Assert.Equal("call \"ProcessOrders\"(@id, @result);", postgresScript);
     }
 
     [Fact]
@@ -106,6 +124,18 @@ public class DatabaseObjectScriptBuilderTests
             functionNode);
 
         Assert.Equal("select [dbo].[CalculateTax](@amount, @region);", script);
+    }
+
+    [Fact]
+    public void BuildQualifiedName_QuotesPostgresIdentifiers()
+    {
+        var tableNode = CreateNode(NodeType.Table, "public.Order Details");
+
+        var qualifiedName = DatabaseObjectScriptBuilder.BuildQualifiedName(
+            new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql },
+            tableNode);
+
+        Assert.Equal("\"public\".\"Order Details\"", qualifiedName);
     }
 
     private static SchemaNode CreateNode(NodeType nodeType, string name, bool isFolder = false, SchemaNode? parent = null, object? tag = null)

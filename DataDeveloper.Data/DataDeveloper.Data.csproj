@@ -16,6 +16,7 @@
         <PackageReference Include="Dapper" Version="2.1.72" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
         <PackageReference Include="MySqlConnector" Version="2.4.0" />
+        <PackageReference Include="Npgsql" Version="8.0.3" />
     </ItemGroup>
 
     <ItemGroup>
