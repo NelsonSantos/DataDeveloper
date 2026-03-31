@@ -12,6 +12,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
+using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
@@ -84,6 +85,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         ConnectionSettings? duplicate = SelectedConnection.DatabaseType switch
         {
             DatabaseType.SqlServer => (ConnectionSettings?)SelectedConnection.Map<SqlServerConnectionSettings>(),
+            DatabaseType.PostgresSql => (ConnectionSettings?)SelectedConnection.Map<PostgresConnectionSettings>(),
             DatabaseType.MySql => (ConnectionSettings?)SelectedConnection.Map<MySqlConnectionSettings>(),
             _ => null
         };
@@ -145,7 +147,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
-    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } = [DatabaseType.SqlServer, DatabaseType.MySql];
+    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } = [DatabaseType.SqlServer, DatabaseType.PostgresSql, DatabaseType.MySql];
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
@@ -157,7 +159,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
             if (value is not null)
                 SelectedDatabaseType = value.DatabaseType;
             this.RaisePropertyChanged(nameof(IsMySqlConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsPostgresConnectionSelected));
             this.RaisePropertyChanged(nameof(IsSqlServerConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsPortConnectionSelected));
         }
     }
 
@@ -176,7 +180,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }    
 
     public bool IsMySqlConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.MySql;
+    public bool IsPostgresConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.PostgresSql;
     public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
+    public bool IsPortConnectionSelected =>
+        SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql;
     public bool IsSecureStorageUnavailable => !_secretStore.IsAvailable;
     public string SecureStorageWarningMessage => _secretStore.UnavailableReason ?? string.Empty;
     
@@ -266,6 +273,19 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = true,
                 TrustServerCertificate = false,
                 DatabaseType = DatabaseType.SqlServer
+            },
+            DatabaseType.PostgresSql => new PostgresConnectionSettings
+            {
+                Id = Guid.NewGuid(),
+                Name = "New PostgreSQL connection",
+                Server = "",
+                Database = "",
+                User = "",
+                Password = "",
+                Port = 5432,
+                Encrypt = false,
+                TrustServerCertificate = false,
+                DatabaseType = DatabaseType.PostgresSql
             },
             DatabaseType.MySql => new MySqlConnectionSettings
             {

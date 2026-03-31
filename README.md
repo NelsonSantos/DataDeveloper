@@ -1,11 +1,11 @@
 # DataDeveloper
 A desktop SQL workspace focused on database exploration, query authoring, and result analysis.
 
-DataDeveloper currently supports SQL Server and MySQL, with provider-aware behavior across connection management, schema browsing, SQL completion, query execution, and result visualization.
+DataDeveloper currently supports SQL Server, MySQL, and PostgreSQL, with provider-aware behavior across connection management, schema browsing, SQL completion, query execution, and result visualization.
 
 ## Features
 
-- Manage saved database connections for SQL Server and MySQL
+- Manage saved database connections for SQL Server, MySQL, and PostgreSQL
 - Store saved connections in a local app-state database
 - Store connection credentials using the operating system secure storage
 - Browse database schema from a dedicated explorer panel

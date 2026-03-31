@@ -16,7 +16,7 @@ namespace DataDeveloper.Services;
 
 public static class SqlCompletionProvider
 {
-    private const string IdentifierPattern = @"(?:\[[^\]]+\]|`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)";
+    private const string IdentifierPattern = @"(?:\[[^\]]+\]|`[^`]+`|""[^""]+""|[A-Za-z_][A-Za-z0-9_]*)";
 
     private static readonly Regex AliasRegex = new(
         $@"(?ix)
@@ -191,6 +191,7 @@ public static class SqlCompletionProvider
             cache.TableNodes[tableNode.Name] = tableNode;
             cache.TableNodes[$"[{tableNode.Name}]"] = tableNode;
             cache.TableNodes[$"`{tableNode.Name}`"] = tableNode;
+            cache.TableNodes[$"\"{tableNode.Name}\""] = tableNode;
         }
 
         cache.TablesLoaded = true;
@@ -306,7 +307,7 @@ public static class SqlCompletionProvider
             return null;
 
         var index = caretOffset - 1;
-        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_' || editorText[index] == ']' || editorText[index] == '`'))
+        while (index >= 0 && IsIdentifierCharacter(editorText[index], allowClosingQuoteOnly: true))
             index--;
 
         if (index < 0 || editorText[index] != '.')
@@ -314,7 +315,7 @@ public static class SqlCompletionProvider
 
         var end = index;
         index--;
-        while (index >= 0 && (char.IsLetterOrDigit(editorText[index]) || editorText[index] == '_' || editorText[index] == '[' || editorText[index] == ']' || editorText[index] == '`'))
+        while (index >= 0 && IsIdentifierCharacter(editorText[index], allowClosingQuoteOnly: false))
             index--;
 
         var objectName = editorText[(index + 1)..end];
@@ -511,7 +512,18 @@ public static class SqlCompletionProvider
 
     private static string NormalizeIdentifier(string value)
     {
-        return value.Trim().Trim('[', ']', '`');
+        return value.Trim().Trim('[', ']', '`', '"');
+    }
+
+    private static bool IsIdentifierCharacter(char ch, bool allowClosingQuoteOnly)
+    {
+        return char.IsLetterOrDigit(ch) ||
+               ch == '_' ||
+               ch == '[' ||
+               ch == ']' ||
+               ch == '`' ||
+               ch == '"' ||
+               (!allowClosingQuoteOnly && ch == '.');
     }
 
     private static string[] ParseExplicitCteColumns(string columnsValue)

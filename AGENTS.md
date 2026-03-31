@@ -21,3 +21,7 @@
 - For every new provider added in the future, implement provider tests from the start.
 - New providers must include, at minimum, unit coverage for provider factory wiring, connection settings serialization, schema SQL, and completion/execution behavior where applicable.
 - When feasible, add opt-in integration tests for each new provider using real configured connections, following the same pattern used for SQL Server and MySQL.
+
+## Documentation
+- When adding a new database provider or significant provider capability, update `README.md` in the same branch.
+- Provider documentation updates must cover supported providers and any local setup needed to validate the new provider during development.

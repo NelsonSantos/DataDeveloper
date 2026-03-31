@@ -178,6 +178,43 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public void ManualRequest_AfterPostgresQuotedAliasDot_ReturnsColumnsTrigger()
+    {
+        var sql = "select \"c\".";
+        var caretOffset = sql.Length;
+
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, caretOffset);
+
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal("c", request.Context.ObjectNameBeforeDot);
+    }
+
+    [Fact]
+    public void AutoRequest_InsertIntoPostgresQuotedTable_OpenParen_ReturnsColumnsTrigger()
+    {
+        var sql = "insert into \"clientes\" (";
+
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, "(");
+
+        Assert.NotNull(request);
+        Assert.True(request!.Context.IsInsideInsertColumnList);
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal("clientes", request.Context.TargetTableName);
+    }
+
+    [Fact]
+    public void ManualRequest_AfterPostgresQuotedUpdateSet_ReturnsColumnsTrigger()
+    {
+        var sql = "update \"clientes\" set ";
+
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal(SqlCompletionProvider.SqlClause.Set, request.Context.Clause);
+        Assert.Equal("clientes", request.Context.TargetTableName);
+    }
+
+    [Fact]
     public async Task GetCompletionsAsync_ReturnsColumns_ForSqlServerAliasWithSeededSchemaCache()
     {
         var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
@@ -207,6 +244,21 @@ public class SqlCompletionProviderTests
         Assert.Contains(completions, item => item.Text == "nome");
     }
 
+    [Fact]
+    public async Task GetCompletionsAsync_ReturnsColumns_ForPostgresQuotedAliasWithSeededSchemaCache()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.PostgresSql };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select \"c\". from \"clientes\" as \"c\"";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, "select \"c\".".Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, "select \"c\".".Length, request);
+
+        Assert.Contains(completions, item => item.Text == "id");
+        Assert.Contains(completions, item => item.Text == "nome");
+    }
+
     private static void SeedSchemaCache(Guid connectionId, string tableName, params string[] columns)
     {
         var providerType = typeof(SqlCompletionProvider);
@@ -228,6 +280,7 @@ public class SqlCompletionProviderTests
         tableNodes[tableName] = schemaNode;
         tableNodes[$"[{tableName}]"] = schemaNode;
         tableNodes[$"`{tableName}`"] = schemaNode;
+        tableNodes[$"\"{tableName}\""] = schemaNode;
 
         var columnsByTable = (IDictionary)cacheType.GetProperty("ColumnsByTable")!.GetValue(cache)!;
         columnsByTable[tableName] = columns;

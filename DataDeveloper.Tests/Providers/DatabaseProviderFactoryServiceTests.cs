@@ -1,6 +1,7 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Providers.MySql;
+using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
 using Xunit;
@@ -42,6 +43,22 @@ public class DatabaseProviderFactoryServiceTests
     }
 
     [Fact]
+    public void GetDatabaseProvider_ReturnsPostgresProvider_ForPostgresConnection()
+    {
+        var factory = new DatabaseProviderFactoryService();
+        var connection = new PostgresConnectionSettings
+        {
+            DatabaseType = DatabaseType.PostgresSql,
+            Server = "localhost",
+            Database = "app"
+        };
+
+        var provider = factory.GetDatabaseProvider(connection);
+
+        Assert.IsType<PostgresDatabaseProvider>(provider);
+    }
+
+    [Fact]
     public void GetSchemaExplorer_ReturnsExplorer_ForSqlServerConnection()
     {
         var factory = new DatabaseProviderFactoryService();
@@ -64,6 +81,22 @@ public class DatabaseProviderFactoryServiceTests
         IConnectionSettings connection = new MySqlConnectionSettings
         {
             DatabaseType = DatabaseType.MySql,
+            Server = "localhost",
+            Database = "app"
+        };
+
+        var explorer = factory.GetSchemaExplorer(connection);
+
+        Assert.NotNull(explorer);
+    }
+
+    [Fact]
+    public void GetSchemaExplorer_ReturnsExplorer_ForPostgresConnection()
+    {
+        var factory = new DatabaseProviderFactoryService();
+        IConnectionSettings connection = new PostgresConnectionSettings
+        {
+            DatabaseType = DatabaseType.PostgresSql,
             Server = "localhost",
             Database = "app"
         };

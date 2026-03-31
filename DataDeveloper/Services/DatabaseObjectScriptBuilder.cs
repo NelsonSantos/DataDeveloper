@@ -27,6 +27,7 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => $"select top 100 *{Environment.NewLine}from {qualifiedName};",
+            DatabaseType.PostgresSql => $"select *{Environment.NewLine}from {qualifiedName}{Environment.NewLine}limit 100;",
             DatabaseType.MySql => $"select *{Environment.NewLine}from {qualifiedName}{Environment.NewLine}limit 100;",
             _ => $"select *{Environment.NewLine}from {qualifiedName};"
         };
@@ -45,6 +46,7 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => BuildSqlServerProcedureScript(qualifiedName, parameters),
+            DatabaseType.PostgresSql => BuildPostgresProcedureScript(qualifiedName, parameters),
             DatabaseType.MySql => BuildMySqlProcedureScript(qualifiedName, parameters),
             _ => qualifiedName
         };
@@ -95,6 +97,7 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]",
+            DatabaseType.PostgresSql => $"\"{identifier.Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
             DatabaseType.MySql => $"`{identifier.Replace("`", "``", StringComparison.Ordinal)}`",
             _ => identifier
         };
@@ -142,6 +145,12 @@ public static class DatabaseObjectScriptBuilder
     }
 
     private static string BuildMySqlProcedureScript(string qualifiedName, IReadOnlyList<RoutineParameterModel> parameters)
+    {
+        var argumentList = string.Join(", ", parameters.Select(parameter => parameter.Name));
+        return $"call {qualifiedName}({argumentList});";
+    }
+
+    private static string BuildPostgresProcedureScript(string qualifiedName, IReadOnlyList<RoutineParameterModel> parameters)
     {
         var argumentList = string.Join(", ", parameters.Select(parameter => parameter.Name));
         return $"call {qualifiedName}({argumentList});";
