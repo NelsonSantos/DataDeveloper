@@ -71,7 +71,7 @@
                 <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="3*,1*" ColumnSpacing="10" RowSpacing="8">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" />
                     <TextBox Grid.Row="1" Grid.Column="0" 
-                        Text="{Binding SelectedConnection.Name, Mode=TwoWay}"
+                        Text="{Binding SelectedConnection.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding IsEditing}"
                         IsReadOnly="{Binding !IsEditing}" />
 
@@ -83,13 +83,13 @@
 
                 <TextBlock Text="Server" />
                 <TextBox 
-                    Text="{Binding SelectedConnection.Server, Mode=TwoWay}"
+                    Text="{Binding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     IsEnabled="{Binding IsEditing}"
                     IsReadOnly="{Binding !IsEditing}" />
 
                 <TextBlock Text="Database" />
                 <TextBox 
-                    Text="{Binding SelectedConnection.Database, Mode=TwoWay}"
+                    Text="{Binding SelectedConnection.Database, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     IsEnabled="{Binding IsEditing}"
                     IsReadOnly="{Binding !IsEditing}" />
 
@@ -97,7 +97,7 @@
                       IsVisible="{Binding IsMySqlConnectionSelected}">
                     <TextBlock Grid.Row="0" Text="Port" />
                     <TextBox Grid.Row="1"
-                             Text="{Binding SelectedConnection.Port, Mode=TwoWay}"
+                             Text="{Binding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding IsEditing}"
                              IsReadOnly="{Binding !IsEditing}" />
                 </Grid>
@@ -105,14 +105,14 @@
                 <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="8">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Username" />
                     <TextBox Grid.Row="1" Grid.Column="0" 
-                             Text="{Binding SelectedConnection.User, Mode=TwoWay}"
+                             Text="{Binding SelectedConnection.User, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding IsEditing}"
                              IsReadOnly="{Binding !IsEditing}" 
                     />
 
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="Password" />
                     <TextBox Grid.Row="1" Grid.Column="1" 
-                             Text="{Binding SelectedConnection.Password, Mode=TwoWay}"
+                             Text="{Binding SelectedConnection.Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsEnabled="{Binding IsEditing}"
                              IsReadOnly="{Binding !IsEditing}"
                              PasswordChar="*" />

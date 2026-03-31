@@ -48,12 +48,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.WhenAnyValue(x => x.IsEditing)
         );
 
-        EditCommand = ReactiveCommand.Create<ConnectionSettings>(
-            (connectionModel) =>
+        EditCommand = ReactiveCommand.CreateFromTask<ConnectionSettings>(
+            async connectionModel =>
             {
                 IsEditing = true;
                 if (connectionModel is not null)
-                    _connectionSettingsRepository.LoadPassword(connectionModel);
+                    await Task.Run(() => _connectionSettingsRepository.LoadPassword(connectionModel));
                 SelectedConnection = connectionModel;
             }
         );
@@ -69,17 +69,17 @@ public class ConnectionSelectorViewModel : ViewModelBase
         );
 
         CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);
-        DuplicateConnectionCommand = ReactiveCommand.Create(DuplicateConnection,
+        DuplicateConnectionCommand = ReactiveCommand.CreateFromTask(DuplicateConnectionAsync,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
     }
 
-    private void DuplicateConnection()
+    private async Task DuplicateConnectionAsync()
     {
         if (SelectedConnection is null)
             return;
 
-        _connectionSettingsRepository.LoadPassword(SelectedConnection);
+        await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
         ConnectionSettings? duplicate = SelectedConnection.DatabaseType switch
         {
             DatabaseType.SqlServer => (ConnectionSettings?)SelectedConnection.Map<SqlServerConnectionSettings>(),
@@ -89,6 +89,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (duplicate == null) throw new Exception("Type not recognized");
         duplicate.Name = $"Copy of {duplicate.Name}";
         duplicate.Id = Guid.NewGuid();
+        duplicate.CredentialId = null;
+        duplicate.LoadedPasswordSnapshot = null;
         Connections.Add(duplicate);
         SelectedConnection = duplicate;
         IsEditing = true;
@@ -103,11 +105,11 @@ public class ConnectionSelectorViewModel : ViewModelBase
         var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
         var result = databaseProvider.TestConnection();
         await this.ShowDialogAsync(
-            element
-            , "Connection..."
-            , result.Success ? result.ResultMessage : $"Could not connect to database\r\n\r\n{result.ResultMessage}"
-            , ButtonEnum.Ok
-            , result.Success ? Icon.Success : Icon.Error);
+            element,
+            "Connection...",
+            result.Success ? result.ResultMessage : $"Could not connect to database\r\n\r\n{result.ResultMessage}",
+            ButtonEnum.Ok,
+            result.Success ? Icon.Success : Icon.Error);
     }
 
     private void CancelAsync(StyledElement element)
@@ -129,7 +131,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         {
             if (connectionModel is not null)
             {
-                _connectionSettingsRepository.Delete(connectionModel);
+                await Task.Run(() => _connectionSettingsRepository.Delete(connectionModel));
                 Connections.Remove(connectionModel);
             }
 
@@ -213,9 +215,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         if (!_secretStore.IsAvailable && !string.IsNullOrWhiteSpace(SelectedConnection.Password))
         {
-            await this.ShowDialogAsync(element, "Secure storage unavailable",
+            await this.ShowDialogAsync(
+                element,
+                "Secure storage unavailable",
                 $"{_secretStore.UnavailableReason}\n\nThe connection can be saved only after secure credential storage is available or the password field is left blank.",
-                ButtonEnum.Ok, Icon.Warning);
+                ButtonEnum.Ok,
+                Icon.Warning);
             return false;
         }
 
@@ -225,7 +230,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
     private async Task<ButtonResult> ShowDialogAsync(StyledElement element, string title, string messagge, ButtonEnum button, Icon icon)
     {
-        var window = element.GetParentWindow();            
+        var window = element.GetParentWindow();
         var box = MessageBoxManager
             .GetMessageBoxStandard(title, messagge, button, icon);
 
