@@ -32,6 +32,7 @@ NOTES_FILE="$2"
 TAG="v${VERSION}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-120}"
 SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
+TRIGGER_GRACE_ATTEMPTS="${TRIGGER_GRACE_ATTEMPTS:-4}"
 
 if [[ ! -f "$NOTES_FILE" ]]; then
   echo "Notes file not found: $NOTES_FILE" >&2
@@ -64,6 +65,36 @@ git tag -a "$TAG" -m "$TAG"
 
 echo "Pushing tag $TAG"
 git push origin "$TAG"
+
+find_release_run_id() {
+  gh run list --workflow release.yml --limit 20 --json databaseId,displayTitle,event \
+    --jq ".[] | select(.displayTitle == \"$TAG\" and .event == \"push\") | .databaseId" \
+    | head -n 1
+}
+
+echo "Checking whether the tag push triggered the Release workflow"
+RUN_ID=""
+for ((attempt=1; attempt<=TRIGGER_GRACE_ATTEMPTS; attempt++)); do
+  if gh release view "$TAG" >/dev/null 2>&1; then
+    echo "Release found. Updating notes from $NOTES_FILE"
+    gh release edit "$TAG" --title "$TAG" --notes-file "$NOTES_FILE"
+    echo "Release $TAG updated successfully."
+    exit 0
+  fi
+
+  RUN_ID="$(find_release_run_id || true)"
+  if [[ -n "$RUN_ID" ]]; then
+    echo "Detected Release workflow run $RUN_ID from tag push."
+    break
+  fi
+
+  sleep "$SLEEP_SECONDS"
+done
+
+if [[ -z "$RUN_ID" ]]; then
+  echo "Tag push did not trigger Release automatically. Dispatching workflow manually."
+  gh workflow run release.yml -f version="$VERSION" -f create_release=true
+fi
 
 echo "Waiting for GitHub Release $TAG to be created by Actions"
 for ((attempt=1; attempt<=MAX_ATTEMPTS; attempt++)); do

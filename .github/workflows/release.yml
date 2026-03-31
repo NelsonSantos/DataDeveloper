@@ -19,6 +19,10 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release-${{ github.event_name == 'push' && github.ref_name || format('v{0}', inputs.version) }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -29,6 +33,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       create_release: ${{ steps.version.outputs.create_release }}
+      checkout_ref: ${{ steps.version.outputs.checkout_ref }}
     steps:
       - id: version
         shell: bash
@@ -37,14 +42,17 @@ jobs:
             TAG="${GITHUB_REF_NAME}"
             VERSION="${TAG#v}"
             CREATE_RELEASE="true"
+            CHECKOUT_REF="${TAG}"
           else
             VERSION="${{ inputs.version }}"
             TAG="v${VERSION}"
             CREATE_RELEASE="${{ inputs.create_release }}"
+            CHECKOUT_REF="${TAG}"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "create_release=$CREATE_RELEASE" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=$CHECKOUT_REF" >> "$GITHUB_OUTPUT"
 
   build-macos:
     needs: resolve-version
@@ -55,6 +63,8 @@ jobs:
         rid: [osx-x64, osx-arm64]
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.resolve-version.outputs.checkout_ref }}
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
@@ -74,6 +84,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.resolve-version.outputs.checkout_ref }}
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
@@ -105,6 +117,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.resolve-version.outputs.checkout_ref }}
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 8.0.x
