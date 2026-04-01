@@ -10,11 +10,14 @@
 - Implementar visualizacao de tabelas tipo fluxograma
 - Ferramenta de backup
 - Ferramenta de transfer de estrutura/dados
-- Menu de contexto para insert e update com parameters
-- Menu de contexto carregar codigo fonte da procedure/function
 - MCP client/server
 - Commit/rollback
 - Export CSV/JSON
-- Atualizar objetos do banco por create/alter
 - Criar menu Edit: copy/paste/undo/redo/find/replace/upper/lower/beatify/indent/unindent
 - Resolver menus nativos
+
+# FIXs
+
+- Fazer o progressbar de load ser exibido a cada execução proxima pagina ou de listar até o final
+- Colocar um botão de stop para interromper o load de pagina de registros
+- Validar o botão do stop da query para rodar assincrono e poder ser clicado
