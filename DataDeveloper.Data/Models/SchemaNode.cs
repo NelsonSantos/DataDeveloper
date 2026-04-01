@@ -29,6 +29,7 @@ public class SchemaNode : ReactiveObject
     public SchemaNode? Parent { get; }
     public SchemaNode? Next => Children.FirstOrDefault();
     [Reactive] public bool CanLoad { get; set; }
+    [Reactive] public bool IsExpanded { get; set; }
     public string? Details { get; }
     public object? Tag { get; }
     public ObservableCollection<SchemaNode> Children { get; }

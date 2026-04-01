@@ -77,10 +77,15 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
     {
         return """
                select
-                   routine_name as Name
-               from information_schema.routines
-               where routine_type = 'PROCEDURE'
-               order by routine_name;
+                   concat(r.routine_schema, '.', r.routine_name) as Name,
+                   concat(r.routine_schema, '.', r.routine_name) as SpecificName
+               from information_schema.routines r
+               inner join sys.objects o
+                   on o.object_id = object_id(quotename(r.routine_schema) + '.' + quotename(r.routine_name))
+               where r.routine_type = 'PROCEDURE'
+                 and r.routine_schema not in ('sys', 'INFORMATION_SCHEMA')
+                 and o.is_ms_shipped = 0
+               order by r.routine_schema, r.routine_name;
                """;
     }
 
@@ -88,11 +93,16 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
     {
         return """
                select
-                   routine_name as Name,
-                   data_type as DataType
-               from information_schema.routines
-               where routine_type = 'FUNCTION'
-               order by routine_name;
+                   concat(r.routine_schema, '.', r.routine_name) as Name,
+                   concat(r.routine_schema, '.', r.routine_name) as SpecificName,
+                   r.data_type as DataType
+               from information_schema.routines r
+               inner join sys.objects o
+                   on o.object_id = object_id(quotename(r.routine_schema) + '.' + quotename(r.routine_name))
+               where r.routine_type = 'FUNCTION'
+                 and r.routine_schema not in ('sys', 'INFORMATION_SCHEMA')
+                 and o.is_ms_shipped = 0
+               order by r.routine_schema, r.routine_name;
                """;
     }
 
@@ -109,7 +119,7 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
                    p.parameter_mode as Mode,
                    p.ordinal_position as Position
                from information_schema.parameters p
-               where p.specific_name = @SpecificName
+               where concat(p.specific_schema, '.', p.specific_name) = @SpecificName
                order by p.ordinal_position;
                """;
     }

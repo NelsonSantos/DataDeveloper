@@ -24,6 +24,7 @@ public class StatementResult
     public int RecordsAffected { get; }
     public bool HasRows => DataReader?.HasRows ?? false;
     public bool HasDataReader => DataReader is not null;
+    public bool HasResultSet => (DataReader?.FieldCount ?? 0) > 0;
 
     public async Task CloseDataReader()
     {

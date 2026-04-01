@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
@@ -145,6 +146,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                 Tabs.Remove(previousTab);
 
             var statementResults = (await statementExecutor.ExecuteStatement(statementToExecute, parameterValues)).ToList();
+            var shouldRefreshSchema = statementResults.Any(result => StatementExecutionClassifier.RequiresSchemaRefresh(result.Statement));
 
             if (statementResults.Any())
             {
@@ -159,7 +161,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                     statementResult.Watcher.Start();
                     statementCount++;
 
-                    var hasDataReader = statementResult.HasDataReader;
+                    var hasDataReader = statementResult.HasResultSet;
 
                     var resultName = $"result {statementCount:00}";
                     
@@ -188,6 +190,15 @@ public class TabQueryEditorViewModel : BaseTabContent
                     statementResult.Watcher.Stop();
                 }
                 _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, resultMessage.ToString()));
+            }
+
+            if (shouldRefreshSchema)
+            {
+                var ddlStatement = statementResults
+                    .Select(result => result.Statement)
+                    .FirstOrDefault(StatementExecutionClassifier.RequiresSchemaRefresh);
+
+                _eventAggregatorService.Publish(new RefreshSchemaExplorerEvent(ConnectionSettings.Id, ddlStatement));
             }
         }
         catch (Exception ex)

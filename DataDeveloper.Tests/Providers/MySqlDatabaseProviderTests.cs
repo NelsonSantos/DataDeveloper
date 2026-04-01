@@ -95,5 +95,6 @@ public class MySqlDatabaseProviderTests
 
         Assert.Contains("information_schema.parameters", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("specific_name = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("is_nullable", sql, StringComparison.OrdinalIgnoreCase);
     }
 }

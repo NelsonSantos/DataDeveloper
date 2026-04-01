@@ -114,11 +114,11 @@ public class MySqlDatabaseProvider : DatabaseProviderBase<MySqlConnectionSetting
                    coalesce(parameter_name, 'return') as Name,
                    data_type as DataType,
                    coalesce(character_maximum_length, 0) as Length,
-                   coalesce(numeric_precision, 0) as Precision,
-                   coalesce(numeric_scale, 0) as Scale,
-                   case when is_nullable = 'YES' then 1 else 0 end as IsNullable,
-                   parameter_mode as Mode,
-                   ordinal_position as Position
+                   coalesce(numeric_precision, 0) as `Precision`,
+                   coalesce(numeric_scale, 0) as `Scale`,
+                   cast(1 as unsigned) as `IsNullable`,
+                   parameter_mode as `Mode`,
+                   ordinal_position as `Position`
                from information_schema.parameters
                where specific_schema = database()
                  and specific_name = @SpecificName

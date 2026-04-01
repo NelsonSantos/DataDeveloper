@@ -14,6 +14,48 @@ public static class StatementExecutionClassifier
                (trimmed.StartsWith("begin", System.StringComparison.OrdinalIgnoreCase) && ContainsStandaloneExecOrCall(trimmed));
     }
 
+    public static bool RequiresSchemaRefresh(string statement)
+    {
+        if (string.IsNullOrWhiteSpace(statement))
+            return false;
+
+        var trimmed = TrimLeadingTrivia(statement);
+        return trimmed.StartsWith("create ", System.StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("alter ", System.StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("drop ", System.StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("truncate ", System.StringComparison.OrdinalIgnoreCase) ||
+               trimmed.StartsWith("rename ", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static SchemaRefreshTarget? ParseSchemaRefreshTarget(string statement)
+    {
+        if (string.IsNullOrWhiteSpace(statement))
+            return null;
+
+        var trimmed = TrimLeadingTrivia(statement).TrimStart();
+        var tokens = trimmed
+            .Split((char[]?)null, 6, System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);
+
+        if (tokens.Length < 2)
+            return null;
+
+        var action = tokens[0];
+        var objectKeyword = tokens[1];
+
+        if (action.Equals("truncate", System.StringComparison.OrdinalIgnoreCase) && objectKeyword.Equals("table", System.StringComparison.OrdinalIgnoreCase))
+        {
+            return BuildTarget(tokens, 2, SchemaRefreshAction.Alter, SchemaObjectType.Table);
+        }
+
+        if (action.Equals("rename", System.StringComparison.OrdinalIgnoreCase))
+            return new SchemaRefreshTarget(SchemaRefreshAction.Unknown, SchemaObjectType.Unknown, null);
+
+        if (!TryMapAction(action, out var refreshAction) || !TryMapObjectType(objectKeyword, out var objectType))
+            return null;
+
+        return BuildTarget(tokens, 2, refreshAction, objectType);
+    }
+
     private static string TrimLeadingTrivia(string statement)
     {
         var index = 0;
@@ -81,4 +123,91 @@ public static class StatementExecutionClassifier
     {
         return char.IsLetterOrDigit(value) || value == '_' || value == '@';
     }
+
+    private static bool TryMapAction(string value, out SchemaRefreshAction action)
+    {
+        if (value.Equals("create", System.StringComparison.OrdinalIgnoreCase))
+        {
+            action = SchemaRefreshAction.Create;
+            return true;
+        }
+
+        if (value.Equals("alter", System.StringComparison.OrdinalIgnoreCase))
+        {
+            action = SchemaRefreshAction.Alter;
+            return true;
+        }
+
+        if (value.Equals("drop", System.StringComparison.OrdinalIgnoreCase))
+        {
+            action = SchemaRefreshAction.Drop;
+            return true;
+        }
+
+        action = SchemaRefreshAction.Unknown;
+        return false;
+    }
+
+    private static bool TryMapObjectType(string value, out SchemaObjectType objectType)
+    {
+        if (value.Equals("table", System.StringComparison.OrdinalIgnoreCase))
+        {
+            objectType = SchemaObjectType.Table;
+            return true;
+        }
+
+        if (value.Equals("view", System.StringComparison.OrdinalIgnoreCase))
+        {
+            objectType = SchemaObjectType.View;
+            return true;
+        }
+
+        if (value.Equals("procedure", System.StringComparison.OrdinalIgnoreCase) ||
+            value.Equals("proc", System.StringComparison.OrdinalIgnoreCase))
+        {
+            objectType = SchemaObjectType.Procedure;
+            return true;
+        }
+
+        if (value.Equals("function", System.StringComparison.OrdinalIgnoreCase))
+        {
+            objectType = SchemaObjectType.Function;
+            return true;
+        }
+
+        objectType = SchemaObjectType.Unknown;
+        return false;
+    }
+
+    private static SchemaRefreshTarget? BuildTarget(string[] tokens, int objectNameIndex, SchemaRefreshAction action, SchemaObjectType objectType)
+    {
+        if (tokens.Length <= objectNameIndex)
+            return new SchemaRefreshTarget(action, objectType, null);
+
+        var objectName = tokens[objectNameIndex]
+            .Trim()
+            .TrimEnd(';', ',')
+            .Trim('(', ')');
+
+        return new SchemaRefreshTarget(action, objectType, objectName);
+    }
 }
+
+public enum SchemaRefreshAction
+{
+    Unknown,
+    Create,
+    Alter,
+    Drop,
+}
+
+public enum SchemaObjectType
+{
+    Unknown,
+    Table,
+    View,
+    Procedure,
+    Function,
+}
+
+public record SchemaRefreshTarget(SchemaRefreshAction Action, SchemaObjectType ObjectType, string? ObjectName);

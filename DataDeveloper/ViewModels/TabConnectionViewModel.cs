@@ -4,12 +4,14 @@ using System.IO;
 using System.Reactive;
 using System.Threading.Tasks;
 using DataDeveloper.Data;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
+using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
-using DataDeveloper.Data.Enums;
 using DataDeveloper.Views;
 using DynamicData;
 using ReactiveUI;
@@ -22,6 +24,7 @@ public class TabConnectionViewModel : BaseTabContent
 {
     private int _countQueryEditors = 0;
     private readonly IDialogService _dialogService;
+    private readonly IEventAggregatorService _eventAggregatorService;
     
     public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.Connection, connectionSettings.Name, canClose, serviceProvider)
@@ -29,6 +32,7 @@ public class TabConnectionViewModel : BaseTabContent
         ConnectionSettings = connectionSettings;    
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
         _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
+        _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         
         this.Initialization = LoadConnection();
 
@@ -42,11 +46,65 @@ public class TabConnectionViewModel : BaseTabContent
             
             QueryEditors[this.SelectedEditor].ShowCursorData();
         });
+
+        _eventAggregatorService.Subscribe<RefreshSchemaExplorerEvent>(
+            this,
+            async message =>
+            {
+                if (!string.IsNullOrWhiteSpace(message.Statement))
+                    await SchemaExplorer.RefreshSchemaObjectAsync(message.Statement);
+                else
+                    await SchemaExplorer.RefreshSchemaAsync();
+            },
+            message => message.ConnectionId == ConnectionSettings.Id);
     }
 
     private async Task Refresh()
     {
         await LoadConnection();
+    }
+
+    public async Task ExecuteBackgroundStatementAsync(string statement, bool refreshSchema = false)
+    {
+        try
+        {
+            await using var connection = ConnectionSettings.GetDatabaseProvider().GetConnection();
+            await connection.OpenAsync();
+            await using var command = connection.CreateCommand();
+            command.CommandText = statement;
+            await command.ExecuteNonQueryAsync();
+
+            if (refreshSchema || StatementExecutionClassifier.RequiresSchemaRefresh(statement))
+                await SchemaExplorer.RefreshSchemaObjectAsync(statement);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageAsync(ex.Message, "Execution error");
+        }
+    }
+
+    public async Task<bool> ConfirmDropAsync(SchemaNode node)
+    {
+        var objectType = node.NodeType switch
+        {
+            NodeType.Table => "table",
+            NodeType.View => "view",
+            NodeType.Procedure => "procedure",
+            NodeType.Function => "function",
+            _ => null
+        };
+
+        if (objectType is null)
+            return false;
+
+        var message = $"Are you sure you want to drop the {objectType} {node.Name}?";
+        var result = await _dialogService.ShowDialogAsync(
+            message,
+            "Confirm drop",
+            DialogButtons.YesNo,
+            DialogIcon.Warning);
+
+        return result == DialogResult.Yes;
     }
 
     public async Task<bool> SaveChanges(TabQueryEditorViewModel tabQueryEditor, bool isSaveAs = false)
