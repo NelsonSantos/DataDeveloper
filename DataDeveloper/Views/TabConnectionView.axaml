@@ -84,6 +84,7 @@
                     <Style Selector="TreeViewItem">
                         <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
                         <Setter Property="behaviors:TreeViewExpansionBehavior.SchemaExplorer" Value="{Binding DataContext.SchemaExplorer, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                         <Setter Property="Padding" Value="0" />
                         <Setter Property="Margin" Value="0" />
                         <Setter Property="MinHeight" Value="20" />

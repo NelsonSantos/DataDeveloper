@@ -70,7 +70,9 @@ public class SqlServerDatabaseProviderTests
         var sql = provider.GetProcedureStatement();
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("sys.objects", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'PROCEDURE'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("is_ms_shipped = 0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -81,7 +83,9 @@ public class SqlServerDatabaseProviderTests
         var sql = provider.GetFunctionStatement();
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("sys.objects", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'FUNCTION'", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("is_ms_shipped = 0", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -92,7 +96,7 @@ public class SqlServerDatabaseProviderTests
         var sql = provider.GetRoutineParameterStatement();
 
         Assert.Contains("information_schema.parameters", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("specific_name = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("concat(p.specific_schema, '.', p.specific_name) = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("is_nullable", sql, StringComparison.OrdinalIgnoreCase);
     }
 }

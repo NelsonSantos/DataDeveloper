@@ -57,7 +57,7 @@ public class SqlParameterDetectorTests
 
         var parameters = SqlParameterDetector.ExtractParameters(sql);
 
-        Assert.Equal(["@id", "@name", "@active"], parameters);
+        Assert.Empty(parameters);
     }
 
     [Fact]
@@ -73,5 +73,74 @@ public class SqlParameterDetectorTests
         var parameters = SqlParameterDetector.ExtractParameters(sql);
 
         Assert.Equal(["@saleId"], parameters);
+    }
+
+    [Fact]
+    public void ExtractParameters_IgnoresVariablesInsideFunctionBody()
+    {
+        var sql = """
+                  CREATE FUNCTION [dbo].[GetRecordLocatorFromId] (
+                      @Id BIGINT
+                  )
+                  RETURNS VARCHAR(6)
+                  AS
+                  BEGIN
+                      DECLARE
+                          @Size INT = 6,
+                          @Chars VARCHAR(33) = '0123456789ABCDEFGHJKMNPQRSTUVWXYZ',
+                          @Mod INT = 33,
+                          @Max BIGINT = 1291467969,
+                          @I INT,
+                          @Pos INT,
+                          @Locator NVARCHAR(MAX)
+
+                      SELECT
+                          @Id = @Id % @Max,
+                          @I = 1,
+                          @Locator = ''
+
+                      RETURN @Locator
+                  END
+                  """;
+
+        var parameters = SqlParameterDetector.ExtractParameters(sql);
+
+        Assert.Empty(parameters);
+    }
+
+    [Fact]
+    public void ExtractParameters_DetectsExecParameters_AfterSqlServerBatchSeparator()
+    {
+        var sql = """
+                  create procedure dbo.Teste
+                      @id int
+                  as
+                  begin
+                      select @id;
+                  end
+                  go
+                  exec dbo.Teste @externalId;
+                  """;
+
+        var parameters = SqlParameterDetector.ExtractParameters(sql);
+
+        Assert.Equal(["@externalId"], parameters);
+    }
+
+    [Fact]
+    public void ExtractParameters_IgnoresProcedureDeclarationWithExtraWhitespace()
+    {
+        var sql = """
+                  CREATE   PROCEDURE [dbo].[GetBusMarketsByArrival] (@ArrivalLocationSlug VARCHAR(100))
+                  AS
+                  BEGIN
+                      SELECT 1
+                      WHERE 1 = CASE WHEN @ArrivalLocationSlug IS NULL THEN 0 ELSE 1 END
+                  END
+                  """;
+
+        var parameters = SqlParameterDetector.ExtractParameters(sql);
+
+        Assert.Empty(parameters);
     }
 }

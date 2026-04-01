@@ -7,6 +7,9 @@ namespace DataDeveloper.Services;
 
 public static class SqlParameterDetector
 {
+    private static readonly Regex RoutineDeclarationRegex = new(
+        @"(?ix)\b(?:(?:create\s+or\s+alter)|create|alter)\s+(?<kind>procedure|function)\b",
+        RegexOptions.Compiled);
     private static readonly Regex DeclaredParameterRegex = new(
         @"\bdeclare\s+(?<parameter>@[A-Za-z_][A-Za-z0-9_]*)",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -304,11 +307,12 @@ public static class SqlParameterDetector
 
         while (searchIndex < lowerSql.Length)
         {
-            var declarationStart = FindNextRoutineDeclaration(lowerSql, searchIndex);
-            if (declarationStart < 0)
+            var declarationMatch = FindNextRoutineDeclaration(lowerSql, searchIndex);
+            if (declarationMatch is null)
                 break;
 
-            var declarationHeaderEnd = FindDeclarationHeaderEnd(lowerSql, declarationStart);
+            var declarationStart = declarationMatch.Index;
+            var declarationHeaderEnd = FindDeclarationHeaderEnd(declarationMatch);
             if (declarationHeaderEnd < 0)
                 break;
 
@@ -316,50 +320,32 @@ public static class SqlParameterDetector
             if (declarationBodyStart < 0)
                 break;
 
-            for (var i = declarationHeaderEnd; i < declarationBodyStart; i++)
+            var declarationEnd = FindRoutineDeclarationEnd(lowerSql, declarationBodyStart);
+            if (declarationEnd < 0)
+                declarationEnd = lowerSql.Length;
+
+            for (var i = declarationStart; i < declarationEnd; i++)
                 builder[i] = ' ';
 
-            searchIndex = declarationBodyStart;
+            searchIndex = declarationEnd;
         }
 
         return builder.ToString();
     }
 
-    private static int FindNextRoutineDeclaration(string sql, int startIndex)
+    private static Match? FindNextRoutineDeclaration(string sql, int startIndex)
     {
-        var candidates = new[]
-        {
-            "create procedure",
-            "alter procedure",
-            "create function",
-            "alter function",
-            "create or alter procedure",
-            "create or alter function"
-        };
-
-        var next = -1;
-        foreach (var candidate in candidates)
-        {
-            var index = sql.IndexOf(candidate, startIndex, StringComparison.Ordinal);
-            if (index >= 0 && (next < 0 || index < next))
-                next = index;
-        }
-
-        return next;
+        var match = RoutineDeclarationRegex.Match(sql, startIndex);
+        return match.Success ? match : null;
     }
 
-    private static int FindDeclarationHeaderEnd(string sql, int declarationStart)
+    private static int FindDeclarationHeaderEnd(Match declarationMatch)
     {
-        var procedureIndex = sql.IndexOf("procedure", declarationStart, StringComparison.Ordinal);
-        var functionIndex = sql.IndexOf("function", declarationStart, StringComparison.Ordinal);
-        var keywordIndex = procedureIndex >= 0 && (functionIndex < 0 || procedureIndex < functionIndex)
-            ? procedureIndex
-            : functionIndex;
-
-        if (keywordIndex < 0)
+        var kindGroup = declarationMatch.Groups["kind"];
+        if (!kindGroup.Success)
             return -1;
 
-        return keywordIndex + (procedureIndex == keywordIndex ? "procedure".Length : "function".Length);
+        return kindGroup.Index + kindGroup.Length;
     }
 
     private static int FindDeclarationBodyStart(string sql, int startIndex)
@@ -392,6 +378,109 @@ public static class SqlParameterDetector
         }
 
         return -1;
+    }
+
+    private static int FindRoutineDeclarationEnd(string sql, int bodyStartIndex)
+    {
+        var batchSeparatorIndex = FindNextBatchSeparator(sql, bodyStartIndex);
+        var bodyEndIndex = FindRoutineBodyEnd(sql, bodyStartIndex);
+
+        if (batchSeparatorIndex >= 0 && bodyEndIndex >= 0)
+            return Math.Min(batchSeparatorIndex, bodyEndIndex);
+
+        return batchSeparatorIndex >= 0 ? batchSeparatorIndex : bodyEndIndex;
+    }
+
+    private static int FindNextBatchSeparator(string sql, int startIndex)
+    {
+        var index = startIndex;
+        while (index < sql.Length)
+        {
+            var lineStart = index;
+            while (lineStart < sql.Length && (sql[lineStart] == '\r' || sql[lineStart] == '\n'))
+                lineStart++;
+
+            if (lineStart >= sql.Length)
+                return -1;
+
+            var lineEnd = lineStart;
+            while (lineEnd < sql.Length && sql[lineEnd] != '\r' && sql[lineEnd] != '\n')
+                lineEnd++;
+
+            var line = sql[lineStart..lineEnd].Trim();
+            if (string.Equals(line, "go", StringComparison.OrdinalIgnoreCase))
+                return lineStart;
+
+            index = lineEnd + 1;
+        }
+
+        return -1;
+    }
+
+    private static int FindRoutineBodyEnd(string sql, int bodyStartIndex)
+    {
+        var index = bodyStartIndex;
+        var beginDepth = 0;
+        var sawBegin = false;
+
+        while (index < sql.Length)
+        {
+            if (sql[index] == '\'' || sql[index] == '"')
+            {
+                index = SkipQuotedString(sql, index, sql[index]);
+                continue;
+            }
+
+            if (sql[index] == '-' && index + 1 < sql.Length && sql[index + 1] == '-')
+            {
+                index = SkipSingleLineComment(sql, index);
+                continue;
+            }
+
+            if (sql[index] == '/' && index + 1 < sql.Length && sql[index + 1] == '*')
+            {
+                index = SkipMultiLineComment(sql, index);
+                continue;
+            }
+
+            if (IsKeywordAt(sql, index, "begin"))
+            {
+                beginDepth++;
+                sawBegin = true;
+                index += "begin".Length;
+                continue;
+            }
+
+            if (IsKeywordAt(sql, index, "end"))
+            {
+                if (beginDepth > 0)
+                {
+                    beginDepth--;
+                    index += "end".Length;
+                    if (sawBegin && beginDepth == 0)
+                        return ConsumeStatementTerminator(sql, index);
+                    continue;
+                }
+            }
+
+            if (!sawBegin && sql[index] == ';')
+                return index + 1;
+
+            index++;
+        }
+
+        return sql.Length;
+    }
+
+    private static int ConsumeStatementTerminator(string sql, int index)
+    {
+        while (index < sql.Length && char.IsWhiteSpace(sql[index]))
+            index++;
+
+        if (index < sql.Length && sql[index] == ';')
+            return index + 1;
+
+        return index;
     }
 
     private static bool IsKeywordAt(string sql, int index, string keyword)

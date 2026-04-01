@@ -26,24 +26,42 @@ public static class TreeViewExpansionBehavior
             if (args.NewValue is true)
             {
                 item.Expanded += OnItemExpanded;
+                item.Collapsed += OnItemCollapsed;
             }
             else
             {
                 item.Expanded -= OnItemExpanded;
+                item.Collapsed -= OnItemCollapsed;
             }
         });
     }
 
     private static async void OnItemExpanded(object? sender, RoutedEventArgs e)
     {
+        if (!ReferenceEquals(sender, e.Source))
+            return;
+
         if (sender is TreeViewItem treeViewItem &&
             treeViewItem.DataContext is SchemaNode node &&
             GetSchemaExplorer(treeViewItem) is ISchemaExplorer schemaExplorer)
         {
+            node.IsExpanded = true;
             if (node.CanLoad && node.Next?.NodeType == NodeType.None)
             {
                 await schemaExplorer.LoadNodeAsync(node);
             }
+        }
+    }
+
+    private static void OnItemCollapsed(object? sender, RoutedEventArgs e)
+    {
+        if (!ReferenceEquals(sender, e.Source))
+            return;
+
+        if (sender is TreeViewItem treeViewItem &&
+            treeViewItem.DataContext is SchemaNode node)
+        {
+            node.IsExpanded = false;
         }
     }
 
