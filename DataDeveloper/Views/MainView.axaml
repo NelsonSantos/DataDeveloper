@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
-             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Svg.Controls.Avalonia"
+             xmlns:controls="clr-namespace:DataDeveloper.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.MainView">
     <Design.DataContext>
@@ -36,7 +36,7 @@
                 <TabControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
-                            <svg:Svg Width="24" Height="24" Path="{Binding ConnectionSettings.DatabaseType, Converter={StaticResource EnumValueToResource}}" />
+                            <controls:DatabaseTypeIcon DatabaseType="{Binding ConnectionSettings.DatabaseType}" />
                             <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" />
                             <Button 
                                 Background="Transparent" 

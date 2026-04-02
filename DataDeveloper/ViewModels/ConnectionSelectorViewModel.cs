@@ -24,12 +24,26 @@ using DynamicData;
 
 namespace DataDeveloper.ViewModels;
 
+public sealed class ConnectionTypeFilterOption
+{
+    public ConnectionTypeFilterOption(string displayName, DatabaseType? databaseType)
+    {
+        DisplayName = displayName;
+        DatabaseType = databaseType;
+    }
+
+    public string DisplayName { get; }
+    public DatabaseType? DatabaseType { get; }
+    public bool HasDatabaseType => DatabaseType is not null;
+}
+
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private readonly ISecretStore _secretStore;
     private readonly IDialogService _dialogService;
+    private readonly ObservableCollection<ConnectionSettings> _allConnections = new();
 
     public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore, IDialogService dialogService)
     {
@@ -37,13 +51,26 @@ public class ConnectionSelectorViewModel : ViewModelBase
         _databaseProviderFactoryService = databaseProviderFactoryService;
         _secretStore = secretStore;
         _dialogService = dialogService;
+        AvailableConnectionFilters =
+        [
+            new ConnectionTypeFilterOption("(All)", null),
+            new ConnectionTypeFilterOption("SQL Server", DatabaseType.SqlServer),
+            new ConnectionTypeFilterOption("Oracle", DatabaseType.Oracle),
+            new ConnectionTypeFilterOption("PostgreSQL", DatabaseType.PostgresSql),
+            new ConnectionTypeFilterOption("MySQL", DatabaseType.MySql),
+            new ConnectionTypeFilterOption("SQLite", DatabaseType.SqLite)
+        ];
         LoadConnections();
-        SelectedDatabaseType = DatabaseType.SqlServer;
+        SelectedConnectionFilter = AvailableConnectionFilters[0];
         
         AddCommand = ReactiveCommand.Create(() =>
         {
-            var newConn = CreateConnectionSettings(SelectedDatabaseType);
-            Connections.Add(newConn);
+            if (SelectedConnectionFilter?.DatabaseType is not DatabaseType databaseType)
+                return;
+
+            var newConn = CreateConnectionSettings(databaseType);
+            _allConnections.Add(newConn);
+            RefreshFilteredConnections();
             SelectedConnection = newConn;
             IsEditing = true;
         });
@@ -106,7 +133,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
         duplicate.Id = Guid.NewGuid();
         duplicate.CredentialId = null;
         duplicate.LoadedPasswordSnapshot = null;
-        Connections.Add(duplicate);
+        _allConnections.Add(duplicate);
+        RefreshFilteredConnections();
         SelectedConnection = duplicate;
         IsEditing = true;
     }
@@ -150,7 +178,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
             if (connectionModel is not null)
             {
                 await Task.Run(() => _connectionSettingsRepository.Delete(connectionModel));
-                Connections.Remove(connectionModel);
+                _allConnections.Remove(connectionModel);
+                RefreshFilteredConnections();
             }
 
             SelectedConnection = Connections.FirstOrDefault();
@@ -159,8 +188,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
-    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } =
-        [DatabaseType.SqlServer, DatabaseType.Oracle, DatabaseType.PostgresSql, DatabaseType.MySql, DatabaseType.SqLite];
+    public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
@@ -169,8 +197,6 @@ public class ConnectionSelectorViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedConnection, value);
-            if (value is not null)
-                SelectedDatabaseType = value.DatabaseType;
             this.RaisePropertyChanged(nameof(IsMySqlConnectionSelected));
             this.RaisePropertyChanged(nameof(IsOracleConnectionSelected));
             this.RaisePropertyChanged(nameof(IsPostgresConnectionSelected));
@@ -184,11 +210,17 @@ public class ConnectionSelectorViewModel : ViewModelBase
         }
     }
 
-    private DatabaseType _selectedDatabaseType;
-    public DatabaseType SelectedDatabaseType
+    private ConnectionTypeFilterOption? _selectedConnectionFilter;
+    public ConnectionTypeFilterOption? SelectedConnectionFilter
     {
-        get => _selectedDatabaseType;
-        set => this.RaiseAndSetIfChanged(ref _selectedDatabaseType, value);
+        get => _selectedConnectionFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedConnectionFilter, value);
+            RefreshFilteredConnections();
+            this.RaisePropertyChanged(nameof(CanAddConnection));
+            this.RaisePropertyChanged(nameof(ShowFilterSelectionHint));
+        }
     }
 
     private bool _isEditing;
@@ -216,6 +248,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
     };
     public bool IsSecureStorageUnavailable => !_secretStore.IsAvailable;
     public string SecureStorageWarningMessage => _secretStore.UnavailableReason ?? string.Empty;
+    public bool CanAddConnection => SelectedConnectionFilter?.DatabaseType is not null;
+    public bool ShowFilterSelectionHint => !CanAddConnection;
     
     public SqlConnectionInfo? ConnectionInfo { get; private set; }
 
@@ -276,18 +310,46 @@ public class ConnectionSelectorViewModel : ViewModelBase
         
         IsEditing = false;
 
-        var sortedConnections = Connections.OrderBy(connection => connection.Name).ToList();
-        Connections.Clear();
-        Connections.AddRange(sortedConnections);
+        SortAllConnections();
+        RefreshFilteredConnections();
         SelectedConnection = connectionSettings;
     }
 
     private void LoadConnections()
     {
         var sortedList = _connectionSettingsRepository.LoadAll();
-        Connections.Clear();
+        _allConnections.Clear();
         if (sortedList is not null)
-            Connections.AddRange(sortedList.OrderBy(s => s.Name));
+            _allConnections.AddRange(sortedList.OrderBy(s => s.Name));
+        RefreshFilteredConnections();
+    }
+
+    private void SortAllConnections()
+    {
+        var sortedConnections = _allConnections.OrderBy(connection => connection.Name).ToList();
+        _allConnections.Clear();
+        _allConnections.AddRange(sortedConnections);
+    }
+
+    private void RefreshFilteredConnections()
+    {
+        var selectedConnectionId = SelectedConnection?.Id;
+        var filteredConnections = _allConnections
+            .Where(connection => SelectedConnectionFilter?.DatabaseType is null || connection.DatabaseType == SelectedConnectionFilter.DatabaseType)
+            .OrderBy(connection => connection.Name)
+            .ToList();
+
+        Connections.Clear();
+        Connections.AddRange(filteredConnections);
+
+        if (selectedConnectionId is null)
+        {
+            if (SelectedConnection is null || !Connections.Contains(SelectedConnection))
+                SelectedConnection = Connections.FirstOrDefault();
+            return;
+        }
+
+        SelectedConnection = Connections.FirstOrDefault(connection => connection.Id == selectedConnectionId) ?? Connections.FirstOrDefault();
     }
 
     private static ConnectionSettings CreateConnectionSettings(DatabaseType databaseType)
