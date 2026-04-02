@@ -3,8 +3,10 @@ using System.Text.Json.Serialization;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.JsonConverters;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.PostgresSql;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using Xunit;
 
@@ -67,6 +69,29 @@ public class ConnectionSettingsConverterTests
     }
 
     [Fact]
+    public void Deserialize_ReturnsOracleConnectionSettings_ForOraclePayload()
+    {
+        const string json = """
+                            {
+                              "Id":"23222222-2222-2222-2222-222222222222",
+                              "Name":"Oracle",
+                              "DatabaseType":"Oracle",
+                              "Server":"localhost",
+                              "Database":"xe",
+                              "User":"system",
+                              "Password":"pwd",
+                              "Port":1522
+                            }
+                            """;
+
+        var connection = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<OracleConnectionSettings>(connection);
+        Assert.Equal(DatabaseType.Oracle, typed.DatabaseType);
+        Assert.Equal(1522, typed.Port);
+    }
+
+    [Fact]
     public void Deserialize_ReturnsPostgresConnectionSettings_ForPostgresPayload()
     {
         const string json = """
@@ -92,6 +117,25 @@ public class ConnectionSettingsConverterTests
     }
 
     [Fact]
+    public void Deserialize_ReturnsSqLiteConnectionSettings_ForSqLitePayload()
+    {
+        const string json = """
+                            {
+                              "Id":"26222222-2222-2222-2222-222222222222",
+                              "Name":"SQLite",
+                              "DatabaseType":"SqLite",
+                              "Database":"/tmp/app.db"
+                            }
+                            """;
+
+        var connection = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<SqLiteConnectionSettings>(connection);
+        Assert.Equal(DatabaseType.SqLite, typed.DatabaseType);
+        Assert.Equal("/tmp/app.db", typed.Database);
+    }
+
+    [Fact]
     public void Serialize_RoundTripsSqlServerConnectionSettings()
     {
         ConnectionSettings connection = new SqlServerConnectionSettings
@@ -113,6 +157,29 @@ public class ConnectionSettingsConverterTests
         var typed = Assert.IsType<SqlServerConnectionSettings>(deserialized);
         Assert.Equal("localhost", typed.Server);
         Assert.Equal(DatabaseType.SqlServer, typed.DatabaseType);
+    }
+
+    [Fact]
+    public void Serialize_RoundTripsOracleConnectionSettings()
+    {
+        ConnectionSettings connection = new OracleConnectionSettings
+        {
+            Id = Guid.Parse("34444444-4444-4444-4444-444444444444"),
+            Name = "Oracle",
+            DatabaseType = DatabaseType.Oracle,
+            Server = "localhost",
+            Database = "xe",
+            User = "system",
+            Password = "pwd",
+            Port = 1521
+        };
+
+        var json = JsonSerializer.Serialize(connection, SerializerOptions);
+        var deserialized = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<OracleConnectionSettings>(deserialized);
+        Assert.Equal(1521, typed.Port);
+        Assert.Equal(DatabaseType.Oracle, typed.DatabaseType);
     }
 
     [Fact]
@@ -163,5 +230,24 @@ public class ConnectionSettingsConverterTests
         var typed = Assert.IsType<PostgresConnectionSettings>(deserialized);
         Assert.Equal(5432, typed.Port);
         Assert.Equal(DatabaseType.PostgresSql, typed.DatabaseType);
+    }
+
+    [Fact]
+    public void Serialize_RoundTripsSqLiteConnectionSettings()
+    {
+        ConnectionSettings connection = new SqLiteConnectionSettings
+        {
+            Id = Guid.Parse("64444444-4444-4444-4444-444444444444"),
+            Name = "SQLite",
+            DatabaseType = DatabaseType.SqLite,
+            Database = "/tmp/app.db"
+        };
+
+        var json = JsonSerializer.Serialize(connection, SerializerOptions);
+        var deserialized = JsonSerializer.Deserialize<ConnectionSettings>(json, SerializerOptions);
+
+        var typed = Assert.IsType<SqLiteConnectionSettings>(deserialized);
+        Assert.Equal("/tmp/app.db", typed.Database);
+        Assert.Equal(DatabaseType.SqLite, typed.DatabaseType);
     }
 }

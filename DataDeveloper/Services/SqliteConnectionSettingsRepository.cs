@@ -5,8 +5,10 @@ using System.IO;
 using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.PostgresSql;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Interfaces;
 using Microsoft.Data.Sqlite;
@@ -85,10 +87,18 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                     mySql.Database = reader.GetString(reader.GetOrdinal("database_name"));
                     mySql.Port = reader.IsDBNull(reader.GetOrdinal("port")) ? 3306u : Convert.ToUInt32(reader.GetInt64(reader.GetOrdinal("port")));
                     break;
+                case OracleConnectionSettings oracle:
+                    oracle.Server = reader.GetString(reader.GetOrdinal("server"));
+                    oracle.Database = reader.GetString(reader.GetOrdinal("database_name"));
+                    oracle.Port = reader.IsDBNull(reader.GetOrdinal("port")) ? 1521 : Convert.ToInt32(reader.GetInt64(reader.GetOrdinal("port")));
+                    break;
                 case PostgresConnectionSettings postgres:
                     postgres.Server = reader.GetString(reader.GetOrdinal("server"));
                     postgres.Database = reader.GetString(reader.GetOrdinal("database_name"));
                     postgres.Port = reader.IsDBNull(reader.GetOrdinal("port")) ? 5432 : Convert.ToInt32(reader.GetInt64(reader.GetOrdinal("port")));
+                    break;
+                case SqLiteConnectionSettings sqLite:
+                    sqLite.Database = reader.GetString(reader.GetOrdinal("database_name"));
                     break;
             }
 
@@ -365,8 +375,10 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         return databaseType switch
         {
             DatabaseType.SqlServer => new SqlServerConnectionSettings { DatabaseType = DatabaseType.SqlServer },
+            DatabaseType.Oracle => new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
             DatabaseType.PostgresSql => new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql },
             DatabaseType.MySql => new MySqlConnectionSettings { DatabaseType = DatabaseType.MySql },
+            DatabaseType.SqLite => new SqLiteConnectionSettings { DatabaseType = DatabaseType.SqLite },
             _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")
         };
     }
@@ -393,6 +405,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         connectionSettings switch
         {
             SqlServerConnectionSettings sqlServer => sqlServer.Server,
+            OracleConnectionSettings oracle => oracle.Server,
             PostgresConnectionSettings postgres => postgres.Server,
             MySqlConnectionSettings mySql => mySql.Server,
             _ => string.Empty
@@ -402,14 +415,17 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         connectionSettings switch
         {
             SqlServerConnectionSettings sqlServer => sqlServer.Database,
+            OracleConnectionSettings oracle => oracle.Database,
             PostgresConnectionSettings postgres => postgres.Database,
             MySqlConnectionSettings mySql => mySql.Database,
+            SqLiteConnectionSettings sqLite => sqLite.Database,
             _ => string.Empty
         };
 
     private static object GetPort(ConnectionSettings connectionSettings) =>
         connectionSettings switch
         {
+            OracleConnectionSettings oracle => oracle.Port,
             PostgresConnectionSettings postgres => postgres.Port,
             MySqlConnectionSettings mySql => (long)mySql.Port,
             _ => DBNull.Value

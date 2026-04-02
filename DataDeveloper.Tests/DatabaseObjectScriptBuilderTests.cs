@@ -1,8 +1,10 @@
 using System;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.PostgresSql;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Services;
 using Xunit;
@@ -80,12 +82,16 @@ public class DatabaseObjectScriptBuilderTests
         var mySqlScript = DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(
             new MySqlConnectionSettings { DatabaseType = DatabaseType.MySql },
             procedureNode);
+        var oracleScript = DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            procedureNode);
         var postgresScript = DatabaseObjectScriptBuilder.BuildExecuteProcedureScript(
             new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql },
             procedureNode);
 
         Assert.Equal("exec [ProcessOrders] @id = @id, @result = @result output;", sqlServerScript);
         Assert.Equal("call `ProcessOrders`(@id, @result);", mySqlScript);
+        Assert.Equal("begin \"ProcessOrders\"(@id, @result); end;", oracleScript);
         Assert.Equal("call \"ProcessOrders\"(@id, @result);", postgresScript);
     }
 
@@ -233,6 +239,25 @@ public class DatabaseObjectScriptBuilderTests
     }
 
     [Fact]
+    public void BuildSelectFunctionScript_UsesOracleDualSyntax()
+    {
+        var functionNode = CreateNode(NodeType.Function, "GetTax");
+        var parametersFolder = CreateNode(NodeType.Parameters, "Parameters", isFolder: true, parent: functionNode);
+        functionNode.Children.Add(parametersFolder);
+        parametersFolder.Children.Add(CreateNode(NodeType.Parameter, ":amount", parent: parametersFolder, tag: new RoutineParameterModel
+        {
+            Name = ":amount",
+            Position = 1
+        }));
+
+        var script = DatabaseObjectScriptBuilder.BuildSelectFunctionScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            functionNode);
+
+        Assert.Equal("select \"GetTax\"(:amount) from dual;", script);
+    }
+
+    [Fact]
     public void BuildDdlScript_ForTable_UsesLoadedColumns()
     {
         var tableNode = CreateNode(NodeType.Table, "dbo.Orders");
@@ -372,6 +397,134 @@ public class DatabaseObjectScriptBuilderTests
             tableNode);
 
         Assert.Equal("\"public\".\"Order Details\"", qualifiedName);
+    }
+
+    [Fact]
+    public void BuildInsertScript_UsesOracleParameterPrefix()
+    {
+        var tableNode = CreateNode(NodeType.Table, "Orders");
+        var columnsFolder = CreateNode(NodeType.Columns, "Columns", isFolder: true, parent: tableNode);
+        tableNode.Children.Add(columnsFolder);
+        columnsFolder.Children.Add(CreateNode(NodeType.Column, "OrderId", parent: columnsFolder, tag: new ColumnModel
+        {
+            Name = "OrderId",
+            DataType = "number",
+            IsPrimaryKey = true
+        }));
+
+        var script = DatabaseObjectScriptBuilder.BuildInsertScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            tableNode);
+
+        Assert.Contains(":OrderId", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("@OrderId", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryBuildNativeDdlRetrievalScript_ForOracleTable_UsesDbmsMetadata()
+    {
+        var tableNode = CreateNode(NodeType.Table, "HR.Orders");
+
+        var script = DatabaseObjectScriptBuilder.TryBuildNativeDdlRetrievalScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            tableNode);
+
+        Assert.Equal("select dbms_metadata.get_ddl('TABLE', 'Orders', 'HR') as Definition from dual;", script);
+    }
+
+    [Fact]
+    public void TryBuildNativeDdlRetrievalScript_ForSqLiteTable_UsesSqliteMaster()
+    {
+        var tableNode = CreateNode(NodeType.Table, "orders");
+
+        var script = DatabaseObjectScriptBuilder.TryBuildNativeDdlRetrievalScript(
+            new SqLiteConnectionSettings { DatabaseType = DatabaseType.SqLite },
+            tableNode);
+
+        Assert.Contains("from sqlite_master", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("type = 'table'", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("name = 'orders'", script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void BuildObjectDdlRetrievalScript_ForOracleFunction_UsesUserSource()
+    {
+        var functionNode = CreateNode(NodeType.Function, "HR.CalculateTax");
+
+        var script = DatabaseObjectScriptBuilder.BuildObjectDdlRetrievalScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            functionNode);
+
+        Assert.Contains("from user_source", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("'create or replace ' || ltrim(listagg(text, '') within group (order by line))", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("name = 'CalculateTax'", script, StringComparison.Ordinal);
+        Assert.Contains("type in ('PROCEDURE', 'FUNCTION')", script, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildObjectDdlRetrievalScript_ForSqLiteView_UsesSqliteMaster()
+    {
+        var viewNode = CreateNode(NodeType.View, "active_orders");
+
+        var script = DatabaseObjectScriptBuilder.BuildObjectDdlRetrievalScript(
+            new SqLiteConnectionSettings { DatabaseType = DatabaseType.SqLite },
+            viewNode);
+
+        Assert.Contains("from sqlite_master", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("type = 'view'", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("name = 'active_orders'", script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void BuildObjectDdlRetrievalScript_ForOracleView_UsesUserViews()
+    {
+        var viewNode = CreateNode(NodeType.View, "HR.OPEN_ORDERS");
+
+        var script = DatabaseObjectScriptBuilder.BuildObjectDdlRetrievalScript(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            viewNode);
+
+        Assert.Contains("from user_views", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("chr(10)", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("text_vc", script, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("view_name = 'OPEN_ORDERS'", script, StringComparison.Ordinal);
+        Assert.Contains("create or replace view", script, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void PostProcessDdl_ForOracleTable_RemovesMetadataNoise()
+    {
+        var node = CreateNode(NodeType.Table, "DATADEVELOPER.ORDERS");
+        var rawDdl = """
+                       CREATE TABLE "DATADEVELOPER"."ORDERS" 
+                          ( "ORDER_ID" NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER NOCYCLE NOKEEP NOSCALE NOT NULL ENABLE, 
+                            "CUSTOMER_ID" NUMBER NOT NULL ENABLE, 
+                            "ORDER_TOTAL" NUMBER(10,2) NOT NULL ENABLE, 
+                            "STATUS" VARCHAR2(30) DEFAULT 'OPEN' NOT NULL ENABLE, 
+                            "CREATED_AT" TIMESTAMP (6) DEFAULT current_timestamp NOT NULL ENABLE, 
+                             PRIMARY KEY ("ORDER_ID")
+                           USING INDEX ENABLE, 
+                             CONSTRAINT "FK_ORDERS_CUSTOMERS" FOREIGN KEY ("CUSTOMER_ID")
+                              REFERENCES "DATADEVELOPER"."CUSTOMERS" ("CUSTOMER_ID") ENABLE
+                          ) ;
+                       """;
+
+        var ddl = DatabaseObjectScriptBuilder.PostProcessDdl(
+            new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
+            node,
+            rawDdl);
+
+        Assert.DoesNotContain("MINVALUE", ddl, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ENABLE", ddl, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("USING INDEX", ddl, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\"DATADEVELOPER\"", ddl, StringComparison.Ordinal);
+        Assert.DoesNotContain("datadeveloper.", ddl, StringComparison.Ordinal);
+        Assert.Contains("create table orders", ddl, StringComparison.Ordinal);
+        Assert.Contains("\n    customer_id number", ddl, StringComparison.Ordinal);
+        Assert.Contains("order_total number(10,2) not null", ddl, StringComparison.Ordinal);
+        Assert.Contains("status varchar2(30) default 'open' not null", ddl, StringComparison.Ordinal);
+        Assert.Contains("primary key", ddl, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("timestamp default current_timestamp", ddl, StringComparison.OrdinalIgnoreCase);
     }
 
     private static SchemaNode CreateNode(NodeType nodeType, string name, bool isFolder = false, SchemaNode? parent = null, object? tag = null)

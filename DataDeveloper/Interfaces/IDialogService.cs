@@ -11,4 +11,6 @@ public interface IDialogService
     Task ShowMessageAsync(string message, string? title = null);
     Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null);
     Task<string?> ShowOpenFileAsync(string? title = null);
+    Task<string?> ShowOpenDatabaseFileAsync(string? title = null);
+    Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null);
 }

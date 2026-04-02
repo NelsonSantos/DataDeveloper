@@ -283,17 +283,37 @@ public partial class TabConnectionView : UserControl
                        ?? DatabaseObjectScriptBuilder.BuildObjectDdlRetrievalScript(viewModel.ConnectionSettings, node);
         await using var connection = viewModel.ConnectionSettings.GetDatabaseProvider().GetConnection();
         await connection.OpenAsync();
+
+        if (viewModel.ConnectionSettings.DatabaseType == DatabaseType.Oracle && node.NodeType == NodeType.Table)
+            await ConfigureOracleMetadataSessionAsync(connection);
+
         await using var command = connection.CreateCommand();
         command.CommandText = ddlQuery;
 
         await using var reader = await command.ExecuteReaderAsync();
         var ddl = await ReadDdlAsync(reader);
+        ddl = DatabaseObjectScriptBuilder.PostProcessDdl(viewModel.ConnectionSettings, node, ddl);
         ddl = string.IsNullOrWhiteSpace(ddl) ? "-- DDL not found." : ddl;
 
         if (openInEditor)
             viewModel.OpenQueryEditorWithScript(ddl);
         else
             await CopyToClipboardAsync(ddl);
+    }
+
+    private static async Task ConfigureOracleMetadataSessionAsync(DbConnection connection)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+                              begin
+                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'PRETTY', true);
+                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SQLTERMINATOR', true);
+                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SEGMENT_ATTRIBUTES', false);
+                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'STORAGE', false);
+                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'TABLESPACE', false);
+                              end;
+                              """;
+        await command.ExecuteNonQueryAsync();
     }
 
     private async Task OpenTableDdlAsync(SchemaNode node, TabConnectionViewModel viewModel, bool openInEditor)

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Reactive.Threading.Tasks;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
@@ -51,6 +53,9 @@ public class ConnectionSelectorViewModelTests
 
     private sealed class FakeDialogService : IDialogService
     {
+        public string? OpenDatabaseFileResult { get; set; }
+        public string? CreateDatabaseFileResult { get; set; }
+
         public Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info)
         {
             var result = buttons switch
@@ -70,6 +75,10 @@ public class ConnectionSelectorViewModelTests
         public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
 
         public Task<string?> ShowOpenFileAsync(string? title = null) => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult(OpenDatabaseFileResult);
+
+        public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult(CreateDatabaseFileResult);
     }
 
     [Fact]
@@ -130,5 +139,101 @@ public class ConnectionSelectorViewModelTests
 
         Assert.Equal(1, repository.DeleteCallCount);
         Assert.Empty(repository.LoadAll());
+    }
+
+    [Fact]
+    public async Task AddCommand_CreatesOracleConnection_WhenOracleTypeSelected()
+    {
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedDatabaseType = DatabaseType.Oracle
+        };
+
+        await viewModel.AddCommand.Execute().ToTask();
+
+        var connection = Assert.IsType<OracleConnectionSettings>(viewModel.SelectedConnection);
+        Assert.Equal(1521, connection.Port);
+        Assert.Equal(DatabaseType.Oracle, connection.DatabaseType);
+    }
+
+    [Fact]
+    public async Task AddCommand_CreatesSqLiteConnection_WhenSqLiteTypeSelected()
+    {
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedDatabaseType = DatabaseType.SqLite
+        };
+
+        await viewModel.AddCommand.Execute().ToTask();
+
+        var connection = Assert.IsType<SqLiteConnectionSettings>(viewModel.SelectedConnection);
+        Assert.Equal(DatabaseType.SqLite, connection.DatabaseType);
+        Assert.Equal(string.Empty, connection.Database);
+    }
+
+    [Fact]
+    public async Task SelectSqLiteFileCommand_UpdatesDatabasePath()
+    {
+        var dialogService = new FakeDialogService
+        {
+            OpenDatabaseFileResult = "/tmp/app.db"
+        };
+        var connection = new SqLiteConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqLite,
+            Name = "SQLite",
+            Database = string.Empty
+        };
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            dialogService)
+        {
+            SelectedConnection = connection,
+            IsEditing = true
+        };
+
+        await viewModel.SelectSqLiteFileCommand.Execute().ToTask();
+
+        Assert.Equal("/tmp/app.db", connection.Database);
+    }
+
+    [Fact]
+    public async Task CreateSqLiteFileCommand_UpdatesDatabasePath()
+    {
+        var dialogService = new FakeDialogService
+        {
+            CreateDatabaseFileResult = "/tmp/new-app.db"
+        };
+        var connection = new SqLiteConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqLite,
+            Name = "SQLite",
+            Database = string.Empty
+        };
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            dialogService)
+        {
+            SelectedConnection = connection,
+            IsEditing = true
+        };
+
+        await viewModel.CreateSqLiteFileCommand.Execute().ToTask();
+
+        Assert.Equal("/tmp/new-app.db", connection.Database);
     }
 }

@@ -1,7 +1,9 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.PostgresSql;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
@@ -140,6 +142,47 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(postgres.Port, loadedPostgres.Port);
         repository.LoadPassword(loadedPostgres);
         Assert.Equal(postgres.Password, loadedPostgres.Password);
+    }
+
+    [Fact]
+    public void SaveAll_AndLoadAll_RoundTripsOracleAndSqLiteConnections()
+    {
+        var secretStore = new InMemorySecretStore();
+        var repository = CreateRepository(secretStore: secretStore);
+        var oracle = new OracleConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            CredentialId = Guid.NewGuid(),
+            Name = "Oracle",
+            DatabaseType = DatabaseType.Oracle,
+            Server = "oracle.local",
+            Database = "xe",
+            Port = 1522,
+            User = "system",
+            Password = "oracle-secret"
+        };
+        var sqLite = new SqLiteConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "SQLite",
+            DatabaseType = DatabaseType.SqLite,
+            Database = "/tmp/app.db"
+        };
+
+        repository.SaveAll([oracle, sqLite]);
+
+        var loaded = repository.LoadAll();
+
+        var loadedOracle = Assert.IsType<OracleConnectionSettings>(loaded.Single(item => item.Id == oracle.Id));
+        Assert.Equal(oracle.CredentialId, loadedOracle.CredentialId);
+        Assert.Equal(oracle.Server, loadedOracle.Server);
+        Assert.Equal(oracle.Database, loadedOracle.Database);
+        Assert.Equal(oracle.Port, loadedOracle.Port);
+        repository.LoadPassword(loadedOracle);
+        Assert.Equal(oracle.Password, loadedOracle.Password);
+
+        var loadedSqLite = Assert.IsType<SqLiteConnectionSettings>(loaded.Single(item => item.Id == sqLite.Id));
+        Assert.Equal(sqLite.Database, loadedSqLite.Database);
     }
 
     [Fact]

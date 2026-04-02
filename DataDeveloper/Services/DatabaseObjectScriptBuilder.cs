@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
@@ -41,7 +42,7 @@ public static class DatabaseObjectScriptBuilder
             return $"insert into {qualifiedName}{Environment.NewLine}values ();";
 
         var quotedColumns = columns.Select(column => QuoteSingleIdentifier(connectionSettings, column.Name)).ToList();
-        var placeholders = columns.Select(column => FormatValuePlaceholder(column.Name)).ToList();
+        var placeholders = columns.Select(column => FormatValuePlaceholder(connectionSettings, column.Name)).ToList();
 
         return $"insert into {qualifiedName}{Environment.NewLine}({string.Join(", ", quotedColumns)}){Environment.NewLine}values{Environment.NewLine}({Environment.NewLine}    {string.Join($",{Environment.NewLine}    ", placeholders)}{Environment.NewLine});";
     }
@@ -59,9 +60,9 @@ public static class DatabaseObjectScriptBuilder
         var whereColumns = (keyColumns.Count > 0 ? keyColumns : columns.Take(1)).ToList();
 
         var assignments = setColumns
-            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(column.Name)}");
+            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(connectionSettings, column.Name)}");
         var predicates = whereColumns
-            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(column.Name)}");
+            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(connectionSettings, column.Name)}");
 
         return $"update {qualifiedName}{Environment.NewLine}set{Environment.NewLine}    {string.Join($",{Environment.NewLine}    ", assignments)}{Environment.NewLine}where{Environment.NewLine}    {string.Join($"{Environment.NewLine}    and ", predicates)};";
     }
@@ -77,7 +78,7 @@ public static class DatabaseObjectScriptBuilder
             return $"delete from {qualifiedName}{Environment.NewLine}where 1 = 0;";
 
         var predicates = whereColumns
-            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(column.Name)}");
+            .Select(column => $"{QuoteSingleIdentifier(connectionSettings, column.Name)} = {FormatValuePlaceholder(connectionSettings, column.Name)}");
 
         return $"delete from {qualifiedName}{Environment.NewLine}where{Environment.NewLine}    {string.Join($"{Environment.NewLine}    and ", predicates)};";
     }
@@ -131,6 +132,17 @@ public static class DatabaseObjectScriptBuilder
         };
     }
 
+    public static string PostProcessDdl(IConnectionSettings connectionSettings, SchemaNode node, string ddl)
+    {
+        if (string.IsNullOrWhiteSpace(ddl))
+            return ddl;
+
+        if (connectionSettings.DatabaseType == DatabaseType.Oracle && node.NodeType == NodeType.Table)
+            return BeautifyOracleTableDdl(node, ddl);
+
+        return ddl;
+    }
+
     public static string BuildExecuteProcedureScript(IConnectionSettings connectionSettings, SchemaNode node)
     {
         var qualifiedName = BuildQualifiedName(connectionSettings, node);
@@ -138,6 +150,7 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => BuildSqlServerProcedureScript(qualifiedName, parameters),
+            DatabaseType.Oracle => BuildOracleProcedureScript(qualifiedName, parameters),
             DatabaseType.PostgresSql => BuildPostgresProcedureScript(qualifiedName, parameters),
             DatabaseType.MySql => BuildMySqlProcedureScript(qualifiedName, parameters),
             _ => qualifiedName
@@ -149,7 +162,11 @@ public static class DatabaseObjectScriptBuilder
         var qualifiedName = BuildQualifiedName(connectionSettings, node);
         var parameters = GetRoutineParameters(node);
         var argumentList = string.Join(", ", parameters.Select(parameter => parameter.Name));
-        return $"select {qualifiedName}({argumentList});";
+        return connectionSettings.DatabaseType switch
+        {
+            DatabaseType.Oracle => $"select {qualifiedName}({argumentList}) from dual;",
+            _ => $"select {qualifiedName}({argumentList});"
+        };
     }
 
     private static string BuildQualifiedColumnName(IConnectionSettings connectionSettings, SchemaNode node)
@@ -189,7 +206,7 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.SqlServer => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]",
-            DatabaseType.PostgresSql => $"\"{identifier.Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
+            DatabaseType.Oracle or DatabaseType.SqLite or DatabaseType.PostgresSql => $"\"{identifier.Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
             DatabaseType.MySql => $"`{identifier.Replace("`", "``", StringComparison.Ordinal)}`",
             _ => identifier
         };
@@ -255,6 +272,12 @@ public static class DatabaseObjectScriptBuilder
         return $"call {qualifiedName}({argumentList});";
     }
 
+    private static string BuildOracleProcedureScript(string qualifiedName, IReadOnlyList<RoutineParameterModel> parameters)
+    {
+        var argumentList = string.Join(", ", parameters.Select(parameter => parameter.Name));
+        return $"begin {qualifiedName}({argumentList}); end;";
+    }
+
     private static string BuildPostgresProcedureScript(string qualifiedName, IReadOnlyList<RoutineParameterModel> parameters)
     {
         var argumentList = string.Join(", ", parameters.Select(parameter => parameter.Name));
@@ -316,6 +339,8 @@ public static class DatabaseObjectScriptBuilder
         {
             DatabaseType.SqlServer => $"select object_definition(object_id(N'{EscapeSqlLiteral(node.Name)}')) as Definition;",
             DatabaseType.MySql => $"show create {(isFunction ? "function" : "procedure")} {objectName};",
+            DatabaseType.Oracle =>
+                BuildOracleRoutineSourceQuery(schemaName, routineName),
             DatabaseType.PostgresSql => BuildPostgresRoutineDdlScript(schemaName, routineName),
             _ => objectName
         };
@@ -329,8 +354,14 @@ public static class DatabaseObjectScriptBuilder
         return connectionSettings.DatabaseType switch
         {
             DatabaseType.MySql => $"show create table {objectName};",
+            DatabaseType.Oracle =>
+                $"select dbms_metadata.get_ddl('TABLE', '{EscapeSqlLiteral(tableName)}', {BuildOracleSchemaExpression(node.Name, schemaName)}) as Definition from dual;",
             DatabaseType.SqlServer => BuildSqlServerTableDdlRetrievalQuery(escapedObjectName),
             DatabaseType.PostgresSql => BuildPostgresTableDdlRetrievalQuery(schemaName, tableName),
+            DatabaseType.SqLite =>
+                "select sql as Definition" + Environment.NewLine +
+                "from sqlite_master" + Environment.NewLine +
+                $"where type = 'table' and name = '{EscapeSqlLiteral(tableName)}';",
             _ => null
         };
     }
@@ -623,6 +654,8 @@ public static class DatabaseObjectScriptBuilder
         {
             DatabaseType.SqlServer => $"select object_definition(object_id(N'{EscapeSqlLiteral(node.Name)}')) as Definition;",
             DatabaseType.MySql => $"show create view {objectName};",
+            DatabaseType.Oracle =>
+                BuildOracleViewSourceQuery(schemaName, viewName),
             DatabaseType.PostgresSql =>
                 "select 'create or replace view ' || quote_ident(n.nspname) || '.' || quote_ident(c.relname) || ' as' || E'\\n' || pg_get_viewdef(c.oid, true) as Definition" + Environment.NewLine +
                 "from pg_class c" + Environment.NewLine +
@@ -630,6 +663,10 @@ public static class DatabaseObjectScriptBuilder
                 $"where n.nspname = '{EscapeSqlLiteral(schemaName)}'" + Environment.NewLine +
                 $"  and c.relname = '{EscapeSqlLiteral(viewName)}'" + Environment.NewLine +
                 "  and c.relkind = 'v';",
+            DatabaseType.SqLite =>
+                "select sql as Definition" + Environment.NewLine +
+                "from sqlite_master" + Environment.NewLine +
+                $"where type = 'view' and name = '{EscapeSqlLiteral(viewName)}';",
             _ => objectName
         };
     }
@@ -642,6 +679,25 @@ public static class DatabaseObjectScriptBuilder
             "join pg_namespace n on n.oid = p.pronamespace" + Environment.NewLine +
             $"where n.nspname = '{EscapeSqlLiteral(schemaName)}'" + Environment.NewLine +
             $"  and p.proname = '{EscapeSqlLiteral(routineName)}';";
+    }
+
+    private static string BuildOracleViewSourceQuery(string schemaName, string viewName)
+    {
+        var ownerPredicate = BuildOracleOwnerPredicate(schemaName, "view_name", viewName);
+        return
+            "select 'create or replace view ' || view_name || chr(10) || 'as' || chr(10) || text_vc as Definition" + Environment.NewLine +
+            "from user_views" + Environment.NewLine +
+            $"where {ownerPredicate};";
+    }
+
+    private static string BuildOracleRoutineSourceQuery(string schemaName, string routineName)
+    {
+        var ownerPredicate = BuildOracleOwnerPredicate(schemaName, "name", routineName);
+        return
+            "select 'create or replace ' || ltrim(listagg(text, '') within group (order by line)) as Definition" + Environment.NewLine +
+            "from user_source" + Environment.NewLine +
+            $"where {ownerPredicate}" + Environment.NewLine +
+            "  and type in ('PROCEDURE', 'FUNCTION');";
     }
 
     private static (string SchemaName, string ObjectName) SplitQualifiedObjectName(string objectName)
@@ -667,8 +723,70 @@ public static class DatabaseObjectScriptBuilder
         return value.Replace("'", "''", StringComparison.Ordinal);
     }
 
-    private static string FormatValuePlaceholder(string columnName)
+    private static string BuildOracleSchemaExpression(string objectName, string schemaName)
     {
-        return $"@{NormalizeIdentifier(columnName)}";
+        return objectName.Contains('.', StringComparison.Ordinal)
+            ? $"'{EscapeSqlLiteral(schemaName)}'"
+            : "sys_context('USERENV', 'CURRENT_SCHEMA')";
+    }
+
+    private static string BuildOracleOwnerPredicate(string schemaName, string objectColumnName, string objectName)
+    {
+        return $"{objectColumnName} = '{EscapeSqlLiteral(objectName)}'";
+    }
+
+    private static string FormatValuePlaceholder(IConnectionSettings connectionSettings, string columnName)
+    {
+        var prefix = connectionSettings.DatabaseType == DatabaseType.Oracle ? ":" : "@";
+        return $"{prefix}{NormalizeIdentifier(columnName)}";
+    }
+
+    private static string BeautifyOracleTableDdl(SchemaNode node, string ddl)
+    {
+        var normalized = ddl.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
+        var schemaName = node.Name.Contains('.', StringComparison.Ordinal)
+            ? NormalizeIdentifier(node.Name.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[0]).ToLowerInvariant()
+            : null;
+
+        normalized = Regex.Replace(normalized, "\"([A-Z0-9_]+)\"", "$1");
+        normalized = Regex.Replace(normalized, @"\s+MINVALUE\s+\S+\s+MAXVALUE\s+\S+\s+INCREMENT BY\s+\S+\s+START WITH\s+\S+\s+CACHE\s+\S+\s+NOORDER\s+NOCYCLE\s+NOKEEP\s+NOSCALE", string.Empty, RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\s+ENABLE\b", string.Empty, RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"TIMESTAMP\s*\(\s*6\s*\)", "TIMESTAMP", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\s+USING INDEX\b", string.Empty, RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\s+", " ");
+        normalized = Regex.Replace(normalized, @"\s+,", ",");
+        normalized = normalized.ToLowerInvariant();
+
+        if (!string.IsNullOrWhiteSpace(schemaName))
+            normalized = normalized.Replace($"{schemaName}.", string.Empty, StringComparison.Ordinal);
+
+        normalized = Regex.Replace(normalized, @"create table\s+([a-z0-9_]+)\s+\(", "create table $1\n(", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @",(?=\s*(?:[a-z_]|primary key|constraint))", ",\n    ", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\b(create table [a-z0-9_]+)\s*\(", "$1\n(", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\b(primary key|foreign key|references)\s*\(", "$1 (", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\s*\)\s*;", "\n);", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\n\s*primary key", "\n    primary key", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\n\s*constraint", "\n    constraint", RegexOptions.IgnoreCase);
+        normalized = Regex.Replace(normalized, @"\n{2,}", "\n", RegexOptions.IgnoreCase);
+
+        var lines = normalized
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(line => line.Trim())
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line =>
+            {
+                if (line == "(" || line == ");" || line.StartsWith("create table ", StringComparison.Ordinal))
+                    return line;
+
+                return $"    {line}";
+            });
+
+        var result = string.Join(Environment.NewLine, lines).Trim();
+        result = Regex.Replace(result, @"^create table\s+[a-z0-9_]+\.([a-z0-9_]+)", "create table $1", RegexOptions.IgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(schemaName))
+            result = result.Replace($"{schemaName}.", string.Empty, StringComparison.Ordinal);
+
+        return result;
     }
 }

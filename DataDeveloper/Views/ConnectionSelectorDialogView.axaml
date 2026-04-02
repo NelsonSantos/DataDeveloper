@@ -81,17 +81,28 @@
                              IsEnabled="False" />
                 </Grid>
 
-                <TextBlock Text="Server" />
+                <TextBlock Text="Server"
+                           IsVisible="{Binding IsServerConnectionSelected}" />
                 <TextBox 
                     Text="{Binding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     IsEnabled="{Binding IsEditing}"
-                    IsReadOnly="{Binding !IsEditing}" />
+                    IsReadOnly="{Binding !IsEditing}"
+                    IsVisible="{Binding IsServerConnectionSelected}" />
 
-                <TextBlock Text="Database" />
+                <TextBlock Text="{Binding DatabaseLabel}" />
                 <TextBox 
                     Text="{Binding SelectedConnection.Database, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     IsEnabled="{Binding IsEditing}"
                     IsReadOnly="{Binding !IsEditing}" />
+
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8"
+                            IsVisible="{Binding IsSqLiteConnectionSelected}">
+                    <Button Content="Select File"
+                            Command="{Binding SelectSqLiteFileCommand}" />
+                    <Button Content="Create File"
+                            Command="{Binding CreateSqLiteFileCommand}" />
+                </StackPanel>
 
                 <Grid RowDefinitions="Auto,Auto"
                       IsVisible="{Binding IsPortConnectionSelected}">
@@ -102,7 +113,8 @@
                              IsReadOnly="{Binding !IsEditing}" />
                 </Grid>
 
-                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="8">
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="8"
+                      IsVisible="{Binding UsesCredentials}">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Username" />
                     <TextBox Grid.Row="1" Grid.Column="0" 
                              Text="{Binding SelectedConnection.User, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -118,7 +130,8 @@
                              PasswordChar="*" />
                 </Grid>
 
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="20"
+                      IsVisible="{Binding ShowsSecurityOptions}">
                     <CheckBox Grid.Column="0"
                               Content="Encrypt connection"
                               IsChecked="{Binding SelectedConnection.Encrypt, Mode=TwoWay}"
@@ -146,6 +159,18 @@
                            Foreground="DarkGoldenrod"
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsPostgresConnectionSelected}" />
+
+                <TextBlock Text="For Oracle, enter the service name used by this connection."
+                           FontSize="11"
+                           Foreground="DarkGoldenrod"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsOracleConnectionSelected}" />
+
+                <TextBlock Text="SQLite connects directly to a local database file."
+                           FontSize="11"
+                           Foreground="DarkGoldenrod"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding IsSqLiteConnectionSelected}" />
 
                 <TextBlock Text="{Binding SecureStorageWarningMessage}"
                            FontSize="11"

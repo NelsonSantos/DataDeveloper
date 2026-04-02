@@ -143,4 +143,24 @@ public class SqlParameterDetectorTests
 
         Assert.Empty(parameters);
     }
+
+    [Fact]
+    public void ExtractParameters_ReturnsOracleBindVariables()
+    {
+        var sql = "select * from orders where id = :id and status = :status";
+
+        var parameters = SqlParameterDetector.ExtractParameters(sql);
+
+        Assert.Equal([":id", ":status"], parameters);
+    }
+
+    [Fact]
+    public void ExtractParameters_IgnoresPostgresCastTokens()
+    {
+        var sql = "select created_at::date from orders where id = :id";
+
+        var parameters = SqlParameterDetector.ExtractParameters(sql);
+
+        Assert.Equal([":id"], parameters);
+    }
 }

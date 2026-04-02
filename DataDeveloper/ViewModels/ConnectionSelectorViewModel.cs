@@ -11,8 +11,10 @@ using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.PostgresSql;
+using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
@@ -74,6 +76,14 @@ public class ConnectionSelectorViewModel : ViewModelBase
         DuplicateConnectionCommand = ReactiveCommand.CreateFromTask(DuplicateConnectionAsync,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
+        SelectSqLiteFileCommand = ReactiveCommand.CreateFromTask(
+            SelectSqLiteFileAsync,
+            this.WhenAnyValue(x => x.SelectedConnection, x => x.IsSqLiteConnectionSelected, x => x.IsEditing,
+                (connection, isSqLite, isEditing) => connection is not null && isSqLite && isEditing));
+        CreateSqLiteFileCommand = ReactiveCommand.CreateFromTask(
+            CreateSqLiteFileAsync,
+            this.WhenAnyValue(x => x.SelectedConnection, x => x.IsSqLiteConnectionSelected, x => x.IsEditing,
+                (connection, isSqLite, isEditing) => connection is not null && isSqLite && isEditing));
     }
 
     private async Task DuplicateConnectionAsync()
@@ -85,8 +95,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
         ConnectionSettings? duplicate = SelectedConnection.DatabaseType switch
         {
             DatabaseType.SqlServer => (ConnectionSettings?)SelectedConnection.Map<SqlServerConnectionSettings>(),
+            DatabaseType.Oracle => (ConnectionSettings?)SelectedConnection.Map<OracleConnectionSettings>(),
             DatabaseType.PostgresSql => (ConnectionSettings?)SelectedConnection.Map<PostgresConnectionSettings>(),
             DatabaseType.MySql => (ConnectionSettings?)SelectedConnection.Map<MySqlConnectionSettings>(),
+            DatabaseType.SqLite => (ConnectionSettings?)SelectedConnection.Map<SqLiteConnectionSettings>(),
             _ => null
         };
         if (duplicate == null) throw new Exception("Type not recognized");
@@ -147,7 +159,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
-    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } = [DatabaseType.SqlServer, DatabaseType.PostgresSql, DatabaseType.MySql];
+    public IReadOnlyList<DatabaseType> AvailableDatabaseTypes { get; } =
+        [DatabaseType.SqlServer, DatabaseType.Oracle, DatabaseType.PostgresSql, DatabaseType.MySql, DatabaseType.SqLite];
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
@@ -159,9 +172,15 @@ public class ConnectionSelectorViewModel : ViewModelBase
             if (value is not null)
                 SelectedDatabaseType = value.DatabaseType;
             this.RaisePropertyChanged(nameof(IsMySqlConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsOracleConnectionSelected));
             this.RaisePropertyChanged(nameof(IsPostgresConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsSqLiteConnectionSelected));
             this.RaisePropertyChanged(nameof(IsSqlServerConnectionSelected));
             this.RaisePropertyChanged(nameof(IsPortConnectionSelected));
+            this.RaisePropertyChanged(nameof(IsServerConnectionSelected));
+            this.RaisePropertyChanged(nameof(UsesCredentials));
+            this.RaisePropertyChanged(nameof(ShowsSecurityOptions));
+            this.RaisePropertyChanged(nameof(DatabaseLabel));
         }
     }
 
@@ -180,10 +199,21 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }    
 
     public bool IsMySqlConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.MySql;
+    public bool IsOracleConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.Oracle;
     public bool IsPostgresConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.PostgresSql;
+    public bool IsSqLiteConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqLite;
     public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
     public bool IsPortConnectionSelected =>
-        SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql;
+        SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
+    public bool IsServerConnectionSelected => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
+    public bool UsesCredentials => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
+    public bool ShowsSecurityOptions => SelectedConnection?.DatabaseType is DatabaseType.SqlServer or DatabaseType.PostgresSql or DatabaseType.MySql;
+    public string DatabaseLabel => SelectedConnection?.DatabaseType switch
+    {
+        DatabaseType.Oracle => "Service Name",
+        DatabaseType.SqLite => "Database File",
+        _ => "Database"
+    };
     public bool IsSecureStorageUnavailable => !_secretStore.IsAvailable;
     public string SecureStorageWarningMessage => _secretStore.UnavailableReason ?? string.Empty;
     
@@ -197,6 +227,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
     public ReactiveCommand<StyledElement, Unit> DeleteCommand { get; }
     public ReactiveCommand<Unit, Unit> DuplicateConnectionCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectSqLiteFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateSqLiteFileCommand { get; }
 
     private async Task OkAsync(StyledElement element)
     {
@@ -274,6 +306,19 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 TrustServerCertificate = false,
                 DatabaseType = DatabaseType.SqlServer
             },
+            DatabaseType.Oracle => new OracleConnectionSettings
+            {
+                Id = Guid.NewGuid(),
+                Name = "New Oracle connection",
+                Server = "",
+                Database = "",
+                User = "",
+                Password = "",
+                Port = 1521,
+                Encrypt = false,
+                TrustServerCertificate = false,
+                DatabaseType = DatabaseType.Oracle
+            },
             DatabaseType.PostgresSql => new PostgresConnectionSettings
             {
                 Id = Guid.NewGuid(),
@@ -300,7 +345,41 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 TrustServerCertificate = true,
                 DatabaseType = DatabaseType.MySql
             },
+            DatabaseType.SqLite => new SqLiteConnectionSettings
+            {
+                Id = Guid.NewGuid(),
+                Name = "New SQLite connection",
+                Database = "",
+                User = "",
+                Password = "",
+                Encrypt = false,
+                TrustServerCertificate = false,
+                DatabaseType = DatabaseType.SqLite
+            },
             _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")
         };
+    }
+
+    private async Task SelectSqLiteFileAsync()
+    {
+        if (SelectedConnection is not SqLiteConnectionSettings sqLiteConnection)
+            return;
+
+        var selectedPath = await _dialogService.ShowOpenDatabaseFileAsync("Select SQLite database file...");
+        if (!string.IsNullOrWhiteSpace(selectedPath))
+            sqLiteConnection.Database = selectedPath;
+    }
+
+    private async Task CreateSqLiteFileAsync()
+    {
+        if (SelectedConnection is not SqLiteConnectionSettings sqLiteConnection)
+            return;
+
+        var suggestedName = string.IsNullOrWhiteSpace(sqLiteConnection.Name)
+            ? "database.db"
+            : $"{sqLiteConnection.Name}.db";
+        var createdPath = await _dialogService.ShowCreateDatabaseFileAsync(suggestedName, "Create SQLite database file...");
+        if (!string.IsNullOrWhiteSpace(createdPath))
+            sqLiteConnection.Database = createdPath;
     }
 }

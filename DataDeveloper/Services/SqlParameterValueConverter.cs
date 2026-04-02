@@ -18,12 +18,6 @@ public static class SqlParameterValueConverter
         if (bool.TryParse(value, out var boolValue))
             return boolValue;
 
-        if (value == "1")
-            return true;
-
-        if (value == "0")
-            return false;
-
         if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
             return intValue;
 
