@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Threading.Tasks;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
@@ -148,10 +149,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
-            new FakeDialogService())
-        {
-            SelectedDatabaseType = DatabaseType.Oracle
-        };
+            new FakeDialogService());
+
+        viewModel.SelectedConnectionFilter = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType == DatabaseType.Oracle);
 
         await viewModel.AddCommand.Execute().ToTask();
 
@@ -167,10 +167,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
-            new FakeDialogService())
-        {
-            SelectedDatabaseType = DatabaseType.SqLite
-        };
+            new FakeDialogService());
+
+        viewModel.SelectedConnectionFilter = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType == DatabaseType.SqLite);
 
         await viewModel.AddCommand.Execute().ToTask();
 
@@ -235,5 +234,51 @@ public class ConnectionSelectorViewModelTests
         await viewModel.CreateSqLiteFileCommand.Execute().ToTask();
 
         Assert.Equal("/tmp/new-app.db", connection.Database);
+    }
+
+    [Fact]
+    public void Constructor_StartsWithAllFilterSelected_AndAddDisabled()
+    {
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.Equal("(All)", viewModel.SelectedConnectionFilter?.DisplayName);
+        Assert.False(viewModel.CanAddConnection);
+        Assert.True(viewModel.ShowFilterSelectionHint);
+    }
+
+    [Fact]
+    public void ChangingFilter_RestrictsVisibleConnections()
+    {
+        var sqlServerConnection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+        var mySqlConnection = new MySqlConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "MySql",
+            DatabaseType = DatabaseType.MySql
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([sqlServerConnection, mySqlConnection]),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.Equal(2, viewModel.Connections.Count);
+
+        viewModel.SelectedConnectionFilter = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType == DatabaseType.MySql);
+
+        var filteredConnection = Assert.Single(viewModel.Connections);
+        Assert.Equal(DatabaseType.MySql, filteredConnection.DatabaseType);
+        Assert.True(viewModel.CanAddConnection);
+        Assert.False(viewModel.ShowFilterSelectionHint);
     }
 }
