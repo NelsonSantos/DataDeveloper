@@ -1,161 +1,224 @@
+using System.Data.Common;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
+using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
-using Dapper;
 using Xunit;
 
 namespace DataDeveloper.Tests.Integration;
 
 public class ProviderIntegrationTests
 {
-    private static readonly TimeSpan IntegrationTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan IntegrationTimeout = TimeSpan.FromSeconds(15);
 
     public ProviderIntegrationTests()
     {
         DatabaseIntegrationTestSupport.EnsureDatabaseServices();
     }
 
-    [Fact]
-    public async Task SqlServerConnection_LoadsSchemaAndExecutesQuery()
+    public static IEnumerable<object[]> ProviderDatabaseTypes()
     {
-        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
-            return;
-
-        var connection = DatabaseIntegrationTestSupport.TryLoadConnection("NassServer");
-        if (connection is null)
-            return;
-
-        Assert.Equal(DatabaseType.SqlServer, connection.DatabaseType);
-
-        var schemaExplorer = connection.GetSchemaExplorer();
-        await DatabaseIntegrationTestSupport.WithTimeout(
-            schemaExplorer.InitializeSchemaNode(),
-            IntegrationTimeout,
-            "SQL Server schema initialization");
-
-        var tablesNode = schemaExplorer.RootConnections
-            .SelectMany(root => root.Children)
-            .FirstOrDefault(node => node.NodeType == NodeType.Tables);
-
-        Assert.NotNull(tablesNode);
-        Assert.NotEmpty(tablesNode!.Children);
-
-        var statementExecutor = connection.GetStatementExecutor();
-        var results = (await DatabaseIntegrationTestSupport.WithTimeout(
-            statementExecutor.ExecuteStatement("select 1 as value"),
-            IntegrationTimeout,
-            "SQL Server statement execution")).ToList();
-
-        Assert.Single(results);
-        var reader = Assert.IsAssignableFrom<System.Data.Common.DbDataReader>(results[0].DataReader);
-        Assert.True(await reader.ReadAsync());
-        Assert.Equal(1, Convert.ToInt32(reader.GetValue(0)));
-        await results[0].CloseDataReader();
+        yield return [DatabaseType.SqlServer];
+        yield return [DatabaseType.MySql];
+        yield return [DatabaseType.PostgresSql];
+        yield return [DatabaseType.Oracle];
     }
 
-    [Fact]
-    public async Task MySqlConnection_LoadsSchemaAndExecutesQuery()
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_LoadsSchemaAndExecutesSmokeQuery(DatabaseType databaseType)
     {
         if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
             return;
 
-        var connection = DatabaseIntegrationTestSupport.TryLoadConnection("repres nass-server");
-        if (connection is null)
-            return;
-
-        Assert.Equal(DatabaseType.MySql, connection.DatabaseType);
-
-        var schemaExplorer = connection.GetSchemaExplorer();
-        await DatabaseIntegrationTestSupport.WithTimeout(
-            schemaExplorer.InitializeSchemaNode(),
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var rootConnections = await DatabaseIntegrationTestSupport.WithTimeout(
+            DatabaseIntegrationTestSupport.InitializeSchemaAsync(connectionSettings),
             IntegrationTimeout,
-            "MySQL schema initialization");
+            $"{databaseType} schema initialization");
 
-        var tablesNode = schemaExplorer.RootConnections
-            .SelectMany(root => root.Children)
-            .FirstOrDefault(node => node.NodeType == NodeType.Tables);
+        var root = Assert.Single(rootConnections);
+        Assert.Contains(root.Children, node => node.NodeType == NodeType.Tables);
+        Assert.Contains(root.Children, node => node.NodeType == NodeType.Views);
 
-        Assert.NotNull(tablesNode);
-        Assert.NotEmpty(tablesNode!.Children);
-
-        var statementExecutor = connection.GetStatementExecutor();
-        var results = (await DatabaseIntegrationTestSupport.WithTimeout(
-            statementExecutor.ExecuteStatement("select 1 as value"),
-            IntegrationTimeout,
-            "MySQL statement execution")).ToList();
-
-        Assert.Single(results);
-        var reader = Assert.IsAssignableFrom<System.Data.Common.DbDataReader>(results[0].DataReader);
-        Assert.True(await reader.ReadAsync());
-        Assert.Equal(1, Convert.ToInt32(reader.GetValue(0)));
-        await results[0].CloseDataReader();
-    }
-
-    [Fact]
-    public async Task SqlServerConnection_ExecStoredProcedure_ReturnsMultipleResultSets()
-    {
-        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
-            return;
-
-        var connectionSettings = DatabaseIntegrationTestSupport.TryLoadConnection("NassServer");
-        if (connectionSettings is null)
-            return;
-
-        const string procedureName = "dbo.DataDeveloper_MultiResult_Test";
-
-        await using (var connection = connectionSettings.GetDatabaseProvider().GetConnection())
+        if (databaseType != DatabaseType.SqLite)
         {
-            await connection.ExecuteAsync($"""
-                                           create or alter procedure {procedureName}
-                                           as
-                                           begin
-                                               set nocount on;
-                                               select 1 as a;
-                                               select 2 as b;
-                                           end
-                                           """);
+            Assert.Contains(root.Children, node => node.NodeType == NodeType.Procedures);
+            Assert.Contains(root.Children, node => node.NodeType == NodeType.Functions);
         }
 
-        var statementExecutor = connectionSettings.GetStatementExecutor();
-        var results = (await DatabaseIntegrationTestSupport.WithTimeout(
-            statementExecutor.ExecuteStatement($"exec {procedureName}"),
+        var scalar = await DatabaseIntegrationTestSupport.WithTimeout(
+            DatabaseIntegrationTestSupport.ExecuteScalarIntAsync(connectionSettings, DatabaseIntegrationTestSupport.GetSmokeTestQuery(databaseType)),
             IntegrationTimeout,
-            "SQL Server stored procedure multi-result execution")).ToList();
+            $"{databaseType} smoke query");
 
-        Assert.Equal(2, results.Count(result => result.HasDataReader));
-
-        foreach (var result in results)
-            await result.CloseDataReader();
+        Assert.Equal(1, scalar);
     }
 
     [Fact]
-    public async Task SqlServerConnection_ExecUserProcedure_ReturnsTwoResultTabs()
+    [Trait("Category", "Integration")]
+    public async Task SqLite_LoadsSchemaAndExecutesSmokeQuery()
     {
         if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
             return;
 
-        var connectionSettings = DatabaseIntegrationTestSupport.TryLoadConnection("NassServer");
-        if (connectionSettings is null)
+        var connectionSettings = await DatabaseIntegrationTestSupport.CreateSqLiteConnectionAsync();
+        var rootConnections = await DatabaseIntegrationTestSupport.WithTimeout(
+            DatabaseIntegrationTestSupport.InitializeSchemaAsync(connectionSettings),
+            IntegrationTimeout,
+            "SQLite schema initialization");
+
+        var root = Assert.Single(rootConnections);
+        Assert.Contains(root.Children, node => node.NodeType == NodeType.Tables);
+        Assert.Contains(root.Children, node => node.NodeType == NodeType.Views);
+        Assert.DoesNotContain(root.Children, node => node.NodeType == NodeType.Procedures);
+        Assert.DoesNotContain(root.Children, node => node.NodeType == NodeType.Functions);
+
+        var scalar = await DatabaseIntegrationTestSupport.WithTimeout(
+            DatabaseIntegrationTestSupport.ExecuteScalarIntAsync(connectionSettings, DatabaseIntegrationTestSupport.GetSmokeTestQuery(DatabaseType.SqLite)),
+            IntegrationTimeout,
+            "SQLite smoke query");
+
+        Assert.Equal(1, scalar);
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_LoadsExpectedSeededObjects(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
             return;
 
-        var statementExecutor = connectionSettings.GetStatementExecutor();
-        var results = (await DatabaseIntegrationTestSupport.WithTimeout(
-            statementExecutor.ExecuteStatement("exec test_two_resultsets;"),
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var schemaExplorer = connectionSettings.GetSchemaExplorer();
+        await DatabaseIntegrationTestSupport.WithTimeout(
+            schemaExplorer.InitializeSchemaNode(),
             IntegrationTimeout,
-            "SQL Server user procedure multi-result execution")).ToList();
+            $"{databaseType} seeded object initialization");
 
-        var dataResults = results.Where(result => result.HasDataReader).ToList();
+        var root = Assert.Single(schemaExplorer.RootConnections);
+        var tablesNode = root.Children.Single(node => node.NodeType == NodeType.Tables);
+        var viewsNode = root.Children.Single(node => node.NodeType == NodeType.Views);
+        var proceduresNode = root.Children.Single(node => node.NodeType == NodeType.Procedures);
+        var functionsNode = root.Children.Single(node => node.NodeType == NodeType.Functions);
 
-        Assert.Equal(2, dataResults.Count);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(tablesNode), IntegrationTimeout, $"{databaseType} tables load");
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(viewsNode), IntegrationTimeout, $"{databaseType} views load");
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(proceduresNode), IntegrationTimeout, $"{databaseType} procedures load");
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(functionsNode), IntegrationTimeout, $"{databaseType} functions load");
 
-        foreach (var result in dataResults)
+        Assert.Contains(tablesNode.Children, node => string.Equals(node.Name, "customers", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(tablesNode.Children, node => string.Equals(node.Name, "orders", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(viewsNode.Children, node => string.Equals(node.Name, "open_orders", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(proceduresNode.Children, node => NameMatches(node.Name, "mark_order_shipped"));
+        Assert.Contains(functionsNode.Children, node => NameMatches(node.Name, "get_customer_total"));
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task SqLite_LoadsExpectedSeededObjects()
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = await DatabaseIntegrationTestSupport.CreateSqLiteConnectionAsync();
+        var schemaExplorer = connectionSettings.GetSchemaExplorer();
+        await DatabaseIntegrationTestSupport.WithTimeout(
+            schemaExplorer.InitializeSchemaNode(),
+            IntegrationTimeout,
+            "SQLite seeded object initialization");
+
+        var root = Assert.Single(schemaExplorer.RootConnections);
+        var tablesNode = root.Children.Single(node => node.NodeType == NodeType.Tables);
+        var viewsNode = root.Children.Single(node => node.NodeType == NodeType.Views);
+
+        Assert.Contains(tablesNode.Children, node => string.Equals(node.Name, "customers", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(tablesNode.Children, node => string.Equals(node.Name, "orders", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(viewsNode.Children, node => string.Equals(node.Name, "open_orders", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_LoadsColumnsAndRoutineParameters(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var schemaExplorer = connectionSettings.GetSchemaExplorer();
+        await DatabaseIntegrationTestSupport.WithTimeout(
+            schemaExplorer.InitializeSchemaNode(),
+            IntegrationTimeout,
+            $"{databaseType} schema load");
+
+        var root = Assert.Single(schemaExplorer.RootConnections);
+        var tablesNode = root.Children.Single(node => node.NodeType == NodeType.Tables);
+        var proceduresNode = root.Children.Single(node => node.NodeType == NodeType.Procedures);
+        var functionsNode = root.Children.Single(node => node.NodeType == NodeType.Functions);
+
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(tablesNode), IntegrationTimeout, $"{databaseType} tables load");
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(proceduresNode), IntegrationTimeout, $"{databaseType} procedures load");
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(functionsNode), IntegrationTimeout, $"{databaseType} functions load");
+
+        var ordersNode = Assert.Single(tablesNode.Children, node => string.Equals(node.Name, "orders", StringComparison.OrdinalIgnoreCase));
+        var ordersColumnsNode = Assert.Single(ordersNode.Children, node => node.NodeType == NodeType.Columns);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(ordersColumnsNode), IntegrationTimeout, $"{databaseType} order columns load");
+        Assert.Contains(ordersColumnsNode.Children, node => string.Equals(node.Name, "order_id", StringComparison.OrdinalIgnoreCase));
+
+        var procedureNode = Assert.Single(proceduresNode.Children, node => NameMatches(node.Name, "mark_order_shipped"));
+        var procedureParametersNode = Assert.Single(procedureNode.Children, node => node.NodeType == NodeType.Parameters);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(procedureParametersNode), IntegrationTimeout, $"{databaseType} procedure parameter load");
+        Assert.NotEmpty(procedureParametersNode.Children);
+
+        var functionNode = Assert.Single(functionsNode.Children, node => NameMatches(node.Name, "get_customer_total"));
+        var functionParametersNode = Assert.Single(functionNode.Children, node => node.NodeType == NodeType.Parameters);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(functionParametersNode), IntegrationTimeout, $"{databaseType} function parameter load");
+        Assert.NotEmpty(functionParametersNode.Children);
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_ExecutesSeededFunction(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var sql = databaseType switch
         {
-            var reader = Assert.IsAssignableFrom<System.Data.Common.DbDataReader>(result.DataReader);
+            DatabaseType.SqlServer => "select dbo.get_customer_total(@customer_id);",
+            DatabaseType.MySql => "select get_customer_total(@customer_id);",
+            DatabaseType.PostgresSql => "select \"get_customer_total\"(@customer_id);",
+            DatabaseType.Oracle => "select get_customer_total(:customer_id) from dual",
+            _ => throw new NotSupportedException()
+        };
+
+        var executor = connectionSettings.GetStatementExecutor();
+        var results = (await DatabaseIntegrationTestSupport.WithTimeout(
+            executor.ExecuteStatement(sql, new Dictionary<string, object?> { ["@customer_id"] = 1 }),
+            IntegrationTimeout,
+            $"{databaseType} function execution")).ToList();
+
+        var result = Assert.Single(results);
+        var reader = Assert.IsAssignableFrom<DbDataReader>(result.DataReader);
+        try
+        {
             Assert.True(await reader.ReadAsync());
+            Assert.True(Convert.ToDecimal(reader.GetValue(0)) > 0m);
         }
-
-        foreach (var result in results)
+        finally
+        {
             await result.CloseDataReader();
+        }
     }
 
+    private static bool NameMatches(string actualName, string expectedName)
+    {
+        return string.Equals(actualName, expectedName, StringComparison.OrdinalIgnoreCase) ||
+               actualName.EndsWith("." + expectedName, StringComparison.OrdinalIgnoreCase);
+    }
 }

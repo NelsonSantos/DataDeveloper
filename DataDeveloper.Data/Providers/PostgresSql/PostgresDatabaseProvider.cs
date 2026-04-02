@@ -121,7 +121,7 @@ public class PostgresDatabaseProvider : DatabaseProviderBase<PostgresConnectionS
                    coalesce(character_maximum_length, 0) as Length,
                    coalesce(numeric_precision, 0) as Precision,
                    coalesce(numeric_scale, 0) as Scale,
-                   case when is_nullable = 'YES' then true else false end as IsNullable,
+                   true as IsNullable,
                    parameter_mode as Mode,
                    ordinal_position as Position
                from information_schema.parameters
