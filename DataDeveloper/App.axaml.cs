@@ -89,7 +89,8 @@ public partial class App : Application
         var version = ApplicationVersionHelper.GetCurrentVersion(typeof(App).Assembly);
 
         var dialogService = ServiceProvider.GetRequiredService<IDialogService>();
-        await dialogService.ShowMessageAsync($"Data Developer\nVersion {version}", "About Data Developer");
+        var releaseUpdateService = ServiceProvider.GetRequiredService<IReleaseUpdateService>();
+        await dialogService.ShowAboutAsync(version, () => releaseUpdateService.CheckForUpdatesAsync());
     }
 
     private async void OnMainWindowOpened(object? sender, EventArgs e)

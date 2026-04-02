@@ -50,4 +50,11 @@
     <ProjectReference Include="..\DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\DataDeveloper.Data\StatementParser\MySql\MySQLLexer.cs" Link="Generated\MySql\MySQLLexer.cs" />
+    <Compile Include="..\DataDeveloper.Data\StatementParser\MySql\MySQLLexerBase.cs" Link="Generated\MySql\MySQLLexerBase.cs" />
+    <Compile Include="..\DataDeveloper.Data\StatementParser\MySql\SqlMode.cs" Link="Generated\MySql\SqlMode.cs" />
+    <Compile Include="..\DataDeveloper.Data\StatementParser\MySql\SqlModes.cs" Link="Generated\MySql\SqlModes.cs" />
+  </ItemGroup>
+
 </Project>

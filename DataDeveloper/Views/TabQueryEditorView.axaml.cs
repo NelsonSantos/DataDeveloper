@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -13,6 +15,7 @@ using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.TemplateSelectors;
 using DataDeveloper.ViewModels;
+using ReactiveUI;
 
 namespace DataDeveloper.Views;
 
@@ -34,6 +37,10 @@ public partial class TabQueryEditorView : UserControl
         SqlEditor.TextArea.TextEntered += TextAreaOnTextEntered;
         SqlEditor.TextArea.TextEntering += TextAreaOnTextEntering;
         SqlEditor.TextArea.KeyDown += TextAreaOnKeyDown;
+        SqlEditor.GotFocus += SqlEditorOnGotFocus;
+        SqlEditor.TextChanged += SqlEditorOnStateChanged;
+        SqlEditor.TextArea.SelectionChanged += SqlEditorOnStateChanged;
+        Unloaded += OnUnloaded;
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -66,7 +73,14 @@ public partial class TabQueryEditorView : UserControl
         _viewModel.ResultsHeaderHeight = StackPanelResult.Bounds.Height;
         _viewModel.ShowResultTool += ViewModelOnShowResultTool;
         _viewModel.Tabs.CollectionChanged += TabsOnCollectionChanged;
+        ConfigureEditorContextMenu();
+        UpdateActiveEditorState();
         ApplyResultsPanelState();
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        GetMainWindowViewModel()?.ClearActiveEditor(SqlEditor);
     }
 
     private void TabsOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -175,7 +189,17 @@ public partial class TabQueryEditorView : UserControl
             var request = SqlCompletionProvider.GetManualCompletionRequest(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset);
             await ShowCompletionAsync(request, rememberAsAutoRequest: false);
             e.Handled = true;
+            return;
         }
+
+        var mainWindowViewModel = GetMainWindowViewModel();
+        if (mainWindowViewModel is null)
+            return;
+
+        UpdateActiveEditorState();
+
+        if (TryHandleShortcut(e, mainWindowViewModel))
+            e.Handled = true;
     }
 
     private async Task ShowCompletionAsync(CompletionRequest request, bool rememberAsAutoRequest)
@@ -211,5 +235,123 @@ public partial class TabQueryEditorView : UserControl
             _completionInteractionState.ResetWhitespaceReopen();
         };
         _completionWindow.Show();
+    }
+
+    private void SqlEditorOnGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        UpdateActiveEditorState();
+    }
+
+    private void SqlEditorOnStateChanged(object? sender, EventArgs e)
+    {
+        GetMainWindowViewModel()?.RefreshActiveEditorState();
+    }
+
+    private void UpdateActiveEditorState()
+    {
+        if (_viewModel is null)
+            return;
+
+        GetMainWindowViewModel()?.SetActiveEditor(SqlEditor, _viewModel.ConnectionSettings.DatabaseType);
+    }
+
+    private MainWindowViewModel? GetMainWindowViewModel()
+    {
+        return this.TryGetParentWindow()?.DataContext as MainWindowViewModel;
+    }
+
+    private void ConfigureEditorContextMenu()
+    {
+        var mainWindowViewModel = GetMainWindowViewModel();
+        if (mainWindowViewModel is null)
+            return;
+
+        var contextMenu = new ContextMenu();
+        contextMenu.Opening += (_, _) => UpdateActiveEditorState();
+
+        contextMenu.ItemsSource = BuildContextMenuItems(mainWindowViewModel);
+        SqlEditor.ContextMenu = contextMenu;
+    }
+
+    private static IReadOnlyList<object> BuildContextMenuItems(MainWindowViewModel viewModel)
+    {
+        return
+        [
+            CreateMenuItem("Cu_t", viewModel.CutCommand, viewModel.CutGesture),
+            CreateMenuItem("_Copy", viewModel.CopyCommand, viewModel.CopyGesture),
+            CreateMenuItem("_Paste", viewModel.PasteCommand, viewModel.PasteGesture),
+            new Separator(),
+            CreateMenuItem("_Undo", viewModel.UndoCommand, viewModel.UndoGesture),
+            CreateMenuItem("_Redo", viewModel.RedoCommand, viewModel.RedoGesture),
+            new Separator(),
+            CreateMenuItem("_Find", viewModel.FindCommand, viewModel.FindGesture),
+            CreateMenuItem("_Replace", viewModel.ReplaceCommand, viewModel.ReplaceGesture),
+            new Separator(),
+            CreateMenuItem("UPPER", viewModel.UpperCommand, viewModel.UpperGesture),
+            CreateMenuItem("lower", viewModel.LowerCommand, viewModel.LowerGesture),
+            CreateMenuItem("_Beautify", viewModel.BeautifyCommand, viewModel.BeautifyGesture),
+            new Separator(),
+            CreateMenuItem("_Indent", viewModel.IndentCommand, viewModel.IndentGesture),
+            CreateMenuItem("U_nindent", viewModel.UnindentCommand, viewModel.UnindentGesture),
+            new Separator(),
+            CreateMenuItem("_Comment", viewModel.CommentCommand, viewModel.CommentGesture),
+            CreateMenuItem("U_ncomment", viewModel.UncommentCommand, viewModel.UncommentGesture)
+        ];
+    }
+
+    private static MenuItem CreateMenuItem(string header, System.Windows.Input.ICommand command, KeyGesture inputGesture)
+    {
+        return new MenuItem
+        {
+            Header = header,
+            Command = command,
+            InputGesture = inputGesture
+        };
+    }
+
+    private static bool TryHandleShortcut(KeyEventArgs e, MainWindowViewModel viewModel)
+    {
+        if (!viewModel.HasPrimaryShortcutModifier(e))
+            return false;
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.U && viewModel.HasSelection)
+        {
+            viewModel.UpperCommand.Execute().Subscribe();
+            return true;
+        }
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.K && viewModel.HasSelection)
+        {
+            viewModel.UncommentCommand.Execute().Subscribe();
+            return true;
+        }
+
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift) && e.Key == Key.Tab && viewModel.HasActiveEditor)
+        {
+            viewModel.UnindentCommand.Execute().Subscribe();
+            return true;
+        }
+
+        return e.Key switch
+        {
+            Key.X when viewModel.CanCut => Execute(viewModel.CutCommand),
+            Key.C when viewModel.CanCopy => Execute(viewModel.CopyCommand),
+            Key.V when viewModel.CanPaste => Execute(viewModel.PasteCommand),
+            Key.Z when viewModel.CanUndo => Execute(viewModel.UndoCommand),
+            Key.Y when viewModel.CanRedo => Execute(viewModel.RedoCommand),
+            Key.F when viewModel.HasActiveEditor => Execute(viewModel.FindCommand),
+            Key.H when viewModel.HasActiveEditor => Execute(viewModel.ReplaceCommand),
+            Key.U when viewModel.HasSelection => Execute(viewModel.LowerCommand),
+            Key.B when viewModel.HasActiveEditor => Execute(viewModel.BeautifyCommand),
+            Key.K when viewModel.HasSelection => Execute(viewModel.CommentCommand),
+            Key.Tab when viewModel.HasActiveEditor => Execute(viewModel.IndentCommand),
+            _ => false
+        };
+    }
+
+    private static bool Execute(ReactiveCommand<Unit, Unit> command)
+    {
+        command.Execute().Subscribe();
+        return true;
     }
 }

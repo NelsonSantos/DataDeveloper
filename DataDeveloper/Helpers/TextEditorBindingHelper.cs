@@ -102,7 +102,10 @@ public static class TextEditorBindingHelper
         BindableTextProperty.Changed.Subscribe(args =>
         {
             if (args.Sender is TextEditor editor)
+            {
                 AttachEvents(editor);
+                ApplyBindableText(editor, args.NewValue.GetValueOrDefault<string>() ?? string.Empty);
+            }
         });
 
         BindableSelectedTextProperty.Changed.Subscribe(args =>
@@ -151,25 +154,18 @@ public static class TextEditorBindingHelper
 
     private static string OnBindableTextChanged(AvaloniaObject obj, string newValue)
     {
-        if (obj is not TextEditor editor)
-            return newValue;
-
-        if (editor.Text != newValue)
-        {
-            editor.TextChanged -= OnDirectTextChanged;
-            editor.Text = newValue ?? string.Empty;
-            editor.TextChanged += OnDirectTextChanged;
-        }
-
         return newValue ?? string.Empty;
     }
 
-    private static void OnDirectTextChanged(object? sender, EventArgs e)
+    private static void ApplyBindableText(TextEditor editor, string newValue)
     {
-        if (sender is TextEditor editor)
+        Dispatcher.UIThread.Post(() =>
         {
-            SetBindableText(editor, editor.Text);
-        }
+            if (editor.Text == newValue)
+                return;
+
+            editor.Text = newValue;
+        }, DispatcherPriority.Background);
     }
 
     private static void DebouncedTextUpdate(TextEditor editor)

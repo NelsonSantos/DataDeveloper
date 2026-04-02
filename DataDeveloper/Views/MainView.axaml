@@ -19,12 +19,36 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
                 <Separator />
-                <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" />
-                <MenuItem Header="_Save..." Command="{Binding SaveCurrentEditorTabCommand}" />
-                <MenuItem Header="Save as..." Command="{Binding SaveAsCurrentEditorTabCommand}" />
+                <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" InputGesture="{Binding OpenFileGesture}" HotKey="{Binding OpenFileGesture}" />
+                <MenuItem Header="_Save..." Command="{Binding SaveCurrentEditorTabCommand}" InputGesture="{Binding SaveGesture}" HotKey="{Binding SaveGesture}" />
+                <MenuItem Header="Save as..." Command="{Binding SaveAsCurrentEditorTabCommand}" InputGesture="{Binding SaveAsGesture}" HotKey="{Binding SaveAsGesture}" />
                 <Separator />
-                <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" />
+                <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" InputGesture="{Binding NewQueryTabGesture}" HotKey="{Binding NewQueryTabGesture}" />
                 <MenuItem Header="New Window" Command="{Binding NewWindowCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGesture="{Binding CutGesture}" HotKey="{Binding CutGesture}" />
+                <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGesture="{Binding CopyGesture}" HotKey="{Binding CopyGesture}" />
+                <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGesture="{Binding PasteGesture}" HotKey="{Binding PasteGesture}" />
+                <Separator />
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGesture="{Binding UndoGesture}" HotKey="{Binding UndoGesture}" />
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGesture="{Binding RedoGesture}" HotKey="{Binding RedoGesture}" />
+                <Separator />
+                <MenuItem Header="_Find" Command="{Binding FindCommand}" InputGesture="{Binding FindGesture}" HotKey="{Binding FindGesture}" />
+                <MenuItem Header="_Replace" Command="{Binding ReplaceCommand}" InputGesture="{Binding ReplaceGesture}" HotKey="{Binding ReplaceGesture}" />
+                <Separator />
+                <MenuItem Header="UPPER" Command="{Binding UpperCommand}" InputGesture="{Binding UpperGesture}" HotKey="{Binding UpperGesture}" />
+                <MenuItem Header="lower" Command="{Binding LowerCommand}" InputGesture="{Binding LowerGesture}" HotKey="{Binding LowerGesture}" />
+                <MenuItem Header="_Beautify" Command="{Binding BeautifyCommand}" InputGesture="{Binding BeautifyGesture}" HotKey="{Binding BeautifyGesture}" />
+                <Separator />
+                <MenuItem Header="_Indent" Command="{Binding IndentCommand}" InputGesture="{Binding IndentGesture}" HotKey="{Binding IndentGesture}" />
+                <MenuItem Header="U_nindent" Command="{Binding UnindentCommand}" InputGesture="{Binding UnindentGesture}" HotKey="{Binding UnindentGesture}" />
+                <Separator />
+                <MenuItem Header="_Comment" Command="{Binding CommentCommand}" InputGesture="{Binding CommentGesture}" HotKey="{Binding CommentGesture}" />
+                <MenuItem Header="U_ncomment" Command="{Binding UncommentCommand}" InputGesture="{Binding UncommentGesture}" HotKey="{Binding UncommentGesture}" />
+            </MenuItem>
+            <MenuItem Header="_Help" IsVisible="{Binding ShowHelpMenu}">
+                <MenuItem Header="_About Data Developer" Command="{Binding AboutCommand}" />
             </MenuItem>
         </Menu>
         <Button Grid.Row="0" Grid.Column="2" HorizontalAlignment="Right" Margin = "0,0,5,0" Content="Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />

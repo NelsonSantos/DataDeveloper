@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using DataDeveloper.Enums;
 using DataDeveloper.Views;
@@ -9,6 +10,7 @@ public interface IDialogService
     Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info);
     Task<DialogResult> ShowDialogResult(string message, string? title = null);
     Task ShowMessageAsync(string message, string? title = null);
+    Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync);
     Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null);
     Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null);
     Task<string?> ShowOpenFileAsync(string? title = null);

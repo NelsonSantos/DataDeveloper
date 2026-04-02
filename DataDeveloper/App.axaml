@@ -113,5 +113,22 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
+        <Style Selector="Button.dialog-button">
+            <Setter Property="MinWidth" Value="96" />
+            <Setter Property="Padding" Value="18,10" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="#FF4A505C" />
+            <Setter Property="Background" Value="#FF343A44" />
+        </Style>
+
+        <Style Selector="Button.dialog-button.primary">
+            <Setter Property="BorderBrush" Value="#FF5F7FE3" />
+            <Setter Property="Background" Value="#FF4D6DD1" />
+        </Style>
+
     </Application.Styles>
 </Application>
