@@ -30,16 +30,22 @@ public class SchemaExplorer : ISchemaExplorer
 
             connection.Children.Add(new SchemaNode(NodeType.Tables, "Tables", isFolder: true, parent: connection));
             connection.Children.Add(new SchemaNode(NodeType.Views, "Views", isFolder: true, parent: connection));
-            connection.Children.Add(new SchemaNode(NodeType.Procedures, "Procedures", isFolder: true, parent: connection));
-            connection.Children.Add(new SchemaNode(NodeType.Functions, "Functions", isFolder: true, parent: connection));
+            if (ConnectionSettings.DatabaseType != DatabaseType.SqLite)
+            {
+                connection.Children.Add(new SchemaNode(NodeType.Procedures, "Procedures", isFolder: true, parent: connection));
+                connection.Children.Add(new SchemaNode(NodeType.Functions, "Functions", isFolder: true, parent: connection));
+            }
 
             RootConnections = new ObservableCollection<SchemaNode> { connection };
         }
 
         await RefreshFolderAsync(NodeType.Tables);
         await RefreshFolderAsync(NodeType.Views);
-        await RefreshFolderAsync(NodeType.Procedures);
-        await RefreshFolderAsync(NodeType.Functions);
+        if (ConnectionSettings.DatabaseType != DatabaseType.SqLite)
+        {
+            await RefreshFolderAsync(NodeType.Procedures);
+            await RefreshFolderAsync(NodeType.Functions);
+        }
     }
 
     public async Task RefreshSchemaAsync()
@@ -110,10 +116,19 @@ public class SchemaExplorer : ISchemaExplorer
     
     public async Task LoadTableColumnsAsync(SchemaNode table)
     {
+        var tableName = table.NodeType == NodeType.Columns ? table.Parent?.Name : table.Name;
+        var columnStatement = _databaseProvider.GetColumnStatement();
+        object? parameters = new { tableName = tableName };
 
-        var parameters = new { tableName = table.NodeType == NodeType.Columns ? table.Parent?.Name : table.Name };
+        if (ConnectionSettings.DatabaseType == DatabaseType.SqLite && !string.IsNullOrWhiteSpace(tableName))
+        {
+            var escapedTableName = tableName.Replace("'", "''", StringComparison.Ordinal);
+            columnStatement = columnStatement.Replace("__table_name__", $"'{escapedTableName}'", StringComparison.Ordinal);
+            parameters = null;
+        }
+
         await using var connection = _databaseProvider.GetConnection();
-        var columns = await connection.QueryAsync<ColumnModel>(_databaseProvider.GetColumnStatement(), param: parameters, commandType: CommandType.Text);
+        var columns = await connection.QueryAsync<ColumnModel>(columnStatement, param: parameters, commandType: CommandType.Text);
         
         table.Children.Clear();
         foreach (var column in columns)

@@ -89,4 +89,50 @@ public class DialogService : IDialogService
 
         return files.FirstOrDefault()?.TryGetLocalPath();
     }
+
+    public async Task<string?> ShowOpenDatabaseFileAsync(string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title ?? "Select database file...",
+            AllowMultiple = false,
+            FileTypeFilter = new List<FilePickerFileType>
+            {
+                new("SQLite database")
+                {
+                    Patterns = new[] { "*.db", "*.sqlite", "*.sqlite3" },
+                    AppleUniformTypeIdentifiers = new[] { "public.database" },
+                    MimeTypes = new[] { "application/vnd.sqlite3", "application/octet-stream" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        return files.FirstOrDefault()?.TryGetLocalPath();
+    }
+
+    public async Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title ?? "Create database file...",
+            SuggestedFileName = suggestedName ?? "database.db",
+            DefaultExtension = "db",
+            ShowOverwritePrompt = true,
+            FileTypeChoices = new List<FilePickerFileType>
+            {
+                new("SQLite database")
+                {
+                    Patterns = new[] { "*.db", "*.sqlite", "*.sqlite3" },
+                    AppleUniformTypeIdentifiers = new[] { "public.database" },
+                    MimeTypes = new[] { "application/vnd.sqlite3", "application/octet-stream" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        return file?.TryGetLocalPath();
+    }
 }

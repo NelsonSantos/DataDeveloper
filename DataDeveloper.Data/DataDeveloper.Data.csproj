@@ -15,8 +15,10 @@
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
         <PackageReference Include="Dapper" Version="2.1.72" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
         <PackageReference Include="MySqlConnector" Version="2.4.0" />
         <PackageReference Include="Npgsql" Version="8.0.3" />
+        <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.8.0" />
     </ItemGroup>
 
     <ItemGroup>
