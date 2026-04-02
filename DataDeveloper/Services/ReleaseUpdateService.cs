@@ -75,6 +75,31 @@ public sealed partial class ReleaseUpdateService : IReleaseUpdateService
         }
     }
 
+    public async Task CheckForUpdatesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var notification = await GetAvailableUpdateAsync(cancellationToken);
+            if (notification is null)
+            {
+                await _dialogService.ShowMessageAsync(
+                    $"Data Developer is up to date.\n\nCurrent version: {_currentVersion}",
+                    "Check for Updates");
+                return;
+            }
+
+            var result = await _dialogService.ShowReleaseUpdateAsync(BuildMessage(notification), "New Version Available");
+            if (result == DialogResult.Download && !string.IsNullOrWhiteSpace(notification.ReleaseUrl))
+                await BrowserLauncher.OpenAsync(notification.ReleaseUrl);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException or IOException)
+        {
+            await _dialogService.ShowMessageAsync(
+                "Unable to check for updates right now.\n\nPlease try again in a moment.",
+                "Check for Updates");
+        }
+    }
+
     public async Task<ReleaseUpdateNotification?> GetAvailableUpdateAsync(CancellationToken cancellationToken = default)
     {
         var state = LoadState();

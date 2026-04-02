@@ -125,6 +125,43 @@ public sealed class ReleaseUpdateServiceTests
     }
 
     [Fact]
+    public async Task CheckForUpdatesAsync_ShowsUpToDateMessage_WhenNoNewReleaseExists()
+    {
+        var stateFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.json");
+        try
+        {
+            using var httpClient = new HttpClient(new StubHttpMessageHandler("""
+            {
+              "tag_name": "v1.2.0",
+              "name": "Version 1.2.0",
+              "html_url": "https://github.com/NelsonSantos/DataDeveloper/releases/tag/v1.2.0",
+              "body": "Current release.",
+              "draft": false,
+              "prerelease": false
+            }
+            """));
+            var dialogService = new RecordingDialogService();
+            var service = new ReleaseUpdateService(
+                dialogService,
+                httpClient,
+                stateFilePath,
+                "1.2.0",
+                () => new DateTimeOffset(2026, 4, 2, 12, 0, 0, TimeSpan.Zero));
+
+            await service.CheckForUpdatesAsync();
+
+            Assert.Single(dialogService.Messages);
+            Assert.Contains("Data Developer is up to date.", dialogService.Messages[0]);
+            Assert.Empty(dialogService.ReleaseUpdateMessages);
+        }
+        finally
+        {
+            if (File.Exists(stateFilePath))
+                File.Delete(stateFilePath);
+        }
+    }
+
+    [Fact]
     public void ExtractSummary_ReturnsSummarySectionWithoutReleaseDraftHeader()
     {
         const string releaseBody = """
@@ -173,6 +210,8 @@ public sealed class ReleaseUpdateServiceTests
             Messages.Add(message);
             return Task.CompletedTask;
         }
+
+        public Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync) => Task.CompletedTask;
 
         public Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null)
         {

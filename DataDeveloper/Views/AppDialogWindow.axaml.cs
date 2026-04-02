@@ -41,18 +41,13 @@ public partial class AppDialogWindow : Window
             Content = button.Label,
             Tag = button.Result,
             MinWidth = 96,
-            Padding = new Thickness(18, 10),
             Margin = new Thickness(8, 0, 0, 0),
-            CornerRadius = new CornerRadius(10),
-            Foreground = Brushes.White,
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            BorderThickness = new Thickness(1),
-            BorderBrush = new SolidColorBrush(Color.Parse(button.IsPrimary ? "#FF5F7FE3" : "#FF4A505C")),
-            Background = new SolidColorBrush(Color.Parse(button.IsPrimary ? "#FF4D6DD1" : "#FF343A44")),
             IsDefault = button.IsDefault,
             IsCancel = button.IsCancel
         };
+        control.Classes.Add("dialog-button");
+        if (button.IsPrimary)
+            control.Classes.Add("primary");
         control.Click += OnButtonClick;
         if (button.IsDefault)
             _defaultButton = control;

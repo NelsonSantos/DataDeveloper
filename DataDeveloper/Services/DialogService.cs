@@ -46,6 +46,13 @@ public class DialogService : IDialogService
         _ = await ShowDialogAsync(message, title, DialogButtons.Ok, DialogIcon.Info);
     }
 
+    public async Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync)
+    {
+        var owner = GetOwnerWindow();
+        var dialog = new AboutWindow(version, checkForUpdatesAsync);
+        await dialog.ShowDialog(owner);
+    }
+
     public async Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null)
     {
         var owner = GetOwnerWindow();

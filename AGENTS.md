@@ -27,3 +27,13 @@
 - Provider documentation updates must cover supported providers and any local setup needed to validate the new provider during development.
 - Keep `README.md` user-focused. Do not add internal workflows, local-only test instructions, release mechanics, or other team-facing technical details there unless the user explicitly asks for that content in `README.md`.
 - Put team-facing technical documentation such as local validation steps, integration test setup, and internal workflows in dedicated files like `TESTS.md` unless the user explicitly asks for a different location.
+
+## Platform guidelines
+- UI behavior must follow the conventions of the operating system currently running the app.
+- Keyboard shortcuts, menu gesture labels, context menu behavior, window actions, and similar UX details must use the platform-appropriate conventions instead of hardcoded Windows behavior.
+- On macOS, prefer `Command`-based shortcuts and macOS menu expectations; on Windows/Linux, prefer the native conventions for those platforms.
+
+## UI styles
+- Reuse shared Avalonia styles for repeated UI patterns instead of duplicating visual properties inline on each control.
+- Dialog and action buttons should prefer the shared dialog button styles (for example `dialog-button` and `dialog-button.primary`) unless there is a clear reason to diverge.
+- When a visual pattern starts being reused across windows, dialogs, or menus, promote it to a shared style in `App.axaml` or another dedicated theme/style file.

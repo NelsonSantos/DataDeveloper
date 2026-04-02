@@ -4,5 +4,11 @@
         x:Class="DataDeveloper.Views.MainWindow"
         Title="Data Developer"
         Width="1000" Height="700">
+    <Window.KeyBindings>
+        <KeyBinding Gesture="{Binding OpenFileGesture}" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Gesture="{Binding SaveGesture}" Command="{Binding SaveCurrentEditorTabCommand}" />
+        <KeyBinding Gesture="{Binding SaveAsGesture}" Command="{Binding SaveAsCurrentEditorTabCommand}" />
+        <KeyBinding Gesture="{Binding NewQueryTabGesture}" Command="{Binding NewQueryTabCommand}" />
+    </Window.KeyBindings>
     <views:MainView />
 </Window>

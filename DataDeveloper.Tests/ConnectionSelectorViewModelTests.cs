@@ -73,6 +73,8 @@ public class ConnectionSelectorViewModelTests
 
         public Task ShowMessageAsync(string message, string? title = null) => Task.CompletedTask;
 
+        public Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync) => Task.CompletedTask;
+
         public Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null) => Task.FromResult(DialogResult.Cancel);
 
         public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
