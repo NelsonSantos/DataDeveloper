@@ -31,4 +31,22 @@ public class SqlParameterValueConverterTests
         var dateTime = Assert.IsType<DateTime>(result);
         Assert.Equal(new DateTime(2026, 1, 31, 23, 59, 59), dateTime);
     }
+
+    [Fact]
+    public void Convert_ParsesNumericOne_AsInteger_NotBoolean()
+    {
+        var result = SqlParameterValueConverter.Convert("1", false);
+
+        var integer = Assert.IsType<int>(result);
+        Assert.Equal(1, integer);
+    }
+
+    [Fact]
+    public void Convert_ParsesBooleanText_AsBoolean()
+    {
+        var result = SqlParameterValueConverter.Convert("true", false);
+
+        var boolean = Assert.IsType<bool>(result);
+        Assert.True(boolean);
+    }
 }

@@ -54,15 +54,21 @@ public static class SqlParameterDetector
                 continue;
             }
 
-            if (current == '@')
+            if (current is '@' or ':')
             {
-                if (i + 1 < sql.Length && sql[i + 1] == '@')
+                if (current == '@' && i + 1 < sql.Length && sql[i + 1] == '@')
                 {
                     i += 2;
                     continue;
                 }
 
-                var parameter = ReadParameter(sql, i);
+                if (current == ':' && i + 1 < sql.Length && sql[i + 1] == ':')
+                {
+                    i += 2;
+                    continue;
+                }
+
+                var parameter = ReadParameter(sql, i, current);
                 if (parameter is not null && !declaredParameters.Contains(parameter) && seen.Add(parameter))
                     result.Add(parameter);
 
@@ -128,19 +134,19 @@ public static class SqlParameterDetector
         return new string(buffer);
     }
 
-    private static string? ReadParameter(string sql, int startIndex)
+    private static string? ReadParameter(string sql, int startIndex, char prefix)
     {
         if (startIndex + 1 >= sql.Length)
             return null;
 
-        if (sql[startIndex + 1] == '@')
+        if (prefix == '@' && sql[startIndex + 1] == '@')
             return null;
 
         var next = sql[startIndex + 1];
         if (!IsIdentifierStart(next))
             return null;
 
-        var builder = new StringBuilder("@");
+        var builder = new StringBuilder(prefix.ToString());
         builder.Append(next);
 
         var index = startIndex + 2;

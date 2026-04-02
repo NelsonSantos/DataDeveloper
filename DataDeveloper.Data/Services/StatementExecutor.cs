@@ -2,6 +2,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Data.Common;
 using Dapper;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 
@@ -52,7 +53,7 @@ public class StatementExecutor : IStatementExecutor
         }
     }
 
-    private static DynamicParameters? CreateParameters(IReadOnlyDictionary<string, object?>? parameters)
+    private DynamicParameters? CreateParameters(IReadOnlyDictionary<string, object?>? parameters)
     {
         if (parameters is null || parameters.Count == 0)
             return null;
@@ -60,7 +61,7 @@ public class StatementExecutor : IStatementExecutor
         var dapperParameters = new DynamicParameters();
         foreach (var parameter in parameters)
         {
-            dapperParameters.Add(parameter.Key.TrimStart('@'), parameter.Value);
+            dapperParameters.Add(TrimParameterPrefix(parameter.Key), parameter.Value);
         }
 
         return dapperParameters;
@@ -94,7 +95,7 @@ public class StatementExecutor : IStatementExecutor
         return results;
     }
 
-    private static DbCommand CreateCommand(DbConnection connection, string statement, IReadOnlyDictionary<string, object?>? parameters)
+    private DbCommand CreateCommand(DbConnection connection, string statement, IReadOnlyDictionary<string, object?>? parameters)
     {
         var command = connection.CreateCommand();
         command.CommandText = statement;
@@ -114,8 +115,16 @@ public class StatementExecutor : IStatementExecutor
         return command;
     }
 
-    private static string NormalizeParameterName(string name)
+    private string NormalizeParameterName(string name)
     {
-        return name.StartsWith("@", StringComparison.Ordinal) ? name : $"@{name}";
+        var trimmedName = TrimParameterPrefix(name);
+        return _connectionSettings.DatabaseType == DatabaseType.Oracle
+            ? trimmedName
+            : $"@{trimmedName}";
+    }
+
+    private static string TrimParameterPrefix(string name)
+    {
+        return name.TrimStart('@', ':');
     }
 }
