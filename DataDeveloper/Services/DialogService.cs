@@ -8,6 +8,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
+using DataDeveloper.Models;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
 
@@ -43,6 +44,21 @@ public class DialogService : IDialogService
     public async Task ShowMessageAsync(string message, string? title = null)
     {
         _ = await ShowDialogAsync(message, title, DialogButtons.Ok, DialogIcon.Info);
+    }
+
+    public async Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var dialog = new AppDialogWindow(AppDialogViewModel.Create(
+            message,
+            title,
+            DialogIcon.Info,
+            [
+                new AppDialogButton { Label = "Later", Result = DialogResult.Cancel, IsCancel = true },
+                new AppDialogButton { Label = "Download", Result = DialogResult.Download, IsDefault = true, IsPrimary = true }
+            ]));
+
+        return await dialog.ShowDialog<DialogResult>(owner);
     }
 
     public async Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null)

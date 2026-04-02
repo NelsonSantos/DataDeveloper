@@ -6,4 +6,5 @@ public enum DialogResult
     Yes,
     No,
     Cancel,
+    Download,
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -40,6 +39,7 @@ public partial class App : Application
         services.AddSingleton<ViewLocatorService>(provider => viewLocator);
         services.AddTransient<IMainWindow, MainWindow>();
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddSingleton<IReleaseUpdateService, ReleaseUpdateService>();
 
         this.RegisterServices(services);
         this.RegisterViewViewModel(viewResolver);
@@ -54,7 +54,9 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = (MainWindow)ServiceProvider.GetRequiredService<IMainWindow>();
+            var mainWindow = (MainWindow)ServiceProvider.GetRequiredService<IMainWindow>();
+            mainWindow.Opened += OnMainWindowOpened;
+            desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -84,14 +86,19 @@ public partial class App : Application
 
     private async void OnAboutMenuClick(object? sender, EventArgs e)
     {
-        var version = typeof(App).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?
-            .Split('+')[0]
-            ?? typeof(App).Assembly.GetName().Version?.ToString()
-            ?? "unknown";
+        var version = ApplicationVersionHelper.GetCurrentVersion(typeof(App).Assembly);
 
         var dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         await dialogService.ShowMessageAsync($"Data Developer\nVersion {version}", "About Data Developer");
+    }
+
+    private async void OnMainWindowOpened(object? sender, EventArgs e)
+    {
+        if (sender is Window window)
+            window.Opened -= OnMainWindowOpened;
+
+        var releaseUpdateService = ServiceProvider.GetRequiredService<IReleaseUpdateService>();
+        await releaseUpdateService.NotifyIfUpdateAvailableAsync();
     }
 
     private void OnQuitMenuClick(object? sender, EventArgs e)

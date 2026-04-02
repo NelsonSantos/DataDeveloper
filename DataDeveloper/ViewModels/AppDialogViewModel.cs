@@ -26,6 +26,18 @@ public sealed class AppDialogViewModel : ViewModelBase
         };
     }
 
+    public static AppDialogViewModel Create(string message, string? title, DialogIcon icon, IReadOnlyList<AppDialogButton> buttons)
+    {
+        return new AppDialogViewModel
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? "Data Developer" : title,
+            Message = message,
+            IconGlyph = GetIconGlyph(icon),
+            IconBackground = new SolidColorBrush(Color.Parse(GetIconColor(icon))),
+            Buttons = buttons
+        };
+    }
+
     private static IReadOnlyList<AppDialogButton> CreateButtons(DialogButtons buttons)
     {
         return buttons switch
