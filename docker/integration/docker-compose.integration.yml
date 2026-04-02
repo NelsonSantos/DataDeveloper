@@ -1,0 +1,95 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: datadeveloper-integration-sqlserver
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: StrongPassw0rd!
+    ports:
+      - "14333:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools:latest
+    container_name: datadeveloper-integration-sqlserver-init
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./sqlserver/init:/scripts:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >-
+        attempt=1;
+        until /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'StrongPassw0rd!' -C -Q "select 1" >/dev/null 2>&1 || [ "$$attempt" -ge 60 ];
+        do
+          attempt=$$(($$attempt + 1));
+          sleep 2;
+        done;
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'StrongPassw0rd!' -C -i /scripts/01-schema.sql
+    restart: "no"
+
+  mysql:
+    image: mysql:8.4
+    container_name: datadeveloper-integration-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: datadeveloper
+      MYSQL_USER: datadeveloper
+      MYSQL_PASSWORD: datadeveloper
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  postgres:
+    image: postgres:16
+    container_name: datadeveloper-integration-postgres
+    environment:
+      POSTGRES_DB: datadeveloper
+      POSTGRES_USER: datadeveloper
+      POSTGRES_PASSWORD: datadeveloper
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U datadeveloper -d datadeveloper"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  oracle:
+    image: gvenzl/oracle-free:23-slim
+    container_name: datadeveloper-integration-oracle
+    environment:
+      ORACLE_PASSWORD: datadeveloper
+      APP_USER: datadeveloper
+      APP_USER_PASSWORD: datadeveloper
+    ports:
+      - "1522:1521"
+    volumes:
+      - ./oracle/init:/container-entrypoint-initdb.d:ro
+      - oracle_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+volumes:
+  mysql_data:
+  oracle_data:
+  postgres_data:
+  sqlserver_data:

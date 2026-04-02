@@ -25,3 +25,5 @@
 ## Documentation
 - When adding a new database provider or significant provider capability, update `README.md` in the same branch.
 - Provider documentation updates must cover supported providers and any local setup needed to validate the new provider during development.
+- Keep `README.md` user-focused. Do not add internal workflows, local-only test instructions, release mechanics, or other team-facing technical details there unless the user explicitly asks for that content in `README.md`.
+- Put team-facing technical documentation such as local validation steps, integration test setup, and internal workflows in dedicated files like `TESTS.md` unless the user explicitly asks for a different location.
