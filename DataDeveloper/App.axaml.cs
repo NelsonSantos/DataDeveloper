@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -18,6 +19,7 @@ namespace DataDeveloper;
 
 public partial class App : Application
 {
+    private static readonly TimeSpan SplashMinimumDuration = TimeSpan.FromSeconds(2);
     public IServiceProvider ServiceProvider { get; private set; } = null!;
 
     public override void Initialize()
@@ -54,9 +56,7 @@ public partial class App : Application
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainWindow = (MainWindow)ServiceProvider.GetRequiredService<IMainWindow>();
-            mainWindow.Opened += OnMainWindowOpened;
-            desktop.MainWindow = mainWindow;
+            _ = ShowMainWindowAsync(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -108,4 +108,27 @@ public partial class App : Application
             desktop.Shutdown();
     }
 
+    private async Task ShowMainWindowAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var version = ApplicationVersionHelper.GetCurrentVersion(typeof(App).Assembly);
+        var mainWindow = (MainWindow)ServiceProvider.GetRequiredService<IMainWindow>();
+
+        var splashWindow = new SplashWindow(version);
+        PositionSplashWindow(splashWindow, mainWindow);
+        splashWindow.Show();
+
+        await Task.Delay(SplashMinimumDuration);
+
+        mainWindow.Opened += OnMainWindowOpened;
+        desktop.MainWindow = mainWindow;
+        mainWindow.Show();
+        splashWindow.Close();
+    }
+
+    private static void PositionSplashWindow(Window splashWindow, Window mainWindow)
+    {
+        var splashX = mainWindow.Position.X + (int)Math.Round((mainWindow.Width - splashWindow.Width) / 2d);
+        var splashY = mainWindow.Position.Y + (int)Math.Round((mainWindow.Height - splashWindow.Height) / 2d);
+        splashWindow.Position = new PixelPoint(splashX, splashY);
+    }
 }
