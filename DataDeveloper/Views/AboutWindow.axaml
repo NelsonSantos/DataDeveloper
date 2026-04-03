@@ -1,46 +1,84 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="DataDeveloper.Views.AboutWindow"
-        Width="420"
-        SizeToContent="Height"
+        Width="460"
+        Height="280"
         CanResize="False"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
         Title="About Data Developer">
-    <Border Padding="24" Background="#FF25282E" BorderBrush="#FF3A404A" BorderThickness="1">
-        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="20">
-            <StackPanel Spacing="8">
+    <Grid ClipToBounds="True">
+        <Image Source="avares://DataDeveloper/Assets/Images/splash_460x280.png"
+               Stretch="Fill" />
+        <Grid Margin="30"
+              ColumnDefinitions="Auto,Auto,*"
+              RowDefinitions="Auto,*,Auto,Auto"
+              ColumnSpacing="20"
+              RowSpacing="14">
+            <Border Grid.Row="0"
+                    Grid.Column="0"
+                    Width="72"
+                    Height="72"
+                    CornerRadius="16"
+                    ClipToBounds="True">
+                <Image Source="avares://DataDeveloper/Assets/Icons/AppIcon.png"
+                       Stretch="UniformToFill" />
+            </Border>
+
+            <StackPanel Grid.Row="0"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
                 <TextBlock Text="Data Developer"
-                           FontSize="24"
+                           FontSize="35"
                            FontWeight="SemiBold"
-                           Foreground="#FFF6F7FB" />
-                <TextBlock x:Name="VersionText"
-                           FontSize="14"
-                           Foreground="#FFD6DAE2" />
+                           Foreground="White" />
+                <TextBlock Text="A lightweight SQL workspace."
+                           FontSize="13"
+                           Foreground="White" />
             </StackPanel>
 
-            <TextBlock Grid.Row="1"
-                       Text="A lightweight SQL workspace."
-                       FontSize="13"
-                       Foreground="#FFADB5C3" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="1"
+                Grid.ColumnSpan="2"
+                x:Name="VersionText"
+                VerticalAlignment="Top"
+                FontSize="16"
+                Foreground="White"
+                FontStretch="Expanded"
+                Text="version 00.0000.0" />
 
-            <StackPanel Grid.Row="2"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="10">
-                <Button x:Name="CheckForUpdatesButton"
+            <Grid Grid.Row="3"
+                  Grid.Column="0"
+                  Grid.ColumnSpan="3"
+                  ColumnDefinitions="*,Auto,Auto"
+                  ColumnSpacing="10"
+                  >
+                <TextBlock Grid.Column="0"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           FontSize="11"
+                           Foreground="White"
+                           FontStretch="Expanded"
+                           Text="Rednet Software" />
+                <Button Grid.Column="1"
+                        x:Name="CheckForUpdatesButton"
                         Classes="dialog-button"
                         Content="Check for updates"
                         MinWidth="148"
                         Click="OnCheckForUpdatesClick" />
-                <Button x:Name="OkButton"
+                <Button Grid.Column="2"
+                        x:Name="OkButton"
                         Classes="dialog-button primary"
                         Content="OK"
                         MinWidth="92"
                         IsDefault="True"
                         IsCancel="True"
                         Click="OnOkClick" />
-            </StackPanel>
+            </Grid>
         </Grid>
-    </Border>
+    </Grid>
 </Window>
