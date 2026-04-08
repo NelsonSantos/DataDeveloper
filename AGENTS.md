@@ -12,6 +12,7 @@
 - Completion context rules must have unit tests before larger changes.
 - Always run `dotnet test` after changes to the completion provider.
 - When fixing a completion regression, add a test covering the specific case.
+- When running `dotnet build`, `dotnet test`, or other validation commands for `DataDeveloper`, run them sequentially, not in parallel, to avoid wasting time on reruns caused by concurrent build/test interference.
 
 ## Provider compatibility
 - Starting from the `feature/mysql` branch, every new feature must support both SQL Server and MySQL.
@@ -27,6 +28,10 @@
 - Provider documentation updates must cover supported providers and any local setup needed to validate the new provider during development.
 - Keep `README.md` user-focused. Do not add internal workflows, local-only test instructions, release mechanics, or other team-facing technical details there unless the user explicitly asks for that content in `README.md`.
 - Put team-facing technical documentation such as local validation steps, integration test setup, and internal workflows in dedicated files like `TESTS.md` unless the user explicitly asks for a different location.
+
+## Git safety
+- When asked to delete a branch, delete the local branch only by default.
+- Do not delete remote branches on GitHub unless the user explicitly asks to remove the remote branch too.
 
 ## Parser architecture
 - `DataDeveloper.Antlr` is the single owner of ANTLR grammars and checked-in generated parser/lexer code.
