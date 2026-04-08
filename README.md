@@ -24,3 +24,43 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 ## Releases
 
 - GitHub Releases: https://github.com/NelsonSantos/DataDeveloper/releases
+
+## Installation
+
+Download the latest package for your operating system from the GitHub Releases page.
+
+### macOS
+
+- Download the `.zip` file for your Mac:
+  - `DataDeveloper-osx-arm64.zip` for Apple Silicon
+  - `DataDeveloper-osx-x64.zip` for Intel
+- Extract the archive.
+- Move `DataDeveloper.app` to `Applications`.
+- Open the app from `Applications`.
+
+If macOS blocks the app because it was downloaded from the internet, open it from Finder with `Open` and confirm the prompt.
+If needed, allow it in `System Settings > Privacy & Security`.
+
+### Windows
+
+- Download `DataDeveloper-win-x64-setup.exe`.
+- Run the installer.
+- Complete the setup wizard.
+- Launch DataDeveloper from the Start menu or desktop shortcut, depending on the installer options you selected.
+
+### Linux
+
+- Download `DataDeveloper-linux-x64.AppImage`.
+- Make the file executable:
+
+```bash
+chmod +x DataDeveloper-linux-x64.AppImage
+```
+
+- Run the AppImage:
+
+```bash
+./DataDeveloper-linux-x64.AppImage
+```
+
+If your distribution requires FUSE support for AppImage, install the appropriate package first.
