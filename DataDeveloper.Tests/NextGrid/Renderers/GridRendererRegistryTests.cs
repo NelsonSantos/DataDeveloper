@@ -57,4 +57,15 @@ public sealed class GridRendererRegistryTests
 
         Assert.IsType<DateTimeGridCellRenderer>(renderer);
     }
+
+    [Fact]
+    public void Resolve_ReturnsNumberRendererForNullableDecimalWithNullValue()
+    {
+        var registry = new GridRendererRegistry();
+
+        var renderer = registry.Resolve(typeof(decimal?), null);
+
+        Assert.IsType<NumberGridCellRenderer>(renderer);
+        Assert.Equal(GridColumnAlignment.Right, renderer.Alignment);
+    }
 }

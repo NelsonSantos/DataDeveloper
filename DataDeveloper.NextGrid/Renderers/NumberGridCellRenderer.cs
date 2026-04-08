@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace DataDeveloper.NextGrid.Renderers;
 
 public sealed class NumberGridCellRenderer : GridCellRendererBase
@@ -30,10 +28,6 @@ public sealed class NumberGridCellRenderer : GridCellRendererBase
         if (value is null)
             return string.Empty;
 
-        return value switch
-        {
-            IFormattable formattable => formattable.ToString(null, context.Culture),
-            _ => Convert.ToString(value, context.Culture) ?? string.Empty
-        };
+        return GridValueFormats.FormatNumber(value);
     }
 }

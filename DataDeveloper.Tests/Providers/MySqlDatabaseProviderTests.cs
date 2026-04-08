@@ -51,6 +51,8 @@ public class MySqlDatabaseProviderTests
         Assert.Contains("information_schema.columns", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("information_schema.key_column_usage", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_name = @TableName", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("auto_increment", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("HasDefaultValue", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

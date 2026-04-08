@@ -31,7 +31,7 @@ public class StatementExecutor : IStatementExecutor
             {
                 if (StatementExecutionClassifier.RequiresMaterialization(statement))
                 {
-                    var materializedResults = await ExecuteMaterializedStatement(statement, sqlStatement, parameters);
+                    var materializedResults = await ExecuteMaterializedStatement(statement, parameters);
                     result.AddRange(materializedResults);
                     continue;
                 }
@@ -41,7 +41,7 @@ public class StatementExecutor : IStatementExecutor
                 var reader = await connection.ExecuteReaderAsync(statement, param: dapperParameters, commandType: CommandType.Text);
                 watcher.Stop();
 
-                result.Add(new StatementResult(reader, connection, sqlStatement, watcher));
+                result.Add(new StatementResult(reader, connection, statement, watcher));
             }
 
             return result;
@@ -67,7 +67,7 @@ public class StatementExecutor : IStatementExecutor
         return dapperParameters;
     }
 
-    private async Task<IEnumerable<StatementResult>> ExecuteMaterializedStatement(string statement, string originalStatement, IReadOnlyDictionary<string, object?>? parameters)
+    private async Task<IEnumerable<StatementResult>> ExecuteMaterializedStatement(string statement, IReadOnlyDictionary<string, object?>? parameters)
     {
         var results = new List<StatementResult>();
         await using var connection = _databaseProvider.GetConnection();
@@ -83,12 +83,12 @@ public class StatementExecutor : IStatementExecutor
             {
                 var table = ResultSetMaterializer.MaterializeCurrentResult(reader);
                 watcher.Stop();
-                results.Add(new StatementResult(table.CreateDataReader(), null, originalStatement, watcher, table.Rows.Count));
+                results.Add(new StatementResult(table.CreateDataReader(), null, statement, watcher, table.Rows.Count));
             }
             else
             {
                 watcher.Stop();
-                results.Add(new StatementResult(null, null, originalStatement, watcher, reader.RecordsAffected));
+                results.Add(new StatementResult(null, null, statement, watcher, reader.RecordsAffected));
             }
         } while (await reader.NextResultAsync());
 

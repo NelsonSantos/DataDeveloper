@@ -46,6 +46,9 @@ public class OracleDatabaseProviderTests
         Assert.Contains("from user_tab_columns", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("where c.table_name = upper(:TableName)", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("from user_constraints", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("identity_column", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("HasDefaultValue", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("virtual_column", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

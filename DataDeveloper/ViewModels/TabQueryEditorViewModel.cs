@@ -174,7 +174,19 @@ public class TabQueryEditorViewModel : BaseTabContent
                         _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Loading first rows..."));
                         await Task.Delay(100);
                         
-                        var tabResult = new TabDataGridViewModel(statementResult, _cachePages[statementResult.Statement], resultName, true, this.ServiceProvider);
+                        var tabResult = new TabDataGridViewModel(
+                            ConnectionSettings,
+                            statementResult,
+                            _cachePages[statementResult.Statement],
+                            resultName,
+                            true,
+                            this.ServiceProvider,
+                            this.Id,
+                            () =>
+                            {
+                                SelectedTabIndex = 0;
+                                ShowResultTool?.Invoke(this, SelectedTabIndex);
+                            });
                         tabResult.WhenAnyValue(vm => vm.SelectedPage).Subscribe(page => _cachePages[statementResult.Statement] = page);
                         
                         Tabs.Add(tabResult);

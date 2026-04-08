@@ -47,4 +47,64 @@ public sealed class GridEditorHostTests
 
         Assert.Equal(227.5m, result.NewValue);
     }
+
+    [Fact]
+    public void Commit_InvalidDate_KeepsEditSessionActive()
+    {
+        var host = new GridEditorHost(new GridEditorRegistry());
+
+        host.BeginEdit(new GridCellAddress(0, 0), typeof(DateTime), DateTime.Today);
+        host.ApplyInput("not-a-date");
+
+        Assert.Throws<FormatException>(() => host.Commit());
+        Assert.NotNull(host.CurrentSession);
+    }
+
+    [Fact]
+    public void Commit_EmptyNullableNumber_ReturnsNull()
+    {
+        var host = new GridEditorHost(new GridEditorRegistry());
+
+        host.BeginEdit(new GridCellAddress(0, 0), typeof(decimal?), 10.5m);
+        host.ApplyInput(string.Empty);
+        var result = host.Commit();
+
+        Assert.Null(result.NewValue);
+    }
+
+    [Fact]
+    public void Commit_EmptyNullableDate_ReturnsNull()
+    {
+        var host = new GridEditorHost(new GridEditorRegistry());
+
+        host.BeginEdit(new GridCellAddress(0, 0), typeof(DateTime?), DateTime.Today);
+        host.ApplyInput(string.Empty);
+        var result = host.Commit();
+
+        Assert.Null(result.NewValue);
+    }
+
+    [Fact]
+    public void Commit_NumberEditorAcceptsDotAsDecimalSeparator()
+    {
+        var host = new GridEditorHost(new GridEditorRegistry());
+
+        host.BeginEdit(new GridCellAddress(0, 0), typeof(decimal), 10.5m);
+        host.ApplyInput("1.1");
+        var result = host.Commit();
+
+        Assert.Equal(1.1m, result.NewValue);
+    }
+
+    [Fact]
+    public void Commit_NumberEditorAcceptsCommaAsDecimalSeparator()
+    {
+        var host = new GridEditorHost(new GridEditorRegistry());
+
+        host.BeginEdit(new GridCellAddress(0, 0), typeof(decimal), 10.5m);
+        host.ApplyInput("1,1");
+        var result = host.Commit();
+
+        Assert.Equal(1.1m, result.NewValue);
+    }
 }
