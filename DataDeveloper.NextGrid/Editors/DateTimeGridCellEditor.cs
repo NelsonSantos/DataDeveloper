@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace DataDeveloper.NextGrid.Editors;
 
 public sealed class DateTimeGridCellEditor : IGridCellEditor
@@ -14,15 +12,19 @@ public sealed class DateTimeGridCellEditor : IGridCellEditor
     {
         return value switch
         {
-            DateTime dateTime => dateTime.ToString(CultureInfo.CurrentCulture),
-            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(CultureInfo.CurrentCulture),
+            DateTime dateTime => GridValueFormats.FormatDateTime(dateTime),
+            DateTimeOffset dateTimeOffset => GridValueFormats.FormatDateTimeOffset(dateTimeOffset),
             _ => string.Empty
         };
     }
 
     public object? ApplyInput(object? currentValue, object? input)
     {
-        return input?.ToString() ?? string.Empty;
+        return input switch
+        {
+            DateTime or DateTimeOffset => input,
+            _ => input?.ToString() ?? string.Empty
+        };
     }
 
     public object? Commit(object? currentValue)
@@ -30,9 +32,18 @@ public sealed class DateTimeGridCellEditor : IGridCellEditor
         if (currentValue is null)
             return null;
 
+        if (currentValue is DateTime or DateTimeOffset)
+            return currentValue;
+
         var text = currentValue.ToString() ?? string.Empty;
-        if (DateTime.TryParse(text, CultureInfo.CurrentCulture, DateTimeStyles.None, out var dateTime))
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        if (GridValueFormats.TryParseDateTime(text, out var dateTime))
             return dateTime;
+
+        if (GridValueFormats.TryParseDateTimeOffset(text, out var dateTimeOffset))
+            return dateTimeOffset;
 
         throw new FormatException($"Invalid date value '{text}'.");
     }

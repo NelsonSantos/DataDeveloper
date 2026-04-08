@@ -11,7 +11,7 @@
     </Design.DataContext>
     <Grid RowDefinitions="Auto, Auto, Auto, *">
         <Border Grid.Row="0" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
             <TextBlock Grid.Column="0" Text="&#xf7a5;" FontFamily="{StaticResource FontAwesomeLight}" FontSize="25" Foreground="LightGray" />
             <TextBlock Grid.Column="1" Text="Rows per page:" FontSize="11" VerticalAlignment="Center" Foreground="LightGray" />
             <ComboBox Grid.Column="2" FontSize="12" FontFamily="{StaticResource MonospaceFont}"
@@ -33,7 +33,7 @@
                     Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
-            <Button  Grid.Column="4"
+            <Button Grid.Column="4"
                 Background="Transparent" 
                 VerticalAlignment="Center" 
                 ToolTip.Tip="Load all records"
@@ -45,7 +45,70 @@
                     Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
-            <Border Grid.Column="6" BorderThickness="0.5" BorderBrush="LightGray" CornerRadius="3" Margin="0, 3, 0 ,3" Padding="4, 0, 5, 0">
+            <Border Grid.Column="5" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
+            <Button Grid.Column="6"
+                Background="Transparent"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Discard pending changes"
+                Command="{Binding DiscardChangesCommand}">
+                <TextBlock
+                    Text="&#xf2ea;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Foreground="{Binding HasPendingChanges, Converter={StaticResource BoolToColor}, ConverterParameter='Orange|Gray'}" />
+            </Button>
+            <Button Grid.Column="7"
+                Background="Transparent"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Add row"
+                Command="{Binding AddRowCommand}">
+                <TextBlock
+                    Text="&#xf067;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Foreground="{Binding IsEditableResult, Converter={StaticResource BoolToColor}, ConverterParameter='LightGreen|Gray'}" />
+            </Button>
+            <Button Grid.Column="8"
+                Background="Transparent"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Delete selected row"
+                Command="{Binding DeleteRowCommand}">
+                <TextBlock
+                    Text="&#xf2ed;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Foreground="{Binding IsEditableResult, Converter={StaticResource BoolToColor}, ConverterParameter='Tomato|Gray'}" />
+            </Button>
+            <Button Grid.Column="9"
+                Background="Transparent"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Submit pending changes"
+                Command="{Binding SubmitChangesCommand}">
+                <TextBlock
+                    Text="&#xf0c7;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Foreground="{Binding HasPendingChanges, Converter={StaticResource BoolToColor}, ConverterParameter='DeepSkyBlue|Gray'}" />
+            </Button>
+            <Border Grid.Column="10"
+                    BorderThickness="0.5"
+                    BorderBrush="#6F7A45"
+                    Background="#2D3420"
+                    CornerRadius="3"
+                    Margin="0,3,0,3"
+                    Padding="6,1"
+                    IsVisible="{Binding ShowPendingChangesSummary}">
+                <TextBlock Text="{Binding PendingChangesSummary}"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           Foreground="#D9E8A8" />
+            </Border>
+            <Border Grid.Column="11"
+                    BorderThickness="0.5"
+                    BorderBrush="#A64B4B"
+                    Background="#3A2323"
+                    CornerRadius="3"
+                    Margin="0,3,0,3"
+                    Padding="6,1"
+                    IsVisible="{Binding ShowValidationSummary}">
+                <TextBlock Text="{Binding ValidationSummary}"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           Foreground="#FFC6C6" />
+            </Border>
+            <Border Grid.Column="13" BorderThickness="0.5" BorderBrush="LightGray" CornerRadius="3" Margin="0, 3, 0 ,3" Padding="4, 0, 5, 0">
                 <TextBlock 
                     Text="" 
                     FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="LightGray">
@@ -53,12 +116,29 @@
                     <Run Text="{Binding TimeElapsed, StringFormat=' in {0:c}'}"/>
                 </TextBlock>
             </Border>
+            <Border Grid.Column="14" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
+            <TextBlock Grid.Column="15"
+                       Text="{Binding EditabilityStatusText}"
+                       FontSize="11"
+                       VerticalAlignment="Center"
+                       Foreground="LightGray" />
+            <TextBlock Grid.Column="16"
+                       Text="&#xf05a;"
+                       FontFamily="{StaticResource FontAwesomeSolid}"
+                       Foreground="#FFD8AE"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding ShowReadOnlyReason}"
+                       ToolTip.Tip="{Binding EditabilityReason}" />
         </Grid>        
         <Border Grid.Row="2" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <nextGrid:NextGridControl Grid.Row="3"
+        <nextGrid:NextGridControl x:Name="ResultGrid"
+                                  Grid.Row="3"
                                   Headers="{Binding GridHeaders}"
                                   ColumnTypes="{Binding GridColumnTypes}"
                                   Rows="{Binding GridRows}"
+                                  CanEditCells="{Binding IsEditableResult}"
+                                  ReadOnlyColumns="{Binding ReadOnlyColumnIndexes}"
+                                  SelectedRowIndex="{Binding SelectedRowIndex, Mode=TwoWay}"
                                   GridFontFamily="{StaticResource MonospaceFont}"
                                   GridFontSize="12"
                                   CellBackground="#2B2B2B"

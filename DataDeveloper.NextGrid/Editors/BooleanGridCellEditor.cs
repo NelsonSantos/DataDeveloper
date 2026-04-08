@@ -10,16 +10,22 @@ public sealed class BooleanGridCellEditor : IGridCellEditor
 
     public object? BeginEdit(object? value)
     {
-        return value is bool boolean && boolean;
+        return value switch
+        {
+            bool boolean => boolean,
+            _ => null
+        };
     }
 
     public object? ApplyInput(object? currentValue, object? input)
     {
         return input switch
         {
+            null => null,
             bool boolean => boolean,
+            string text when string.IsNullOrWhiteSpace(text) => null,
             string text when bool.TryParse(text, out var parsed) => parsed,
-            _ => currentValue ?? false
+            _ => currentValue
         };
     }
 
@@ -27,8 +33,9 @@ public sealed class BooleanGridCellEditor : IGridCellEditor
     {
         return currentValue switch
         {
+            null => null,
             bool boolean => boolean,
-            _ => false
+            _ => null
         };
     }
 }

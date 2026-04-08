@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace DataDeveloper.NextGrid.Editors;
 
 public sealed class NumberGridCellEditor : IGridCellEditor
@@ -25,7 +23,7 @@ public sealed class NumberGridCellEditor : IGridCellEditor
 
     public object? BeginEdit(object? value)
     {
-        return value?.ToString() ?? string.Empty;
+        return value is null ? string.Empty : GridValueFormats.FormatNumber(value);
     }
 
     public object? ApplyInput(object? currentValue, object? input)
@@ -39,7 +37,10 @@ public sealed class NumberGridCellEditor : IGridCellEditor
             return null;
 
         var text = currentValue.ToString() ?? string.Empty;
-        if (decimal.TryParse(text, NumberStyles.Any, CultureInfo.CurrentCulture, out var parsed))
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        if (GridValueFormats.TryParseDecimal(text, out var parsed))
             return parsed;
 
         throw new FormatException($"Invalid numeric value '{text}'.");

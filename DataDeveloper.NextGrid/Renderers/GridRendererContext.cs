@@ -4,5 +4,5 @@ namespace DataDeveloper.NextGrid.Renderers;
 
 public readonly record struct GridRendererContext(CultureInfo Culture)
 {
-    public static GridRendererContext Default { get; } = new(CultureInfo.CurrentCulture);
+    public static GridRendererContext Default { get; } = new(GridValueFormats.Culture);
 }

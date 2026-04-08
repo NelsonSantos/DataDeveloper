@@ -14,8 +14,8 @@ public sealed class DateTimeGridCellRenderer : GridCellRendererBase
     {
         return value switch
         {
-            DateTime dateTime => dateTime.ToString(context.Culture),
-            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(context.Culture),
+            DateTime dateTime => GridValueFormats.FormatDateTime(dateTime),
+            DateTimeOffset dateTimeOffset => GridValueFormats.FormatDateTimeOffset(dateTimeOffset),
             _ => string.Empty
         };
     }

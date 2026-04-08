@@ -54,6 +54,8 @@ public class PostgresDatabaseProviderTests
         Assert.Contains("information_schema.key_column_usage", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("information_schema.table_constraints", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_name = @TableName", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("is_identity", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("HasDefaultValue", sql, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

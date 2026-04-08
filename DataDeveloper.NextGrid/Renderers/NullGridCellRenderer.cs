@@ -6,6 +6,7 @@ public sealed class NullGridCellRenderer : GridCellRendererBase
 
     public override bool CanRender(Type? valueType, object? value)
     {
-        return value is null || value is DBNull;
+        return (valueType is null || valueType == typeof(DBNull)) &&
+               (value is null || value is DBNull);
     }
 }

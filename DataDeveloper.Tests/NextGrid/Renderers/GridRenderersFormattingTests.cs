@@ -7,25 +7,25 @@ namespace DataDeveloper.Tests.NextGrid.Renderers;
 public sealed class GridRenderersFormattingTests
 {
     [Fact]
-    public void NumberRenderer_FormatsUsingContextCulture()
+    public void NumberRenderer_FormatsUsingInvariantStyle()
     {
         var renderer = new NumberGridCellRenderer();
         var context = new GridRendererContext(new CultureInfo("pt-BR"));
 
         var text = renderer.FormatValue(227.5m, context);
 
-        Assert.Equal("227,5", text);
+        Assert.Equal("227.5", text);
     }
 
     [Fact]
-    public void DateTimeRenderer_FormatsUsingContextCulture()
+    public void DateTimeRenderer_FormatsUsingIsoStyle()
     {
         var renderer = new DateTimeGridCellRenderer();
         var context = new GridRendererContext(new CultureInfo("pt-BR"));
 
         var text = renderer.FormatValue(new DateTime(2025, 8, 14, 0, 55, 3), context);
 
-        Assert.Contains("14/08/2025", text);
+        Assert.Equal("2025-08-14 00:55:03", text);
     }
 
     [Fact]

@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using DataDeveloper.NextGrid.Clipboard;
+using DataDeveloper.NextGrid.Editors;
 using DataDeveloper.NextGrid.Renderers;
 
 namespace DataDeveloper.NextGrid.UI;
@@ -18,9 +19,12 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private const double HeaderHeight = 34;
     private const double RowHeight = 28;
     private const double ResizeHandleHalfWidth = 4;
+    private static readonly IBrush ValidationErrorBrush = new SolidColorBrush(Color.Parse("#C93C3C"));
+    private static readonly Pen ValidationErrorPen = new(ValidationErrorBrush, 1.5);
 
     private readonly GridColumnLayoutEngine _columnLayout = new(DefaultColumnWidth);
     private readonly GridTableController _tableController;
+    private readonly GridEditorHost _editorHost;
     private readonly GridRendererRegistry _rendererRegistry = new();
     private readonly NextGridClipboardBuilder _clipboardBuilder;
     private readonly RowRenderCache _rowRenderCache;
@@ -35,6 +39,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private double _lastMeasuredRowHeaderWidth = 44;
     private bool _isSelecting;
     private GridRegionKind _selectionOriginRegion;
+    private ObservableCollection<int>? _readOnlyColumnsSubscription;
 
     private ObservableCollection<string>? _headersSubscription;
     private ObservableCollection<Type>? _typesSubscription;
@@ -72,6 +77,12 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
     public static readonly StyledProperty<IBrush> SelectionBackgroundProperty =
         AvaloniaProperty.Register<NextGridPresenter, IBrush>(nameof(SelectionBackground), defaultValue: Brushes.LightBlue);
+
+    public static readonly StyledProperty<bool> CanEditCellsProperty =
+        AvaloniaProperty.Register<NextGridPresenter, bool>(nameof(CanEditCells), defaultValue: false);
+
+    public static readonly StyledProperty<ObservableCollection<int>> ReadOnlyColumnsProperty =
+        AvaloniaProperty.Register<NextGridPresenter, ObservableCollection<int>>(nameof(ReadOnlyColumns), defaultValue: []);
 
     public ObservableCollection<string> Headers
     {
@@ -139,6 +150,18 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         set => SetValue(SelectionBackgroundProperty, value);
     }
 
+    public bool CanEditCells
+    {
+        get => GetValue(CanEditCellsProperty);
+        set => SetValue(CanEditCellsProperty, value);
+    }
+
+    public ObservableCollection<int> ReadOnlyColumns
+    {
+        get => GetValue(ReadOnlyColumnsProperty);
+        set => SetValue(ReadOnlyColumnsProperty, value);
+    }
+
     public Size Extent => new(
         GetRowHeaderWidth() + _columnLayout.GetTotalWidth() + _verticalScrollBarReserve,
         HeaderHeight + (Rows.Count * RowHeight) + _horizontalScrollBarReserve);
@@ -175,6 +198,10 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         Math.Max(RowHeight, Viewport.Height - HeaderHeight));
 
     public event EventHandler? ScrollInvalidated;
+    public event EventHandler<GridFocusedCellChangedEventArgs>? FocusedCellChanged;
+    public event EventHandler<GridCellEditRequestedEventArgs>? CellEditRequested;
+    public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
+    public event EventHandler? CellEditCanceled;
 
     public NextGridPresenter()
     {
@@ -182,6 +209,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         var viewportEngine = new GridViewportEngine(_columnLayout);
         var selection = new GridSelectionModel();
         _tableController = new GridTableController(_columnLayout, layoutEngine, viewportEngine, selection);
+        _editorHost = new GridEditorHost(new GridEditorRegistry());
         _clipboardBuilder = new NextGridClipboardBuilder(_rendererRegistry);
         _rowRenderCache = new RowRenderCache();
         Focusable = true;
@@ -190,6 +218,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         PointerMoved += OnPointerMoved;
         PointerReleased += OnPointerReleased;
         PointerExited += OnPointerExited;
+        DoubleTapped += OnDoubleTapped;
         KeyDown += OnKeyDown;
     }
 
@@ -297,6 +326,9 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             _rowRenderCache.Clear();
         }
 
+        if (e.Property == ReadOnlyColumnsProperty)
+            ReplaceSubscription(ref _readOnlyColumnsSubscription, ReadOnlyColumns, OnCollectionChanged);
+
         if (e.Property == GridFontFamilyProperty ||
             e.Property == GridFontSizeProperty ||
             e.Property == CellBackgroundProperty ||
@@ -322,12 +354,14 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Reset)
+        if (ReferenceEquals(sender, Rows))
         {
             _autoWidthPending = true;
-            _columnRenderers.Clear();
             _rowRenderCache.Clear();
         }
+
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+            _columnRenderers.Clear();
 
         var rowHeaderWidthChanged = Math.Abs(GetRowHeaderWidth() - _lastMeasuredRowHeaderWidth) > 0.01d;
         Offset = ClampOffset(Offset);
@@ -375,8 +409,26 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             e.Pointer.Capture(this);
         }
 
+        RaiseFocusedCellChanged();
+
         Focus();
         InvalidateVisual();
+    }
+
+    private void OnDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (!CanEditCells || Headers.Count == 0 || Rows.Count == 0)
+            return;
+
+        var point = e.GetPosition(this);
+        _tableController.SetDimensions(Rows.Count, Headers.Count);
+        UpdateControllerViewport();
+        var hit = _tableController.HitTest(point.X, point.Y);
+        if (hit.Region == GridRegionKind.Cell && hit.RowIndex >= 0 && hit.ColumnIndex >= 0)
+        {
+            BeginEdit(new GridCellAddress(hit.RowIndex, hit.ColumnIndex));
+            e.Handled = true;
+        }
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
@@ -481,6 +533,13 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             return;
         }
 
+        if (e.Key is Key.Enter or Key.F2)
+        {
+            BeginEditAtFocusedCell();
+            e.Handled = true;
+            return;
+        }
+
         if (direction is null)
             return;
 
@@ -493,8 +552,40 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             ? _tableController.ExtendFocus(direction.Value, step)
             : _tableController.MoveFocus(direction.Value, step);
         Offset = ToScrollViewerOffset(result.HorizontalOffset, result.VerticalOffset);
+        RaiseFocusedCellChanged();
         InvalidateVisual();
         e.Handled = true;
+    }
+
+    public void BeginEditAtFocusedCell()
+    {
+        var focusedCell = _tableController.Selection.FocusCell;
+        if (focusedCell is null)
+            return;
+
+        BeginEdit(focusedCell.Value);
+    }
+
+    public void CommitEdit(object? input)
+    {
+        if (_editorHost.CurrentSession is null)
+            return;
+
+        _editorHost.ApplyInput(input);
+        var result = _editorHost.Commit();
+        AdvanceFocusAfterEdit(result.Cell);
+        CellEditCommitted?.Invoke(this, new GridCellEditCommittedEventArgs(result));
+        InvalidateVisual();
+    }
+
+    public void CancelEdit()
+    {
+        if (_editorHost.CurrentSession is null)
+            return;
+
+        _editorHost.Cancel();
+        CellEditCanceled?.Invoke(this, EventArgs.Empty);
+        InvalidateVisual();
     }
 
     private async void CopySelectionToClipboard()
@@ -511,6 +602,50 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             return;
 
         await topLevel.Clipboard.SetTextAsync(text);
+    }
+
+    private void BeginEdit(GridCellAddress cell)
+    {
+        if (!CanEditCells || !CanEditCell(cell))
+            return;
+
+        var row = Rows[cell.Row];
+        var value = row[cell.Column];
+        var session = _editorHost.BeginEdit(cell, ColumnTypes.ElementAtOrDefault(cell.Column), value);
+        var bounds = _tableController.GetCellBounds(cell.Row, cell.Column);
+        CellEditRequested?.Invoke(this, new GridCellEditRequestedEventArgs(session, bounds));
+    }
+
+    private bool CanEditCell(GridCellAddress cell)
+    {
+        if (cell.Row < 0 || cell.Row >= Rows.Count || cell.Column < 0 || cell.Column >= Headers.Count)
+            return false;
+
+        if (!ReadOnlyColumns.Contains(cell.Column))
+            return true;
+
+        return Rows[cell.Row] is IGridEditableRow editableRow &&
+               editableRow.VisualState == GridEditableRowVisualState.New;
+    }
+
+    private void RaiseFocusedCellChanged()
+    {
+        FocusedCellChanged?.Invoke(this, new GridFocusedCellChangedEventArgs(_tableController.Selection.FocusCell));
+    }
+
+    private void AdvanceFocusAfterEdit(GridCellAddress cell)
+    {
+        if (cell.Column + 1 >= Headers.Count)
+        {
+            RaiseFocusedCellChanged();
+            return;
+        }
+
+        var nextCell = new GridCellAddress(cell.Row, cell.Column + 1);
+        var visible = _tableController.EnsureVisible(nextCell, GridNavigationDirection.Right);
+        _tableController.Selection.SelectCell(visible.Cell);
+        Offset = ToScrollViewerOffset(visible.HorizontalOffset, visible.VerticalOffset);
+        RaiseFocusedCellChanged();
     }
 
     private void DrawHeaders(DrawingContext context, GridVisibleRange range)
@@ -544,7 +679,9 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             {
                 var bounds = _tableController.GetRowHeaderBounds(rowIndex);
                 var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-                var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, 0)) ? SelectionBackground : HeaderBackground;
+                var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, 0))
+                    ? SelectionBackground
+                    : GetRowBackgroundBrush(rowIndex) ?? HeaderBackground;
                 context.DrawRectangle(brush, GetBorderPen(), rect);
                 DrawText(context, (rowIndex + 1).ToString(CultureInfo.InvariantCulture), new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), GridColumnAlignment.Left, HeaderForeground);
             }
@@ -576,8 +713,12 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                     maxVisibleRight = Math.Max(maxVisibleRight ?? double.MinValue, bounds.X + bounds.Width);
                     maxVisibleBottom = Math.Max(maxVisibleBottom ?? double.MinValue, bounds.Y + bounds.Height);
                     var rect = new Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-                    var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, columnIndex)) ? SelectionBackground : CellBackground;
+                    var brush = _tableController.Selection.Contains(new GridCellAddress(rowIndex, columnIndex))
+                        ? SelectionBackground
+                        : GetRowBackgroundBrush(rowIndex) ?? CellBackground;
                     context.DrawRectangle(brush, null, rect);
+                    if (row is IGridEditableRow editableRow && editableRow.InvalidColumnIndexes.Contains(columnIndex))
+                        context.DrawRectangle(null, ValidationErrorPen, rect.Deflate(1));
 
                     if (rowIndex == viewportInfo.Rows.Start)
                         verticalLines.Add(bounds.X);
@@ -622,6 +763,19 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                 context.DrawLine(borderPen, new Point(gridLeft, y), new Point(gridRight, y));
             }
         }
+    }
+
+    private IBrush? GetRowBackgroundBrush(int rowIndex)
+    {
+        if (rowIndex < 0 || rowIndex >= Rows.Count || Rows[rowIndex] is not IGridEditableRow editableRow)
+            return null;
+
+        return editableRow.VisualState switch
+        {
+            GridEditableRowVisualState.New => new SolidColorBrush(Color.Parse("#1A6900cc")),
+            GridEditableRowVisualState.Modified => new SolidColorBrush(Color.Parse("#1A0066CC")),
+            _ => null
+        };
     }
 
     private void DrawText(DrawingContext context, string text, Rect rect, GridColumnAlignment alignment, IBrush foregroundBrush)

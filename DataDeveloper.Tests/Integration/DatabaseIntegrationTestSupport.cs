@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Data;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
@@ -9,6 +10,8 @@ using DataDeveloper.Data.Providers.PostgresSql;
 using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Data.Services;
+using DataDeveloper.Interfaces;
+using DataDeveloper.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -30,6 +33,7 @@ internal static class DatabaseIntegrationTestSupport
     {
         var services = new ServiceCollection();
         services.AddSingleton<DatabaseProviderFactoryService>();
+        services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
         DatabaseExtensionsMethods.SetServiceProvider(services.BuildServiceProvider());
     }
 
@@ -163,6 +167,81 @@ internal static class DatabaseIntegrationTestSupport
         }
     }
 
+    public static async Task<int> ExecuteNonQueryAsync(
+        IConnectionSettings connectionSettings,
+        string sql,
+        IReadOnlyDictionary<string, object?>? parameters = null)
+    {
+        var provider = connectionSettings.GetDatabaseProvider();
+        await using var connection = provider.GetConnection();
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.CommandType = CommandType.Text;
+        AddParameters(connection, command, parameters);
+        return await command.ExecuteNonQueryAsync();
+    }
+
+    public static async Task<QuerySnapshot> ExecuteQuerySnapshotAsync(
+        IConnectionSettings connectionSettings,
+        string sql,
+        IReadOnlyDictionary<string, object?>? parameters = null)
+    {
+        var provider = connectionSettings.GetDatabaseProvider();
+        await using var connection = provider.GetConnection();
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.CommandType = CommandType.Text;
+        AddParameters(connection, command, parameters);
+        await using var reader = await command.ExecuteReaderAsync();
+
+        var columns = Enumerable.Range(0, reader.FieldCount)
+            .Select(reader.GetName)
+            .ToList();
+        var schema = reader.GetColumnSchema();
+        var rows = new List<object?[]>();
+
+        while (await reader.ReadAsync())
+        {
+            var values = new object[reader.FieldCount];
+            reader.GetValues(values);
+            rows.Add(values);
+        }
+
+        return new QuerySnapshot(columns, rows, schema);
+    }
+
+    public static string QuoteSqlLiteral(string value)
+    {
+        return "'" + value.Replace("'", "''", StringComparison.Ordinal) + "'";
+    }
+
+    private static void AddParameters(
+        DbConnection connection,
+        DbCommand command,
+        IReadOnlyDictionary<string, object?>? parameters)
+    {
+        if (parameters is null)
+            return;
+
+        foreach (var parameter in parameters)
+        {
+            var dbParameter = command.CreateParameter();
+            dbParameter.ParameterName = NormalizeParameterName(connection, parameter.Key);
+            dbParameter.Value = parameter.Value ?? DBNull.Value;
+            command.Parameters.Add(dbParameter);
+        }
+    }
+
+    private static string NormalizeParameterName(DbConnection connection, string parameterName)
+    {
+        var trimmedName = parameterName.TrimStart('@', ':');
+        return connection.GetType().Namespace?.Contains("Oracle", StringComparison.OrdinalIgnoreCase) == true
+            ? trimmedName
+            : "@" + trimmedName;
+    }
+
     private static string GetSqLiteSeedSql()
     {
         return """
@@ -202,4 +281,9 @@ internal static class DatabaseIntegrationTestSupport
                where o.status = 'OPEN';
                """;
     }
+
+    internal sealed record QuerySnapshot(
+        IReadOnlyList<string> Columns,
+        IReadOnlyList<object?[]> Rows,
+        IReadOnlyList<DbColumn> Schema);
 }
