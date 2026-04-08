@@ -23,22 +23,11 @@
 
     <ItemGroup>
         <ProjectReference Include="..\DataDeveloper.Core\DataDeveloper.Core.csproj" />
+        <ProjectReference Include="..\DataDeveloper.Antlr\DataDeveloper.Antlr.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Providers\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="StatementParser\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Remove="StatementParser\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="StatementParser\**" />
     </ItemGroup>
 
 </Project>

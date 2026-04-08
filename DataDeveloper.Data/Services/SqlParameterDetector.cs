@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DataDeveloper.Services;
 
@@ -279,12 +279,12 @@ public static class SqlParameterDetector
     private static int BlankMultiLineComment(char[] sql, int startIndex)
     {
         var index = startIndex;
-        while (index + 1 < sql.Length)
+        while (index < sql.Length)
         {
             var current = sql[index];
             sql[index] = ' ';
 
-            if (current == '*' && sql[index + 1] == '/')
+            if (current == '*' && index + 1 < sql.Length && sql[index + 1] == '/')
             {
                 sql[index + 1] = ' ';
                 return index + 2;
@@ -293,17 +293,12 @@ public static class SqlParameterDetector
             index++;
         }
 
-        if (index < sql.Length)
-            sql[index] = ' ';
-
         return sql.Length;
     }
 
-    private static bool IsIdentifierStart(char value) =>
-        char.IsLetter(value) || value == '_';
+    private static bool IsIdentifierStart(char c) => char.IsLetter(c) || c == '_';
 
-    private static bool IsIdentifierPart(char value) =>
-        char.IsLetterOrDigit(value) || value == '_';
+    private static bool IsIdentifierPart(char c) => char.IsLetterOrDigit(c) || c == '_';
 
     private static string RemoveRoutineDeclarationParameters(string sql)
     {
@@ -322,7 +317,7 @@ public static class SqlParameterDetector
             if (declarationHeaderEnd < 0)
                 break;
 
-            var declarationBodyStart = FindDeclarationBodyStart(lowerSql, declarationHeaderEnd);
+            var declarationBodyStart = FindRoutineBodyStart(lowerSql, declarationHeaderEnd);
             if (declarationBodyStart < 0)
                 break;
 
@@ -354,33 +349,34 @@ public static class SqlParameterDetector
         return kindGroup.Index + kindGroup.Length;
     }
 
-    private static int FindDeclarationBodyStart(string sql, int startIndex)
+    private static int FindRoutineBodyStart(string sql, int startIndex)
     {
-        var i = startIndex;
-        while (i < sql.Length)
+        var index = startIndex;
+
+        while (index < sql.Length)
         {
-            if (sql[i] == '\'' || sql[i] == '"')
+            if (char.IsWhiteSpace(sql[index]))
             {
-                i = SkipQuotedString(sql, i, sql[i]);
+                index++;
                 continue;
             }
 
-            if (sql[i] == '-' && i + 1 < sql.Length && sql[i + 1] == '-')
+            if (sql[index] == '-' && index + 1 < sql.Length && sql[index + 1] == '-')
             {
-                i = SkipSingleLineComment(sql, i);
+                index = SkipSingleLineComment(sql, index);
                 continue;
             }
 
-            if (sql[i] == '/' && i + 1 < sql.Length && sql[i + 1] == '*')
+            if (sql[index] == '/' && index + 1 < sql.Length && sql[index + 1] == '*')
             {
-                i = SkipMultiLineComment(sql, i);
+                index = SkipMultiLineComment(sql, index);
                 continue;
             }
 
-            if (IsKeywordAt(sql, i, "as") || IsKeywordAt(sql, i, "begin"))
-                return i;
+            if (IsKeywordAt(sql, index, "as") || IsKeywordAt(sql, index, "begin"))
+                return index;
 
-            i++;
+            index++;
         }
 
         return -1;
@@ -423,27 +419,36 @@ public static class SqlParameterDetector
         return -1;
     }
 
-    private static int FindRoutineBodyEnd(string sql, int bodyStartIndex)
+    private static int FindRoutineBodyEnd(string sql, int bodyStart)
     {
-        var index = bodyStartIndex;
+        var index = bodyStart;
         var beginDepth = 0;
+        var caseDepth = 0;
         var sawBegin = false;
 
         while (index < sql.Length)
         {
-            if (sql[index] == '\'' || sql[index] == '"')
+            var current = sql[index];
+
+            if (current == '\'' || current == '"')
             {
-                index = SkipQuotedString(sql, index, sql[index]);
+                index = SkipQuotedString(sql, index, current);
                 continue;
             }
 
-            if (sql[index] == '-' && index + 1 < sql.Length && sql[index + 1] == '-')
+            if (current == '[')
+            {
+                index = SkipBracketIdentifier(sql, index);
+                continue;
+            }
+
+            if (current == '-' && index + 1 < sql.Length && sql[index + 1] == '-')
             {
                 index = SkipSingleLineComment(sql, index);
                 continue;
             }
 
-            if (sql[index] == '/' && index + 1 < sql.Length && sql[index + 1] == '*')
+            if (current == '/' && index + 1 < sql.Length && sql[index + 1] == '*')
             {
                 index = SkipMultiLineComment(sql, index);
                 continue;
@@ -453,18 +458,33 @@ public static class SqlParameterDetector
             {
                 beginDepth++;
                 sawBegin = true;
-                index += "begin".Length;
+                index += 5;
+                continue;
+            }
+
+            if (IsKeywordAt(sql, index, "case"))
+            {
+                caseDepth++;
+                index += 4;
                 continue;
             }
 
             if (IsKeywordAt(sql, index, "end"))
             {
+                if (caseDepth > 0)
+                {
+                    caseDepth--;
+                    index += 3;
+                    continue;
+                }
+
                 if (beginDepth > 0)
                 {
                     beginDepth--;
-                    index += "end".Length;
+                    index += 3;
                     if (sawBegin && beginDepth == 0)
                         return ConsumeStatementTerminator(sql, index);
+
                     continue;
                 }
             }

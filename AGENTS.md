@@ -28,6 +28,15 @@
 - Keep `README.md` user-focused. Do not add internal workflows, local-only test instructions, release mechanics, or other team-facing technical details there unless the user explicitly asks for that content in `README.md`.
 - Put team-facing technical documentation such as local validation steps, integration test setup, and internal workflows in dedicated files like `TESTS.md` unless the user explicitly asks for a different location.
 
+## Parser architecture
+- `DataDeveloper.Antlr` is the single owner of ANTLR grammars and checked-in generated parser/lexer code.
+- Keep authoritative parser sources under `DataDeveloper.Antlr/Generated` and `DataDeveloper.Antlr/Support`. Do not add or restore parser copies under `DataDeveloper.Data`.
+- Do not add `Compile Include` links for generated parser files into `DataDeveloper`, `DataDeveloper.Data`, or test projects. Parser consumers must reference `DataDeveloper.Antlr`.
+- Do not make normal solution builds depend on `Antlr4BuildTasks`, Java, or on-the-fly parser generation. Commit the generated parser changes under `DataDeveloper.Antlr/Generated` and keep build consumption purely .NET.
+- Do not keep multiple authoritative copies of generated parser code across projects. If support files such as `*Base.cs`, listeners, or helper enums are needed, ensure `DataDeveloper.Antlr` compiles them and other projects consume that assembly.
+- Keep provider parser architecture consistent across all supported databases. Do not let SQL Server, MySQL, PostgreSQL, Oracle, and SQLite follow different ownership or build patterns.
+- When refactoring parsing logic away from regex/manual code, prefer `DataDeveloper.Antlr` outputs when the grammar already covers the scenario, and add/adjust tests before wider adoption.
+
 ## Platform guidelines
 - UI behavior must follow the conventions of the operating system currently running the app.
 - Keyboard shortcuts, menu gesture labels, context menu behavior, window actions, and similar UX details must use the platform-appropriate conventions instead of hardcoded Windows behavior.

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from TSqlParser.g4 by ANTLR 4.13.1
+// Generated from /Users/nelsosantos/Documents/Documents - Nelson’s MacBook Pro/Nelson Santos/Projetos/DataDeveloper/DataDeveloper.Antlr/Antlr/SqlServer/TSqlParser.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -19,6 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
+namespace SqlServer {
 using System;
 using System.IO;
 using System.Text;
@@ -1187,6 +1188,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTsql_file(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTsql_file(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -1288,6 +1295,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBatch(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBatch(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -1436,6 +1449,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBatch_level_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBatch_level_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -1521,6 +1540,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSql_clauses(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSql_clauses(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -1684,6 +1709,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDml_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDml_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -2253,6 +2284,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDdl_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDdl_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -3463,6 +3500,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -3572,6 +3615,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCfl_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCfl_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -3708,6 +3757,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBlock_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBlock_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -3789,6 +3844,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBreak_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBreak_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -3840,6 +3901,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitContinue_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitContinue_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -3896,6 +3963,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGoto_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGoto_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -4949,6 +5022,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReturn_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReturn_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5020,6 +5099,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIf_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIf_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -5102,6 +5187,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitThrow_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitThrow_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5173,6 +5264,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitThrow_error_number(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitThrow_error_number(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5223,6 +5320,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitThrow_message(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitThrow_message(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5272,6 +5375,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitThrow_state(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitThrow_state(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -5348,6 +5457,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTry_catch_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTry_catch_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -5496,6 +5611,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWaitfor_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWaitfor_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5606,6 +5727,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWhile_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWhile_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -5703,6 +5830,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrint_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrint_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -5826,6 +5959,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRaiseerror_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRaiseerror_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -6009,6 +6148,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEmpty_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEmpty_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6099,6 +6244,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAnother_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAnother_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -6284,6 +6435,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_application_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_application_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6418,6 +6575,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_xml_schema_collection(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_xml_schema_collection(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6505,6 +6668,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_application_role(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_application_role(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -6616,6 +6785,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_aggregate(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_aggregate(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6692,6 +6867,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_application_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_application_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6748,6 +6929,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6793,6 +6980,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -6847,6 +7040,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -6936,6 +7135,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_from_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_from_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -6997,6 +7202,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_from_clause_start(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_from_clause_start(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7043,6 +7254,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_drop_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_drop_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7088,6 +7305,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_drop_multiple_files(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_drop_multiple_files(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7146,6 +7369,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_drop(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_drop(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7192,6 +7421,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_add_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_add_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7236,6 +7471,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_asssembly_add_clause_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_asssembly_add_clause_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7289,6 +7530,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_client_file_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_client_file_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7344,6 +7591,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_file_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_file_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7390,6 +7643,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_file_bits(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_file_bits(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7432,6 +7691,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_as(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_as(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7479,6 +7744,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_with_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_with_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7521,6 +7792,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_assembly_with(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_assembly_with(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7568,6 +7845,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClient_assembly_specifier(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClient_assembly_specifier(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7645,6 +7928,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAssembly_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAssembly_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7768,6 +8057,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNetwork_file_share(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNetwork_file_share(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7816,6 +8111,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNetwork_computer(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNetwork_computer(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -7856,6 +8157,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNetwork_file_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNetwork_file_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -7905,6 +8212,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFile_path(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFile_path(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -8932,6 +9245,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFile_directory_path_separator(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFile_directory_path_separator(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -8978,6 +9297,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLocal_file(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLocal_file(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -9020,6 +9345,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLocal_drive(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLocal_drive(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9068,6 +9399,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMultiple_local_files(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMultiple_local_files(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9130,6 +9467,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMultiple_local_file_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMultiple_local_file_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9200,6 +9543,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_assembly(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_assembly(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9332,6 +9681,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_assembly(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_assembly(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -9445,6 +9800,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_asymmetric_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_asymmetric_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -9512,6 +9873,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_asymmetric_key_start(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_asymmetric_key_start(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -9566,6 +9933,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAsymmetric_key_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAsymmetric_key_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9628,6 +10001,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAsymmetric_key_option_start(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAsymmetric_key_option_start(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -9679,6 +10058,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAsymmetric_key_password_change_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAsymmetric_key_password_change_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9793,6 +10178,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_asymmetric_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_asymmetric_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -9995,6 +10386,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_asymmetric_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_asymmetric_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -10074,6 +10471,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_authorization(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_authorization(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -10137,6 +10540,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAuthorization_grantee(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAuthorization_grantee(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11164,6 +11573,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEntity_to(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEntity_to(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -11204,6 +11619,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColon_colon(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColon_colon(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11247,6 +11668,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_authorization_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_authorization_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11310,6 +11737,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_authorization_for_sql_database(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_authorization_for_sql_database(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11388,6 +11821,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_authorization_for_azure_dw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_authorization_for_azure_dw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -11464,6 +11903,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_authorization_for_parallel_dw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_authorization_for_parallel_dw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11550,6 +11995,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClass_type(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClass_type(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -11781,6 +12232,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClass_type_for_sql_database(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClass_type_for_sql_database(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -11929,6 +12386,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClass_type_for_azure_dw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClass_type_for_azure_dw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -11979,6 +12442,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClass_type_for_parallel_dw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClass_type_for_parallel_dw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -12087,6 +12556,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClass_type_for_grant(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClass_type_for_grant(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -12604,6 +13079,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_availability_group(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_availability_group(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -12656,6 +13137,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_availability_group(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_availability_group(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -12704,6 +13191,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_availability_group_start(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_availability_group_start(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -12877,6 +13370,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_availability_group_options(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_availability_group_options(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -14153,6 +14652,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIp_v4_failover(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIp_v4_failover(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -14193,6 +14698,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIp_v6_failover(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIp_v6_failover(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -14271,6 +14782,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_broker_priority(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_broker_priority(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -16442,6 +16959,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_broker_priority(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_broker_priority(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -16537,6 +17060,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_certificate(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_certificate(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -16747,6 +17276,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_column_encryption_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_column_encryption_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -16893,6 +17428,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_column_encryption_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_column_encryption_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17017,6 +17558,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_certificate(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_certificate(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17068,6 +17615,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_column_encryption_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_column_encryption_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17125,6 +17678,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_column_master_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_column_master_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17179,6 +17738,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_contract(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_contract(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17228,6 +17793,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_credential(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_credential(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17279,6 +17850,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_cryptograhic_provider(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_cryptograhic_provider(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17340,6 +17917,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_database(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_database(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17435,6 +18018,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_database_audit_specification(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_database_audit_specification(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17486,6 +18075,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_database_encryption_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_database_encryption_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17540,6 +18135,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_database_scoped_credential(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_database_scoped_credential(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17602,6 +18203,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_default(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_default(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17690,6 +18297,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_endpoint(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_endpoint(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17741,6 +18354,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_external_data_source(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_external_data_source(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17797,6 +18416,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_external_file_format(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_external_file_format(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17857,6 +18482,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_external_library(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_external_library(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -17925,6 +18556,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_external_resource_pool(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_external_resource_pool(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -17988,6 +18625,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_external_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_external_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18077,6 +18720,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_event_notifications(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_event_notifications(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18184,6 +18833,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_event_session(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_event_session(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18240,6 +18895,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_fulltext_catalog(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_fulltext_catalog(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18299,6 +18960,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_fulltext_index(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_fulltext_index(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18367,6 +19034,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_fulltext_stoplist(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_fulltext_stoplist(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18419,6 +19092,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_login(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_login(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18465,6 +19144,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_master_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_master_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18516,6 +19201,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_message_type(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_message_type(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18570,6 +19261,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_partition_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_partition_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18622,6 +19319,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_partition_scheme(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_partition_scheme(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18683,6 +19386,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_queue(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_queue(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18760,6 +19469,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_remote_service_binding(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_remote_service_binding(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18815,6 +19530,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_resource_pool(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_resource_pool(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18868,6 +19589,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_db_role(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_db_role(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -18932,6 +19659,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_route(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_route(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -18989,6 +19722,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_rule(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_rule(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19085,6 +19824,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_schema(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_schema(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -19150,6 +19895,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_search_property_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_search_property_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -19211,6 +19962,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_security_policy(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_security_policy(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19300,6 +20057,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_sequence(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_sequence(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19407,6 +20170,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_server_audit(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_server_audit(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -19460,6 +20229,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_server_audit_specification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_server_audit_specification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19516,6 +20291,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_server_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_server_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -19567,6 +20348,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_service(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_service(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19643,6 +20430,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_signature(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_signature(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19789,6 +20582,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_statistics_name_azure_dw_and_pdw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_statistics_name_azure_dw_and_pdw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -19860,6 +20659,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_symmetric_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_symmetric_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -19933,6 +20738,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_synonym(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_synonym(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -20011,6 +20822,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_user(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_user(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -20075,6 +20892,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_workload_group(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_workload_group(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -20133,6 +20956,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_xml_schema_collection(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_xml_schema_collection(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -20220,6 +21049,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDisable_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDisable_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -22320,6 +23155,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEnable_trigger(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEnable_trigger(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -24406,6 +25247,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLock_table(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLock_table(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -24518,6 +25365,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTruncate_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTruncate_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -24650,6 +25503,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_column_master_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_column_master_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -24737,6 +25596,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_credential(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_credential(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -24833,6 +25698,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_credential(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_credential(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -24933,6 +25804,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_cryptographic_provider(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_cryptographic_provider(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -25024,6 +25901,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_cryptographic_provider(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_cryptographic_provider(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -25136,6 +26019,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_endpoint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_endpoint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -25396,6 +26285,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEndpoint_encryption_alogorithm_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEndpoint_encryption_alogorithm_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -25506,6 +26401,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEndpoint_authentication_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEndpoint_authentication_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -25642,6 +26543,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEndpoint_listener_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEndpoint_listener_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -25769,6 +26676,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_event_notification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_event_notification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -26010,6 +26923,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_event_session(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_event_session(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -26761,6 +27680,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEvent_session_predicate_expression(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEvent_session_predicate_expression(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -26876,6 +27801,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEvent_session_predicate_factor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEvent_session_predicate_factor(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -27928,6 +28859,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEvent_session_predicate_leaf(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEvent_session_predicate_leaf(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -28206,6 +29143,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_external_data_source(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_external_data_source(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -28439,6 +29382,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_external_library(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_external_library(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -28676,6 +29625,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_external_library(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_external_library(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -28932,6 +29887,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_external_resource_pool(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_external_resource_pool(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -29250,6 +30211,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_external_resource_pool(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_external_resource_pool(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -29532,6 +30499,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_fulltext_catalog(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_fulltext_catalog(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -29655,6 +30628,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_fulltext_catalog(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_fulltext_catalog(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -29796,6 +30775,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_fulltext_stoplist(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_fulltext_stoplist(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -29935,6 +30920,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_fulltext_stoplist(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_fulltext_stoplist(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -30092,6 +31083,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_login_sql_server(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_login_sql_server(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -30451,6 +31448,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_login_sql_server(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_login_sql_server(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -30840,6 +31843,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_login_azure_sql(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_login_azure_sql(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -30972,6 +31981,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_login_azure_sql(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_login_azure_sql(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31070,6 +32085,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_login_azure_sql_dw_and_pdw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_login_azure_sql_dw_and_pdw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -31231,6 +32252,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_login_pdw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_login_pdw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31365,6 +32392,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_master_key_sql_server(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_master_key_sql_server(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31498,6 +32531,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_master_key_sql_server(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_master_key_sql_server(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31573,6 +32612,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_master_key_azure_sql(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_master_key_azure_sql(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -31715,6 +32760,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_master_key_azure_sql(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_master_key_azure_sql(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31796,6 +32847,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_message_type(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_message_type(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -31904,6 +32961,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_partition_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_partition_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -31984,6 +33047,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_partition_scheme(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_partition_scheme(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -32066,6 +33135,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_remote_service_binding(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_remote_service_binding(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -32184,6 +33259,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_remote_service_binding(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_remote_service_binding(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -32333,6 +33414,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_resource_pool(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_resource_pool(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -32727,6 +33814,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_resource_governor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_resource_governor(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -33852,6 +34945,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_database_audit_specification(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_database_audit_specification(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -33981,6 +35080,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAudit_action_spec_group(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAudit_action_spec_group(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -34073,6 +35178,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAudit_action_specification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAudit_action_specification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34174,6 +35285,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAction_specification(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAction_specification(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -34224,6 +35341,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAudit_class_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAudit_class_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34282,6 +35405,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAudit_securable(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAudit_securable(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34363,6 +35492,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_db_role(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_db_role(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34478,6 +35613,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_database_audit_specification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_database_audit_specification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34608,6 +35749,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_db_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_db_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -34696,6 +35843,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_route(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_route(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -34875,6 +36028,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_rule(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_rule(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -34953,6 +36112,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_schema_sql(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_schema_sql(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -35122,6 +36287,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_schema(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_schema(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -35311,6 +36482,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_schema_azure_sql_dw_and_pdw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_schema_azure_sql_dw_and_pdw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -35381,6 +36558,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_schema_azure_sql_dw_and_pdw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_schema_azure_sql_dw_and_pdw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -35470,6 +36653,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_search_property_list(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_search_property_list(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -35638,6 +36827,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_security_policy(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_security_policy(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -35944,6 +37139,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_sequence(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_sequence(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -36148,6 +37349,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_sequence(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_sequence(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -36500,6 +37707,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_server_audit(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_server_audit(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -37213,6 +38426,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_server_audit(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_server_audit(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -37858,6 +39077,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_server_audit_specification(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_server_audit_specification(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -38016,6 +39241,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_server_audit_specification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_server_audit_specification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -38191,6 +39422,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_server_configuration(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_server_configuration(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -38709,6 +39946,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_server_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_server_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -38804,6 +40047,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_server_role(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_server_role(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -38876,6 +40125,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_server_role_pdw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_server_role_pdw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -38962,6 +40217,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_service(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_service(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -39071,6 +40332,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpt_arg_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpt_arg_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -39148,6 +40415,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_service(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_service(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -40268,6 +41541,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_service_master_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_service_master_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -40415,6 +41694,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_symmetric_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_symmetric_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -40541,6 +41826,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_synonym(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_synonym(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -40748,6 +42039,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_user(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_user(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -42045,6 +43342,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_user(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_user(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -42646,6 +43949,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_user_azure_sql_dw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_user_azure_sql_dw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -42819,6 +44128,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_user_azure_sql(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_user_azure_sql(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -43046,6 +44361,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_workload_group(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_workload_group(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -43323,6 +44644,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_workload_group(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_workload_group(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -43554,6 +44881,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_xml_schema_collection(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_xml_schema_collection(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -44638,6 +45971,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_partition_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_partition_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -44747,6 +46086,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_partition_scheme(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_partition_scheme(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -44853,6 +46198,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_queue(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_queue(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -46001,6 +47352,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQueue_settings(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQueue_settings(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -46291,6 +47648,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_queue(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_queue(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -46387,6 +47750,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQueue_action(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQueue_action(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -47473,6 +48842,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQueue_rebuild_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQueue_rebuild_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -47560,6 +48935,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_contract(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_contract(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -48661,6 +50042,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitConversation_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitConversation_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -48763,6 +50150,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMessage_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMessage_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -48908,6 +50301,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMerge_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMerge_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -49106,6 +50505,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWhen_matches(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWhen_matches(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -49293,6 +50698,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMerge_matched(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMerge_matched(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -49379,6 +50790,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMerge_not_matched(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMerge_not_matched(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -49501,6 +50918,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDelete_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDelete_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -50736,6 +52159,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDelete_statement_from(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDelete_statement_from(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -50838,6 +52267,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitInsert_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitInsert_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -51991,6 +53426,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitInsert_statement_value(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitInsert_statement_value(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -52100,6 +53541,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReceive_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReceive_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -52248,6 +53695,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSelect_statement_standalone(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSelect_statement_standalone(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -52311,6 +53764,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSelect_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSelect_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -52396,6 +53855,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTime(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTime(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -52516,6 +53981,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -54752,6 +56223,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOutput_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOutput_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -55830,6 +57307,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOutput_dml_list_elem(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOutput_dml_list_elem(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -55931,6 +57414,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_database(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_database(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -56151,6 +57640,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_index(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_index(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -56299,6 +57794,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -56370,6 +57871,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRelational_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRelational_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -56479,6 +57986,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_index(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_index(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -57583,6 +59096,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitResumable_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitResumable_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -57657,6 +59176,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitResumable_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitResumable_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -57746,6 +59271,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReorganize_partition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReorganize_partition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -57823,6 +59354,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReorganize_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReorganize_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -57893,6 +59430,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReorganize_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReorganize_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -57970,6 +59513,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSet_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSet_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -58045,6 +59594,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSet_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSet_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -58175,6 +59730,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRebuild_partition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRebuild_partition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -58281,6 +59842,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRebuild_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRebuild_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -58380,6 +59947,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRebuild_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRebuild_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -58657,6 +60230,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSingle_partition_rebuild_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSingle_partition_rebuild_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -58746,6 +60325,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSingle_partition_rebuild_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSingle_partition_rebuild_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -58930,6 +60515,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOn_partitions(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOn_partitions(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -59040,6 +60631,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_columnstore_index(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_columnstore_index(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -59138,6 +60735,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_columnstore_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_columnstore_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -59218,6 +60821,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumnstore_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumnstore_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -59373,6 +60982,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_nonclustered_columnstore_index(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_nonclustered_columnstore_index(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -59514,6 +61129,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_xml_index(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_xml_index(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -59658,6 +61279,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -59743,6 +61370,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -59968,6 +61601,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_procedure(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_procedure(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -61212,6 +62851,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAs_external_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAs_external_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -61269,6 +62914,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -61370,6 +63021,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_dml_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_dml_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -61573,6 +63230,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDml_trigger_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDml_trigger_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -61630,6 +63293,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDml_trigger_operation(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDml_trigger_operation(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -61715,6 +63384,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_ddl_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_ddl_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -61892,6 +63567,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDdl_trigger_operation(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDdl_trigger_operation(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -61961,6 +63642,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_or_alter_function(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_or_alter_function(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -62132,6 +63819,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_body_returns_select(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_body_returns_select(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -62283,6 +63976,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_body_returns_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_body_returns_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -62459,6 +64158,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_body_returns_scalar(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_body_returns_scalar(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -62597,6 +64302,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitProcedure_param_default_value(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitProcedure_param_default_value(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -62691,6 +64402,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitProcedure_param(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitProcedure_param(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -62801,6 +64518,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitProcedure_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitProcedure_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -62875,6 +64598,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunction_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunction_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -62997,6 +64726,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_statistics(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_statistics(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -63156,6 +64891,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_statistics(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_statistics(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -63258,6 +64999,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_statistics_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_statistics_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -63347,6 +65094,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_statistics_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_statistics_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -63624,6 +65377,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_table(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_table(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -63818,6 +65577,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_indices(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_indices(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -63967,6 +65732,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_options(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_options(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -65079,6 +66850,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -67273,6 +69050,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_table_index_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_table_index_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -67358,6 +69141,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_table_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_table_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -67571,6 +69360,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_view(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_view(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -67717,6 +69512,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitView_attribute(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitView_attribute(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -67858,6 +69659,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -68193,6 +70000,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSwitch_partition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSwitch_partition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -68298,6 +70111,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLow_priority_lock_wait(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLow_priority_lock_wait(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -68406,6 +70225,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_database(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_database(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -69523,6 +71348,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAdd_or_modify_files(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAdd_or_modify_files(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -69691,6 +71522,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFilespec(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFilespec(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -69865,6 +71702,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAdd_or_modify_filegroups(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAdd_or_modify_filegroups(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70006,6 +71849,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFilegroup_updatability_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFilegroup_updatability_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70120,6 +71969,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDatabase_optionspec(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDatabase_optionspec(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -70331,6 +72186,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAuto_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAuto_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70470,6 +72331,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitChange_tracking_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitChange_tracking_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70575,6 +72442,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitChange_tracking_option_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitChange_tracking_option_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70652,6 +72525,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitContainment_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitContainment_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -70710,6 +72589,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCursor_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCursor_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -70835,6 +72720,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_endpoint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_endpoint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71090,6 +72981,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDatabase_mirroring_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDatabase_mirroring_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71141,6 +73038,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMirroring_set_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMirroring_set_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71202,6 +73105,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMirroring_partner(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMirroring_partner(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71243,6 +73152,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMirroring_witness(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMirroring_witness(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71283,6 +73198,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWitness_partner_equal(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWitness_partner_equal(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71338,6 +73259,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPartner_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPartner_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71457,6 +73384,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWitness_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWitness_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71517,6 +73450,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWitness_server(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWitness_server(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71569,6 +73508,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPartner_server(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPartner_server(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71616,6 +73561,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMirroring_host_port_seperator(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMirroring_host_port_seperator(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71658,6 +73609,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPartner_server_tcp_prefix(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPartner_server_tcp_prefix(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71705,6 +73662,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPort_number(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPort_number(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71751,6 +73714,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHost(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHost(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71829,6 +73798,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDate_correlation_optimization_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDate_correlation_optimization_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71875,6 +73850,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDb_encryption_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDb_encryption_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -71919,6 +73900,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDb_state_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDb_state_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -71970,6 +73957,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDb_update_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDb_update_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -72020,6 +74013,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDb_user_access_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDb_user_access_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -72073,6 +74072,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDelayed_durability_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDelayed_durability_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -72143,6 +74148,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExternal_access_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExternal_access_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -74252,6 +76263,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHadr_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHadr_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -74345,6 +76362,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMixed_page_allocation_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMixed_page_allocation_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -74397,6 +76420,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitParameterization_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitParameterization_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -74460,6 +76489,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRecovery_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRecovery_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -74563,6 +76598,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitService_broker_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitService_broker_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -74648,6 +76689,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSnapshot_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSnapshot_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -74746,6 +76793,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSql_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSql_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -74885,6 +76938,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTarget_recovery_time_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTarget_recovery_time_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -74944,6 +77003,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTermination(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTermination(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75031,6 +77096,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_index(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_index(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75153,6 +77224,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_relational_or_xml_or_spatial_index(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_relational_or_xml_or_spatial_index(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -75209,6 +77286,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_backward_compatible_index(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_backward_compatible_index(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75282,6 +77365,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_procedure(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_procedure(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75380,6 +77469,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_trigger(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_trigger(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -75447,6 +77542,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_dml_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_dml_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75549,6 +77650,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_ddl_trigger(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_ddl_trigger(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75670,6 +77777,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -75777,6 +77890,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_statistics(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_statistics(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -75872,6 +77991,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -75970,6 +78095,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_view(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_view(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -76074,6 +78205,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_type(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_type(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -76167,6 +78304,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDrop_type(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDrop_type(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -76229,6 +78372,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRowset_function_limited(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRowset_function_limited(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -76294,6 +78443,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpenquery(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpenquery(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -76367,6 +78522,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpendatasource(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpendatasource(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -76487,6 +78648,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeclare_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclare_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -76657,6 +78824,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_declaration(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_declaration(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -76732,6 +78905,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCursor_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCursor_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -77114,6 +79293,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_database(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_database(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -87110,6 +89295,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_log(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_log(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -96891,6 +99082,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_certificate(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_certificate(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97062,6 +99259,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_master_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_master_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97143,6 +99346,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBackup_service_master_key(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBackup_service_master_key(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97217,6 +99426,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKill_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKill_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97288,6 +99503,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKill_process(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKill_process(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -97373,6 +99594,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKill_query_notification(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKill_query_notification(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97439,6 +99666,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKill_stats_job(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKill_stats_job(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -97487,6 +99720,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -97553,6 +99792,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_body_batch(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_body_batch(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -97661,6 +99906,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_body(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_body(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -99808,6 +102059,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_statement_arg(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_statement_arg(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -99905,6 +102162,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_statement_arg_named(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_statement_arg_named(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -99952,6 +102215,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_statement_arg_unnamed(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_statement_arg_unnamed(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -100003,6 +102272,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_parameter(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_parameter(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -101085,6 +103360,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_var_string(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_var_string(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -101265,6 +103546,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSecurity_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSecurity_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -101543,6 +103830,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrincipal_id(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrincipal_id(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -102593,6 +104886,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_certificate(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_certificate(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -102709,6 +105008,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExisting_keys(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExisting_keys(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -102819,6 +105124,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrivate_key_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrivate_key_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -102923,6 +105234,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGenerate_new_keys(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGenerate_new_keys(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -103008,6 +105325,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDate_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDate_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -103076,6 +105399,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpen_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpen_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -103165,6 +105494,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClose_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClose_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -103286,6 +105621,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_key(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_key(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -103459,6 +105800,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKey_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKey_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -103573,6 +105920,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlgorithm(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlgorithm(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -103633,6 +105986,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEncryption_mechanism(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEncryption_mechanism(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -103730,6 +106089,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDecryption_mechanism(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDecryption_mechanism(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -103949,6 +106314,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGrant_permission(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGrant_permission(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -105016,6 +107387,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSet_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSet_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -105178,6 +107555,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTransaction_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTransaction_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -107433,6 +109816,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGo_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGo_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -107489,6 +109878,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUse_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUse_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -107533,6 +109928,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSetuser_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSetuser_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -107587,6 +109988,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitReconfigure_statement(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitReconfigure_statement(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -107643,6 +110050,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitShutdown_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitShutdown_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -107698,6 +110111,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCheckpoint_statement(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCheckpoint_statement(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -107752,6 +110171,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkalloc_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkalloc_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -107827,6 +110252,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkalloc(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkalloc(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -108942,6 +111373,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkcatalog(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkcatalog(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -110001,6 +112438,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkconstraints_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkconstraints_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -110070,6 +112513,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkconstraints(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkconstraints(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -111149,6 +113598,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkdb_table_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkdb_table_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -111276,6 +113731,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkdb(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkdb(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -112378,6 +114839,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkfilegroup_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkfilegroup_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -112488,6 +114955,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checkfilegroup(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checkfilegroup(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -112632,6 +115105,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_checktable(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_checktable(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -112781,6 +115260,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_cleantable(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_cleantable(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -114836,6 +117321,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_clonedatabase_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_clonedatabase_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -114907,6 +117398,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_clonedatabase(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_clonedatabase(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -114998,6 +117495,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_pdw_showspaceused(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_pdw_showspaceused(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -115069,6 +117572,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_proccache(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_proccache(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -115125,6 +117634,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_showcontig_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_showcontig_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115197,6 +117712,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_showcontig(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_showcontig(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115306,6 +117827,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_shrinklog(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_shrinklog(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115428,6 +117955,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_dbreindex(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_dbreindex(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -115522,6 +118055,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_dll_free(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_dll_free(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -115588,6 +118127,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_dropcleanbuffers(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_dropcleanbuffers(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115706,6 +118251,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDbcc_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDbcc_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115848,6 +118399,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExecute_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExecute_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -115909,6 +118466,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeclare_local(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclare_local(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -115990,6 +118553,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_type_definition(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_type_definition(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -116079,6 +118648,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_type_indices(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_type_indices(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -116214,6 +118789,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_type_definition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_type_definition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -116283,6 +118864,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_schema_collection(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_schema_collection(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -116336,6 +118923,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_def_table_constraints(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_def_table_constraints(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -116413,6 +119006,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_def_table_constraint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_def_table_constraint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -116493,6 +119092,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_definition(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_definition(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -117623,6 +120228,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_definition_element(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_definition_element(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -117876,6 +120487,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_modifier(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_modifier(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -118022,6 +120639,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMaterialized_column_definition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMaterialized_column_definition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -118115,6 +120738,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_constraint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_constraint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -118266,6 +120895,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_index(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_index(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -118377,6 +121012,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOn_partition_or_filegroup(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOn_partition_or_filegroup(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -118500,6 +121141,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_constraint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_constraint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -118692,6 +121339,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitConnection_node(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitConnection_node(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -118745,6 +121398,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrimary_key_options(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrimary_key_options(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -118846,6 +121505,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitForeign_key_options(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitForeign_key_options(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -118944,6 +121609,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCheck_constraint(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCheck_constraint(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -119012,6 +121683,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOn_delete(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOn_delete(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -119096,6 +121773,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOn_update(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOn_update(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -119185,6 +121868,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_table_index_options(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_table_index_options(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -119307,6 +121996,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAlter_table_index_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAlter_table_index_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -119679,6 +122374,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeclare_cursor(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclare_cursor(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -119863,6 +122564,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeclare_set_cursor_common(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclare_set_cursor_common(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -119931,6 +122638,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeclare_set_cursor_common_partial(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeclare_set_cursor_common_partial(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -120068,6 +122781,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFetch_cursor(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFetch_cursor(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -120266,6 +122985,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSet_special(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSet_special(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -121557,6 +124282,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSpecial_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSpecial_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -121608,6 +124339,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitConstant_LOCAL_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitConstant_LOCAL_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -121731,6 +124468,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExpression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExpression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -121971,6 +124714,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitParameter(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitParameter(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -122016,6 +124765,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTime_zone(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTime_zone(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -122068,6 +124823,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrimitive_expression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrimitive_expression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -122166,6 +124927,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCase_expression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCase_expression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -122286,6 +125053,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUnary_operator_expression(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUnary_operator_expression(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -122363,6 +125136,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBracket_expression(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBracket_expression(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -122427,6 +125206,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSubquery(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSubquery(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -122479,6 +125264,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWith_expression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWith_expression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -122561,6 +125352,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCommon_table_expression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCommon_table_expression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -122652,6 +125449,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_elem(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_elem(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -123791,6 +126594,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUpdate_elem_merge(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUpdate_elem_merge(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -124883,6 +127692,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSearch_condition(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSearch_condition(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -125048,6 +127863,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPredicate(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPredicate(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -125299,6 +128120,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQuery_expression(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQuery_expression(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -125422,6 +128249,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSql_union(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSql_union(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -125581,6 +128414,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQuery_specification(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQuery_specification(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -125794,6 +128633,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTop_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTop_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -125873,6 +128718,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTop_percent(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTop_percent(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -125956,6 +128807,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTop_count(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTop_count(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -126028,6 +128885,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOrder_by_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOrder_by_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -126118,6 +128981,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSelect_order_by_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSelect_order_by_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -126262,6 +129131,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFor_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFor_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -126622,6 +129497,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_common_directives(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_common_directives(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -126709,6 +129590,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOrder_by_expression(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOrder_by_expression(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -127807,6 +130694,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGrouping_sets_item(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGrouping_sets_item(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -127906,6 +130799,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGroup_by_item(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGroup_by_item(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -127960,6 +130859,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOption_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOption_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -128069,6 +130974,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOption(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOption(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -128320,6 +131231,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOptimize_for_arg(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOptimize_for_arg(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -128415,6 +131332,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSelect_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSelect_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -128488,6 +131411,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUdt_method_arguments(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUdt_method_arguments(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -128557,6 +131486,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAsterisk(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAsterisk(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -128651,6 +131586,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUdt_elem(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUdt_elem(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -128759,6 +131700,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExpression_elem(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExpression_elem(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -128842,6 +131789,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSelect_list_elem(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSelect_list_elem(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -128952,6 +131905,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_sources(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_sources(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -129036,6 +131995,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNon_ansi_join(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNon_ansi_join(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -129105,6 +132070,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_source(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_source(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -129214,6 +132185,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_source_item(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_source_item(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -129541,6 +132518,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpen_xml(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpen_xml(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -129653,6 +132636,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOpen_json(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOpen_json(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -129750,6 +132739,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJson_declaration(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJson_declaration(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -129813,6 +132808,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJson_column_declaration(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJson_column_declaration(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -129878,6 +132879,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSchema_declaration(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSchema_declaration(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -129945,6 +132952,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_declaration(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_declaration(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -130003,6 +133016,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitChange_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitChange_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130069,6 +133088,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitChange_table_changes(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitChange_table_changes(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130151,6 +133176,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitChange_table_version(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitChange_table_version(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -130221,6 +133252,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJoin_part(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJoin_part(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130318,6 +133355,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJoin_on(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJoin_on(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130440,6 +133483,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCross_join(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCross_join(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -130491,6 +133540,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitApply_(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitApply_(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130552,6 +133607,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPivot(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPivot(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -130602,6 +133663,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUnpivot(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUnpivot(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130659,6 +133726,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPivot_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPivot_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130732,6 +133805,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUnpivot_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUnpivot_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -130799,6 +133878,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFull_column_name_list(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFull_column_name_list(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -130885,6 +133970,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRowset_function(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRowset_function(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -131007,6 +134098,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBulk_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBulk_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -131078,6 +134175,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDerived_table(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDerived_table(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -131184,6 +134287,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRANKING_WINDOWED_FUNC(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRANKING_WINDOWED_FUNC(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class BUILT_IN_FUNCContext : Function_callContext {
 		[System.Diagnostics.DebuggerNonUserCode] public Built_in_functionsContext built_in_functions() {
@@ -131199,6 +134308,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBUILT_IN_FUNC(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBUILT_IN_FUNC(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FREE_TEXTContext : Function_callContext {
@@ -131216,6 +134331,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFREE_TEXT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFREE_TEXT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ANALYTIC_WINDOWED_FUNCContext : Function_callContext {
 		[System.Diagnostics.DebuggerNonUserCode] public Analytic_windowed_functionContext analytic_windowed_function() {
@@ -131231,6 +134352,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitANALYTIC_WINDOWED_FUNC(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitANALYTIC_WINDOWED_FUNC(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SCALAR_FUNCTIONContext : Function_callContext {
@@ -131253,6 +134380,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSCALAR_FUNCTION(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSCALAR_FUNCTION(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class PARTITION_FUNCContext : Function_callContext {
 		[System.Diagnostics.DebuggerNonUserCode] public Partition_functionContext partition_function() {
@@ -131268,6 +134401,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPARTITION_FUNC(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPARTITION_FUNC(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class AGGREGATE_WINDOWED_FUNCContext : Function_callContext {
@@ -131285,6 +134424,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAGGREGATE_WINDOWED_FUNC(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAGGREGATE_WINDOWED_FUNC(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class HIERARCHYID_METHODContext : Function_callContext {
 		[System.Diagnostics.DebuggerNonUserCode] public Hierarchyid_static_methodContext hierarchyid_static_method() {
@@ -131300,6 +134445,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHIERARCHYID_METHOD(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHIERARCHYID_METHOD(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -131437,6 +134588,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPartition_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPartition_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -131533,6 +134690,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFreetext_function(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFreetext_function(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -133743,6 +136906,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFreetext_predicate(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFreetext_predicate(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -134913,6 +138082,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJson_key_value(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJson_key_value(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -134962,6 +138137,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJson_null_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJson_null_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -135035,6 +138216,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOL_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOL_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CHECKSUMContext : Built_in_functionsContext {
 		public IToken star;
@@ -135063,6 +138250,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCHECKSUM(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCHECKSUM(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DECOMPRESSContext : Built_in_functionsContext {
 		public ExpressionContext expr;
@@ -135083,6 +138276,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDECOMPRESS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDECOMPRESS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_TIMEZONE_IDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_TIMEZONE_ID() { return GetToken(TSqlParser.CURRENT_TIMEZONE_ID, 0); }
@@ -135098,6 +138297,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_TIMEZONE_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_TIMEZONE_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class MONTHContext : Built_in_functionsContext {
@@ -135119,6 +138324,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMONTH(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMONTH(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class RANDContext : Built_in_functionsContext {
 		public ExpressionContext seed;
@@ -135138,6 +138349,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRAND(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRAND(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FORMATContext : Built_in_functionsContext {
@@ -135168,6 +138385,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFORMAT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFORMAT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class TRIMContext : Built_in_functionsContext {
 		public ExpressionContext characters;
@@ -135193,6 +138416,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTRIM(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTRIM(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class LEASTContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LEAST() { return GetToken(TSqlParser.LEAST, 0); }
@@ -135212,6 +138441,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLEAST(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLEAST(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class APP_NAMEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode APP_NAME() { return GetToken(TSqlParser.APP_NAME, 0); }
@@ -135227,6 +138462,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAPP_NAME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAPP_NAME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class USER_IDContext : Built_in_functionsContext {
@@ -135248,6 +138489,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUSER_ID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUSER_ID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FILE_NAMEContext : Built_in_functionsContext {
 		public ExpressionContext file_id;
@@ -135268,6 +138515,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILE_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILE_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SESSION_CONTEXTContext : Built_in_functionsContext {
 		public IToken key;
@@ -135285,6 +138538,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSESSION_CONTEXT(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSESSION_CONTEXT(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class STRContext : Built_in_functionsContext {
@@ -135314,6 +138573,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSTR(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSTR(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CONVERTContext : Built_in_functionsContext {
@@ -135347,6 +138612,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCONVERT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCONVERT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class XML_DATA_TYPE_FUNCContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public Xml_data_type_methodsContext xml_data_type_methods() {
@@ -135362,6 +138633,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXML_DATA_TYPE_FUNC(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXML_DATA_TYPE_FUNC(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class LOG10Context : Built_in_functionsContext {
@@ -135383,6 +138660,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLOG10(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLOG10(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FLOORContext : Built_in_functionsContext {
 		public ExpressionContext numeric_expression;
@@ -135403,6 +138686,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFLOOR(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFLOOR(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class YEARContext : Built_in_functionsContext {
 		public ExpressionContext date;
@@ -135422,6 +138711,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitYEAR(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitYEAR(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class PARSEContext : Built_in_functionsContext {
@@ -135452,6 +138747,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPARSE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPARSE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ORIGINAL_LOGINContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ORIGINAL_LOGIN() { return GetToken(TSqlParser.ORIGINAL_LOGIN, 0); }
@@ -135467,6 +138768,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitORIGINAL_LOGIN(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitORIGINAL_LOGIN(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class MATH_SIGNContext : Built_in_functionsContext {
@@ -135487,6 +138794,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMATH_SIGN(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMATH_SIGN(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class TIMEFROMPARTSContext : Built_in_functionsContext {
@@ -135520,6 +138833,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTIMEFROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTIMEFROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class LEFTContext : Built_in_functionsContext {
 		public ExpressionContext character_expression;
@@ -135545,6 +138864,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLEFT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLEFT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class GET_FILESTREAM_TRANSACTION_CONTEXTContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GET_FILESTREAM_TRANSACTION_CONTEXT() { return GetToken(TSqlParser.GET_FILESTREAM_TRANSACTION_CONTEXT, 0); }
@@ -135560,6 +138885,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGET_FILESTREAM_TRANSACTION_CONTEXT(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGET_FILESTREAM_TRANSACTION_CONTEXT(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FILEPROPERTYContext : Built_in_functionsContext {
@@ -135586,6 +138917,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILEPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILEPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class IDENT_SEEDContext : Built_in_functionsContext {
 		public ExpressionContext table_or_view;
@@ -135605,6 +138942,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIDENT_SEED(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIDENT_SEED(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class IDENTITYContext : Built_in_functionsContext {
@@ -135636,6 +138979,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIDENTITY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIDENTITY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_TRANSACTION_IDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_TRANSACTION_ID() { return GetToken(TSqlParser.CURRENT_TRANSACTION_ID, 0); }
@@ -135651,6 +139000,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_TRANSACTION_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_TRANSACTION_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class LTRIMContext : Built_in_functionsContext {
@@ -135672,6 +139027,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLTRIM(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLTRIM(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ROWCOUNT_BIGContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ROWCOUNT_BIG() { return GetToken(TSqlParser.ROWCOUNT_BIG, 0); }
@@ -135687,6 +139048,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitROWCOUNT_BIG(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitROWCOUNT_BIG(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CERTENCODEDContext : Built_in_functionsContext {
@@ -135707,6 +139074,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCERTENCODED(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCERTENCODED(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class JSON_VALUEContext : Built_in_functionsContext {
@@ -135733,6 +139106,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_VALUE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_VALUE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SYSDATETIMEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SYSDATETIME() { return GetToken(TSqlParser.SYSDATETIME, 0); }
@@ -135748,6 +139127,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSYSDATETIME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSYSDATETIME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CERTPRIVATEKEYContext : Built_in_functionsContext {
@@ -135778,6 +139163,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCERTPRIVATEKEY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCERTPRIVATEKEY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SPACEContext : Built_in_functionsContext {
 		public ExpressionContext integer_expression;
@@ -135797,6 +139188,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSPACE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSPACE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class UPPERContext : Built_in_functionsContext {
@@ -135818,6 +139215,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUPPER(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUPPER(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ABSContext : Built_in_functionsContext {
 		public ExpressionContext numeric_expression;
@@ -135837,6 +139240,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitABS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitABS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ISJSONContext : Built_in_functionsContext {
@@ -135862,6 +139271,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitISJSON(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitISJSON(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class HAS_PERMS_BY_NAMEContext : Built_in_functionsContext {
@@ -135894,6 +139309,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHAS_PERMS_BY_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHAS_PERMS_BY_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SUSER_IDContext : Built_in_functionsContext {
 		public ExpressionContext login;
@@ -135914,6 +139335,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSUSER_ID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSUSER_ID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SCOPE_IDENTITYContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SCOPE_IDENTITY() { return GetToken(TSqlParser.SCOPE_IDENTITY, 0); }
@@ -135929,6 +139356,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSCOPE_IDENTITY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSCOPE_IDENTITY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class JSON_QUERYContext : Built_in_functionsContext {
@@ -135954,6 +139387,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_QUERY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_QUERY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class INDEX_COLContext : Built_in_functionsContext {
@@ -135984,6 +139423,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitINDEX_COL(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitINDEX_COL(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DATABASE_PRINCIPAL_IDContext : Built_in_functionsContext {
 		public ExpressionContext principal_name;
@@ -136003,6 +139448,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATABASE_PRINCIPAL_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATABASE_PRINCIPAL_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class PATINDEXContext : Built_in_functionsContext {
@@ -136029,6 +139480,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPATINDEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPATINDEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FULLTEXTSERVICEPROPERTYContext : Built_in_functionsContext {
 		public ExpressionContext property;
@@ -136048,6 +139505,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFULLTEXTSERVICEPROPERTY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFULLTEXTSERVICEPROPERTY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SMALLDATETIMEFROMPARTSContext : Built_in_functionsContext {
@@ -136080,6 +139543,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSMALLDATETIMEFROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSMALLDATETIMEFROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class IDENT_CURRENTContext : Built_in_functionsContext {
 		public ExpressionContext table_or_view;
@@ -136099,6 +139568,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIDENT_CURRENT(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIDENT_CURRENT(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SESSIONPROPERTYContext : Built_in_functionsContext {
@@ -136120,6 +139595,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSESSIONPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSESSIONPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FETCH_STATUSContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode FETCH_STATUS() { return GetToken(TSqlParser.FETCH_STATUS, 0); }
@@ -136133,6 +139614,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFETCH_STATUS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFETCH_STATUS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class POWERContext : Built_in_functionsContext {
@@ -136159,6 +139646,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPOWER(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPOWER(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class REPLICATEContext : Built_in_functionsContext {
 		public ExpressionContext string_expression;
@@ -136184,6 +139677,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitREPLICATE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitREPLICATE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class USER_NAMEContext : Built_in_functionsContext {
 		public ExpressionContext id;
@@ -136204,6 +139703,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUSER_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUSER_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class OBJECT_DEFINITIONContext : Built_in_functionsContext {
 		public ExpressionContext object_id;
@@ -136223,6 +139728,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECT_DEFINITION(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECT_DEFINITION(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class IS_SRVROLEMEMBERContext : Built_in_functionsContext {
@@ -136249,6 +139760,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIS_SRVROLEMEMBER(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIS_SRVROLEMEMBER(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class NEWSEQUENTIALIDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEWSEQUENTIALID() { return GetToken(TSqlParser.NEWSEQUENTIALID, 0); }
@@ -136264,6 +139781,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNEWSEQUENTIALID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNEWSEQUENTIALID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class OBJECT_NAMEContext : Built_in_functionsContext {
@@ -136290,6 +139813,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECT_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECT_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class JSON_PATH_EXISTSContext : Built_in_functionsContext {
 		public ExpressionContext value_expression;
@@ -136314,6 +139843,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_PATH_EXISTS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_PATH_EXISTS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class PWDCOMPAREContext : Built_in_functionsContext {
@@ -136344,6 +139879,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPWDCOMPARE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPWDCOMPARE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SCHEMA_IDContext : Built_in_functionsContext {
 		public ExpressionContext schema_name;
@@ -136363,6 +139904,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSCHEMA_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSCHEMA_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class OBJECT_SCHEMA_NAMEContext : Built_in_functionsContext {
@@ -136389,6 +139936,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECT_SCHEMA_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECT_SCHEMA_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SUSER_SNAMEContext : Built_in_functionsContext {
 		public ExpressionContext server_user_sid;
@@ -136410,6 +139963,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSUSER_SNAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSUSER_SNAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DB_NAMEContext : Built_in_functionsContext {
 		public ExpressionContext database_id;
@@ -136429,6 +139988,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDB_NAME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDB_NAME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SUSER_SIDContext : Built_in_functionsContext {
@@ -136455,6 +140020,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSUSER_SID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSUSER_SID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ASCIIContext : Built_in_functionsContext {
 		public ExpressionContext character_expression;
@@ -136474,6 +140045,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitASCII(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitASCII(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FILE_IDEXContext : Built_in_functionsContext {
@@ -136495,6 +140072,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILE_IDEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILE_IDEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ERROR_SEVERITYContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR_SEVERITY() { return GetToken(TSqlParser.ERROR_SEVERITY, 0); }
@@ -136510,6 +140093,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_SEVERITY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_SEVERITY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class REVERSEContext : Built_in_functionsContext {
@@ -136531,6 +140120,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitREVERSE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitREVERSE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ISDATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ISDATE() { return GetToken(TSqlParser.ISDATE, 0); }
@@ -136549,6 +140144,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitISDATE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitISDATE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class REPLACEContext : Built_in_functionsContext {
@@ -136579,6 +140180,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitREPLACE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitREPLACE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURSOR_STATUSContext : Built_in_functionsContext {
 		public IToken scope;
@@ -136602,6 +140209,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURSOR_STATUS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURSOR_STATUS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class MIN_ACTIVE_ROWVERSIONContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode MIN_ACTIVE_ROWVERSION() { return GetToken(TSqlParser.MIN_ACTIVE_ROWVERSION, 0); }
@@ -136617,6 +140230,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitMIN_ACTIVE_ROWVERSION(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitMIN_ACTIVE_ROWVERSION(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class HAS_DBACCESSContext : Built_in_functionsContext {
@@ -136637,6 +140256,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHAS_DBACCESS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHAS_DBACCESS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class NEXT_VALUE_FORContext : Built_in_functionsContext {
@@ -136664,6 +140289,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNEXT_VALUE_FOR(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNEXT_VALUE_FOR(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FILEGROUP_IDContext : Built_in_functionsContext {
 		public ExpressionContext filegroup_name;
@@ -136684,6 +140315,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILEGROUP_ID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILEGROUP_ID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class LOWERContext : Built_in_functionsContext {
 		public ExpressionContext character_expression;
@@ -136703,6 +140340,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLOWER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLOWER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATENAMEContext : Built_in_functionsContext {
@@ -136729,6 +140372,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATENAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATENAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CEILINGContext : Built_in_functionsContext {
 		public ExpressionContext numeric_expression;
@@ -136748,6 +140397,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCEILING(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCEILING(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class APPLOCK_TESTContext : Built_in_functionsContext {
@@ -136779,6 +140434,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAPPLOCK_TEST(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAPPLOCK_TEST(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SINContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -136798,6 +140459,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSIN(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSIN(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class TYPE_NAMEContext : Built_in_functionsContext {
@@ -136819,6 +140486,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTYPE_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTYPE_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SYSUTCDATETIMEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SYSUTCDATETIME() { return GetToken(TSqlParser.SYSUTCDATETIME, 0); }
@@ -136834,6 +140507,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSYSUTCDATETIME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSYSUTCDATETIME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATEADDContext : Built_in_functionsContext {
@@ -136866,6 +140545,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATEADD(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATEADD(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATETIMEFROMPARTSContext : Built_in_functionsContext {
@@ -136900,6 +140585,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATETIMEFROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATETIMEFROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ERROR_MESSAGEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR_MESSAGE() { return GetToken(TSqlParser.ERROR_MESSAGE, 0); }
@@ -136915,6 +140606,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_MESSAGE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_MESSAGE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FILEGROUPPROPERTYContext : Built_in_functionsContext {
@@ -136941,6 +140638,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILEGROUPPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILEGROUPPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class EOMONTHContext : Built_in_functionsContext {
 		public ExpressionContext start_date;
@@ -136966,6 +140669,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEOMONTH(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEOMONTH(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class IDENT_INCRContext : Built_in_functionsContext {
 		public ExpressionContext table_or_view;
@@ -136985,6 +140694,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIDENT_INCR(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIDENT_INCR(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ASINContext : Built_in_functionsContext {
@@ -137006,6 +140721,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitASIN(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitASIN(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class NCHARContext : Built_in_functionsContext {
 		public ExpressionContext integer_expression;
@@ -137025,6 +140746,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNCHAR(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNCHAR(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DIFFERENCEContext : Built_in_functionsContext {
@@ -137050,6 +140777,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDIFFERENCE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDIFFERENCE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CHARINDEXContext : Built_in_functionsContext {
@@ -137080,6 +140813,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCHARINDEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCHARINDEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class TODATETIMEOFFSETContext : Built_in_functionsContext {
 		public ExpressionContext datetime_expression;
@@ -137105,6 +140844,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTODATETIMEOFFSET(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTODATETIMEOFFSET(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class RADIANSContext : Built_in_functionsContext {
 		public ExpressionContext numeric_expression;
@@ -137125,6 +140870,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRADIANS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRADIANS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_TIMEZONEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_TIMEZONE() { return GetToken(TSqlParser.CURRENT_TIMEZONE, 0); }
@@ -137140,6 +140891,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_TIMEZONE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_TIMEZONE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class COL_LENGTHContext : Built_in_functionsContext {
@@ -137165,6 +140922,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOL_LENGTH(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOL_LENGTH(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATEFROMPARTSContext : Built_in_functionsContext {
@@ -137195,6 +140958,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATEFROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATEFROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class NEWIDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEWID() { return GetToken(TSqlParser.NEWID, 0); }
@@ -137210,6 +140979,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNEWID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNEWID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATETRUNCContext : Built_in_functionsContext {
@@ -137236,6 +141011,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATETRUNC(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATETRUNC(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ISNULLContext : Built_in_functionsContext {
 		public ExpressionContext left;
@@ -137260,6 +141041,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitISNULL(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitISNULL(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class JSON_MODIFYContext : Built_in_functionsContext {
@@ -137290,6 +141077,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_MODIFY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_MODIFY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_REQUEST_IDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_REQUEST_ID() { return GetToken(TSqlParser.CURRENT_REQUEST_ID, 0); }
@@ -137305,6 +141098,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_REQUEST_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_REQUEST_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class IS_MEMBERContext : Built_in_functionsContext {
@@ -137326,6 +141125,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIS_MEMBER(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIS_MEMBER(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SERVERPROPERTYContext : Built_in_functionsContext {
 		public ExpressionContext property;
@@ -137346,6 +141151,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSERVERPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSERVERPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SQRTContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -137365,6 +141176,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSQRT(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSQRT(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ATN2Context : Built_in_functionsContext {
@@ -137390,6 +141207,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitATN2(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitATN2(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class UNICODEContext : Built_in_functionsContext {
 		public ExpressionContext ncharacter_expression;
@@ -137409,6 +141232,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUNICODE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUNICODE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class NULLIFContext : Built_in_functionsContext {
@@ -137435,6 +141264,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNULLIF(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNULLIF(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SESSION_USERContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SESSION_USER() { return GetToken(TSqlParser.SESSION_USER, 0); }
@@ -137448,6 +141283,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSESSION_USER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSESSION_USER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CASTContext : Built_in_functionsContext {
@@ -137471,6 +141312,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCAST(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCAST(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATETIME2FROMPARTSContext : Built_in_functionsContext {
@@ -137506,6 +141353,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATETIME2FROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATETIME2FROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SQUAREContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -137525,6 +141378,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSQUARE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSQUARE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class LOGContext : Built_in_functionsContext {
@@ -137550,6 +141409,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLOG(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLOG(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class IIFContext : Built_in_functionsContext {
@@ -137583,6 +141448,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIIF(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIIF(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DATEPARTContext : Built_in_functionsContext {
 		public Dateparts_15Context datepart;
@@ -137608,6 +141479,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATEPART(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATEPART(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CONTEXT_INFOContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CONTEXT_INFO() { return GetToken(TSqlParser.CONTEXT_INFO, 0); }
@@ -137623,6 +141500,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCONTEXT_INFO(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCONTEXT_INFO(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATEDIFFContext : Built_in_functionsContext {
@@ -137656,6 +141539,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATEDIFF(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATEDIFF(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class OBJECTPROPERTYContext : Built_in_functionsContext {
 		public ExpressionContext id;
@@ -137681,6 +141570,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECTPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECTPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CHARContext : Built_in_functionsContext {
 		public ExpressionContext integer_expression;
@@ -137700,6 +141595,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCHAR(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCHAR(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class STRING_ESCAPEContext : Built_in_functionsContext {
@@ -137726,6 +141627,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSTRING_ESCAPE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSTRING_ESCAPE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class GETANSINULLContext : Built_in_functionsContext {
 		public IToken database;
@@ -137744,6 +141651,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGETANSINULL(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGETANSINULL(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SYSTEM_USERContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SYSTEM_USER() { return GetToken(TSqlParser.SYSTEM_USER, 0); }
@@ -137757,6 +141670,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSYSTEM_USER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSYSTEM_USER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class OBJECT_IDContext : Built_in_functionsContext {
@@ -137783,6 +141702,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECT_ID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECT_ID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ERROR_PROCEDUREContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR_PROCEDURE() { return GetToken(TSqlParser.ERROR_PROCEDURE, 0); }
@@ -137798,6 +141723,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_PROCEDURE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_PROCEDURE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class QUOTENAMEContext : Built_in_functionsContext {
@@ -137824,6 +141755,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQUOTENAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQUOTENAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class RIGHTContext : Built_in_functionsContext {
 		public ExpressionContext character_expression;
@@ -137849,6 +141786,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRIGHT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRIGHT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class HOST_IDContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode HOST_ID() { return GetToken(TSqlParser.HOST_ID, 0); }
@@ -137864,6 +141807,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHOST_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHOST_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATETIMEOFFSETFROMPARTSContext : Built_in_functionsContext {
@@ -137902,6 +141851,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATETIMEOFFSETFROMPARTS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATETIMEOFFSETFROMPARTS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class COSContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -137921,6 +141876,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class COTContext : Built_in_functionsContext {
@@ -137942,6 +141903,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FILE_IDContext : Built_in_functionsContext {
 		public ExpressionContext file_name;
@@ -137961,6 +141928,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILE_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILE_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ASSEMBLYPROPERTYContext : Built_in_functionsContext {
@@ -137986,6 +141959,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitASSEMBLYPROPERTY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitASSEMBLYPROPERTY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class STUFFContext : Built_in_functionsContext {
@@ -138017,6 +141996,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSTUFF(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSTUFF(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class IS_ROLEMEMBERContext : Built_in_functionsContext {
 		public ExpressionContext role;
@@ -138042,6 +142027,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIS_ROLEMEMBER(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIS_ROLEMEMBER(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SQL_VARIANT_PROPERTYContext : Built_in_functionsContext {
 		public ExpressionContext expr;
@@ -138065,6 +142056,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSQL_VARIANT_PROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSQL_VARIANT_PROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class GREATESTContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GREATEST() { return GetToken(TSqlParser.GREATEST, 0); }
@@ -138084,6 +142081,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGREATEST(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGREATEST(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class GETUTCDATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GETUTCDATE() { return GetToken(TSqlParser.GETUTCDATE, 0); }
@@ -138099,6 +142102,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGETUTCDATE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGETUTCDATE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class LOGINPROPERTYContext : Built_in_functionsContext {
@@ -138124,6 +142133,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLOGINPROPERTY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLOGINPROPERTY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CONCAT_WSContext : Built_in_functionsContext {
@@ -138156,6 +142171,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCONCAT_WS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCONCAT_WS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ERROR_STATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR_STATE() { return GetToken(TSqlParser.ERROR_STATE, 0); }
@@ -138171,6 +142192,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_STATE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_STATE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DAYContext : Built_in_functionsContext {
@@ -138191,6 +142218,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDAY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDAY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class PARSENAMEContext : Built_in_functionsContext {
@@ -138217,6 +142250,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPARSENAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPARSENAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class TANContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -138237,6 +142276,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTAN(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTAN(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_USERContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_USER() { return GetToken(TSqlParser.CURRENT_USER, 0); }
@@ -138250,6 +142295,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_USER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_USER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class PERMISSIONSContext : Built_in_functionsContext {
@@ -138276,6 +142327,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPERMISSIONS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPERMISSIONS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SYSDATETIMEOFFSETContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SYSDATETIMEOFFSET() { return GetToken(TSqlParser.SYSDATETIMEOFFSET, 0); }
@@ -138291,6 +142348,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSYSDATETIMEOFFSET(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSYSDATETIMEOFFSET(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class INDEXPROPERTYContext : Built_in_functionsContext {
@@ -138321,6 +142384,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitINDEXPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitINDEXPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class OBJECTPROPERTYEXContext : Built_in_functionsContext {
 		public ExpressionContext id;
@@ -138345,6 +142414,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOBJECTPROPERTYEX(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOBJECTPROPERTYEX(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SUBSTRINGContext : Built_in_functionsContext {
@@ -138375,6 +142450,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSUBSTRING(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSUBSTRING(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class BINARY_CHECKSUMContext : Built_in_functionsContext {
 		public IToken star;
@@ -138402,6 +142483,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBINARY_CHECKSUM(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBINARY_CHECKSUM(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class INDEXKEY_PROPERTYContext : Built_in_functionsContext {
@@ -138433,6 +142520,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitINDEXKEY_PROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitINDEXKEY_PROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class PWDENCRYPTContext : Built_in_functionsContext {
 		public ExpressionContext password;
@@ -138452,6 +142545,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPWDENCRYPT(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPWDENCRYPT(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class COMPRESSContext : Built_in_functionsContext {
@@ -138473,6 +142572,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOMPRESS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOMPRESS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class COALESCEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COALESCE() { return GetToken(TSqlParser.COALESCE, 0); }
@@ -138491,6 +142596,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOALESCE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOALESCE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class STATS_DATEContext : Built_in_functionsContext {
@@ -138517,6 +142628,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSTATS_DATE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSTATS_DATE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ISNUMERICContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ISNUMERIC() { return GetToken(TSqlParser.ISNUMERIC, 0); }
@@ -138535,6 +142652,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitISNUMERIC(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitISNUMERIC(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ACOSContext : Built_in_functionsContext {
@@ -138556,6 +142679,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitACOS(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitACOS(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class FILEGROUP_NAMEContext : Built_in_functionsContext {
 		public ExpressionContext filegroup_id;
@@ -138575,6 +142704,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILEGROUP_NAME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILEGROUP_NAME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class COLUMNPROPERTYContext : Built_in_functionsContext {
@@ -138605,6 +142740,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCOLUMNPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCOLUMNPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DB_IDContext : Built_in_functionsContext {
 		public ExpressionContext database_name;
@@ -138624,6 +142765,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDB_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDB_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class SOUNDEXContext : Built_in_functionsContext {
@@ -138645,6 +142792,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSOUNDEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSOUNDEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURSOR_ROWSContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURSOR_ROWS() { return GetToken(TSqlParser.CURSOR_ROWS, 0); }
@@ -138658,6 +142811,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURSOR_ROWS(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURSOR_ROWS(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FULLTEXTCATALOGPROPERTYContext : Built_in_functionsContext {
@@ -138684,6 +142843,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFULLTEXTCATALOGPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFULLTEXTCATALOGPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class TYPEPROPERTYContext : Built_in_functionsContext {
 		public ExpressionContext type;
@@ -138709,6 +142874,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTYPEPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTYPEPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SCHEMA_NAMEContext : Built_in_functionsContext {
 		public ExpressionContext schema_id;
@@ -138729,6 +142900,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSCHEMA_NAME(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSCHEMA_NAME(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class TYPE_IDContext : Built_in_functionsContext {
 		public ExpressionContext type_name;
@@ -138748,6 +142925,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTYPE_ID(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTYPE_ID(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class TRY_CASTContext : Built_in_functionsContext {
@@ -138771,6 +142954,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTRY_CAST(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTRY_CAST(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class APPLOCK_MODEContext : Built_in_functionsContext {
@@ -138801,6 +142990,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAPPLOCK_MODE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAPPLOCK_MODE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_DATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_DATE() { return GetToken(TSqlParser.CURRENT_DATE, 0); }
@@ -138817,6 +143012,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_DATE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_DATE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class GETDATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode GETDATE() { return GetToken(TSqlParser.GETDATE, 0); }
@@ -138832,6 +143033,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGETDATE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGETDATE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CERT_IDContext : Built_in_functionsContext {
@@ -138853,6 +143060,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCERT_ID(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCERT_ID(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ATANContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -138873,6 +143086,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitATAN(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitATAN(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CONNECTIONPROPERTYContext : Built_in_functionsContext {
 		public IToken property;
@@ -138891,6 +143110,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCONNECTIONPROPERTY(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCONNECTIONPROPERTY(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ERROR_NUMBERContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ERROR_NUMBER() { return GetToken(TSqlParser.ERROR_NUMBER, 0); }
@@ -138906,6 +143131,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_NUMBER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_NUMBER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ERROR_LINEContext : Built_in_functionsContext {
@@ -138923,6 +143154,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitERROR_LINE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitERROR_LINE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class CURRENT_TIMESTAMPContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode CURRENT_TIMESTAMP() { return GetToken(TSqlParser.CURRENT_TIMESTAMP, 0); }
@@ -138936,6 +143173,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCURRENT_TIMESTAMP(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCURRENT_TIMESTAMP(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class CONCATContext : Built_in_functionsContext {
@@ -138967,6 +143210,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCONCAT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCONCAT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class JSON_ARRAYContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode JSON_ARRAY() { return GetToken(TSqlParser.JSON_ARRAY, 0); }
@@ -138988,6 +143237,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_ARRAY(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_ARRAY(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class ROUNDContext : Built_in_functionsContext {
@@ -139018,6 +143273,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitROUND(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitROUND(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DATALENGTHContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DATALENGTH() { return GetToken(TSqlParser.DATALENGTH, 0); }
@@ -139037,6 +143298,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATALENGTH(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATALENGTH(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class HOST_NAMEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode HOST_NAME() { return GetToken(TSqlParser.HOST_NAME, 0); }
@@ -139052,6 +143319,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHOST_NAME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHOST_NAME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATABASEPROPERTYEXContext : Built_in_functionsContext {
@@ -139078,6 +143351,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATABASEPROPERTYEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATABASEPROPERTYEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class ORIGINAL_DB_NAMEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ORIGINAL_DB_NAME() { return GetToken(TSqlParser.ORIGINAL_DB_NAME, 0); }
@@ -139093,6 +143372,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitORIGINAL_DB_NAME(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitORIGINAL_DB_NAME(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FILEPROPERTYEXContext : Built_in_functionsContext {
@@ -139119,6 +143404,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFILEPROPERTYEX(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFILEPROPERTYEX(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class RTRIMContext : Built_in_functionsContext {
 		public ExpressionContext character_expression;
@@ -139138,6 +143429,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRTRIM(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRTRIM(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class JSON_OBJECTContext : Built_in_functionsContext {
@@ -139169,6 +143466,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitJSON_OBJECT(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitJSON_OBJECT(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class XACT_STATEContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode XACT_STATE() { return GetToken(TSqlParser.XACT_STATE, 0); }
@@ -139184,6 +143487,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXACT_STATE(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXACT_STATE(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class FORMATMESSAGEContext : Built_in_functionsContext {
@@ -139217,6 +143526,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFORMATMESSAGE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFORMATMESSAGE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class DATEDIFF_BIGContext : Built_in_functionsContext {
 		public Dateparts_12Context datepart;
@@ -139249,6 +143564,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATEDIFF_BIG(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATEDIFF_BIG(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class USERContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode USER() { return GetToken(TSqlParser.USER, 0); }
@@ -139262,6 +143583,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitUSER(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitUSER(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DEGREESContext : Built_in_functionsContext {
@@ -139283,6 +143610,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDEGREES(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDEGREES(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class LENContext : Built_in_functionsContext {
 		public ExpressionContext string_expression;
@@ -139302,6 +143635,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitLEN(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitLEN(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class TRANSLATEContext : Built_in_functionsContext {
@@ -139332,6 +143671,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTRANSLATE(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTRANSLATE(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class SWITCHOFFSETContext : Built_in_functionsContext {
 		public ExpressionContext datetimeoffset_expression;
@@ -139357,6 +143702,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSWITCHOFFSET(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSWITCHOFFSET(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class PIContext : Built_in_functionsContext {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode PI() { return GetToken(TSqlParser.PI, 0); }
@@ -139372,6 +143723,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPI(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPI(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class DATE_BUCKETContext : Built_in_functionsContext {
@@ -139406,6 +143763,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDATE_BUCKET(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDATE_BUCKET(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 	public partial class EXPContext : Built_in_functionsContext {
 		public ExpressionContext float_expression;
@@ -139425,6 +143788,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEXP(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEXP(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 	public partial class STRINGAGGContext : Built_in_functionsContext {
@@ -139461,6 +143830,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSTRINGAGG(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSTRINGAGG(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -145384,6 +149759,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitXml_data_type_methods(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitXml_data_type_methods(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -145469,6 +149850,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDateparts_9(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDateparts_9(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -145525,6 +149912,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDateparts_12(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDateparts_12(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -145641,6 +150034,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDateparts_15(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDateparts_15(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -145763,6 +150162,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDateparts_datetrunc(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDateparts_datetrunc(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -145893,6 +150298,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitValue_method(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitValue_method(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -145988,6 +150399,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitValue_call(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitValue_call(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -146061,6 +150478,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQuery_method(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQuery_method(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -147107,6 +151530,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQuery_call(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQuery_call(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -147176,6 +151605,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExist_method(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExist_method(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -148222,6 +152657,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExist_call(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExist_call(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -148291,6 +152732,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitModify_method(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitModify_method(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -149337,6 +153784,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitModify_call(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitModify_call(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -149411,6 +153864,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHierarchyid_call(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHierarchyid_call(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -149545,6 +154004,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitHierarchyid_static_method(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitHierarchyid_static_method(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -149635,6 +154100,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNodes_method(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNodes_method(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -150689,6 +155160,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSwitch_section(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSwitch_section(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -150743,6 +155220,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSwitch_search_condition_section(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSwitch_search_condition_section(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -150792,6 +155275,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAs_column_alias(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAs_column_alias(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -150848,6 +155337,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAs_table_alias(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAs_table_alias(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -150901,6 +155396,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_alias(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_alias(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -150956,6 +155457,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWith_table_hints(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWith_table_hints(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -151035,6 +155542,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDeprecated_table_hint(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDeprecated_table_hint(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -151084,6 +155597,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSybase_legacy_hints(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSybase_legacy_hints(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -151147,6 +155666,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSybase_legacy_hint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSybase_legacy_hint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -151243,6 +155768,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_hint(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_hint(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -151538,6 +156069,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitIndex_value(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitIndex_value(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -152576,6 +157113,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_alias_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_alias_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -152642,6 +157185,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_alias(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_alias(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -153687,6 +158236,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_value_constructor(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_value_constructor(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -153768,6 +158323,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitExpression_list_(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitExpression_list_(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -153838,6 +158399,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRanking_windowed_function(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRanking_windowed_function(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -153947,6 +158514,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAggregate_windowed_function(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAggregate_windowed_function(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -155164,6 +159737,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAnalytic_windowed_function(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAnalytic_windowed_function(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -155373,6 +159952,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAll_distinct_expression(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAll_distinct_expression(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -155444,6 +160029,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOver_clause(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOver_clause(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -155529,6 +160120,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitRow_or_range_clause(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitRow_or_range_clause(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -155589,6 +160186,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWindow_frame_extent(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWindow_frame_extent(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -155659,6 +160262,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWindow_frame_bound(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWindow_frame_bound(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -155716,6 +160325,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWindow_frame_preceding(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWindow_frame_preceding(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -155787,6 +160402,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWindow_frame_following(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWindow_frame_following(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -155872,6 +160493,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCreate_database_option(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCreate_database_option(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -158023,6 +162650,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDatabase_filestream_option(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDatabase_filestream_option(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -158109,6 +162742,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDatabase_file_spec(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDatabase_file_spec(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -158184,6 +162823,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFile_group(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFile_group(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -158312,6 +162957,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFile_spec(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFile_spec(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -159474,6 +164125,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEntity_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEntity_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -159572,6 +164229,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEntity_name_for_azure_dw(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEntity_name_for_azure_dw(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -159638,6 +164301,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEntity_name_for_parallel_dw(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEntity_name_for_parallel_dw(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -159710,6 +164379,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFull_table_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFull_table_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -159829,6 +164504,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitTable_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitTable_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -159925,6 +164606,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSimple_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSimple_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -159985,6 +164672,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_proc_name_schema(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_proc_name_schema(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -160055,6 +164748,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_proc_name_database_schema(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_proc_name_database_schema(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -160151,6 +164850,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFunc_proc_name_server_database_schema(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFunc_proc_name_server_database_schema(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -160244,6 +164949,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitDdl_object(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitDdl_object(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -161280,6 +165991,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFull_column_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFull_column_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -162367,6 +167084,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_name_list_with_order(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_name_list_with_order(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -162470,6 +167193,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitInsert_column_name_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitInsert_column_name_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -162540,6 +167269,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitInsert_column_id(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitInsert_column_id(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -162622,6 +167357,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitColumn_name_list(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitColumn_name_list(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -162684,6 +167425,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitCursor_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitCursor_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -163710,6 +168457,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitOn_off(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitOn_off(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -163760,6 +168513,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitClustered(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitClustered(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -163809,6 +168568,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitNull_notnull(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitNull_notnull(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -163867,6 +168632,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitScalar_function_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitScalar_function_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -163953,6 +168724,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBegin_conversation_timer(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBegin_conversation_timer(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164066,6 +168843,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitBegin_conversation_dialog(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitBegin_conversation_dialog(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164254,6 +169037,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitContract_name(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitContract_name(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -164313,6 +169102,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitService_name(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitService_name(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164389,6 +169184,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitEnd_conversation(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitEnd_conversation(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164514,6 +169315,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitWaitfor_conversation(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitWaitfor_conversation(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -164613,6 +169420,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitGet_conversation(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitGet_conversation(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -164694,6 +169507,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitQueue_id(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitQueue_id(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164779,6 +169598,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSend_conversation(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSend_conversation(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -164899,6 +169724,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitData_type(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitData_type(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -165057,6 +169888,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitConstant(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitConstant(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -165196,6 +170033,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitPrimitive_constant(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitPrimitive_constant(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -166272,6 +171115,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitKeyword(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitKeyword(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -166328,6 +171177,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitId_(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitId_(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -167382,6 +172237,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitSimple_id(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitSimple_id(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -167425,6 +172286,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitId_or_string(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitId_or_string(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -168453,6 +173320,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitComparison_operator(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitComparison_operator(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -168575,6 +173448,12 @@ public partial class TSqlParser : Parser {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitAssignment_operator(this);
 		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitAssignment_operator(this);
+			else return visitor.VisitChildren(this);
+		}
 	}
 
 	[RuleVersion(0)]
@@ -168628,6 +173507,12 @@ public partial class TSqlParser : Parser {
 		public override void ExitRule(IParseTreeListener listener) {
 			ITSqlParserListener typedListener = listener as ITSqlParserListener;
 			if (typedListener != null) typedListener.ExitFile_size(this);
+		}
+		[System.Diagnostics.DebuggerNonUserCode]
+		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
+			ITSqlParserVisitor<TResult> typedVisitor = visitor as ITSqlParserVisitor<TResult>;
+			if (typedVisitor != null) return typedVisitor.VisitFile_size(this);
+			else return visitor.VisitChildren(this);
 		}
 	}
 
@@ -175068,3 +179953,4 @@ public partial class TSqlParser : Parser {
 
 
 }
+} // namespace SqlServer

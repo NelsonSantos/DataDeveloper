@@ -38,18 +38,6 @@ public static class SqlCompletionProvider
         @"(?ix)\bset\b",
         RegexOptions.Compiled);
 
-    private static readonly Regex CteRegex = new(
-        $@"(?ix)
-        (?:
-            \bwith\s+
-          | ,
-        )
-        (?<name>{IdentifierPattern})
-        \s*
-        (?:\((?<columns>[^)]*)\)\s*)?
-        as\s*\(",
-        RegexOptions.Compiled);
-
     private static readonly ConcurrentDictionary<Guid, SchemaCompletionCache> SchemaCache = new();
 
     public static bool ShouldTriggerCompletion(string? text)
@@ -330,12 +318,27 @@ public static class SqlCompletionProvider
         IReadOnlyDictionary<string, string[]> cteDefinitions)
     {
         var aliases = new Dictionary<string, CompletionSource>(StringComparer.OrdinalIgnoreCase);
+        var tokens = TokenizeSql(editorText);
 
-        foreach (Match match in AliasRegex.Matches(editorText))
+        for (var i = 0; i < tokens.Count; i++)
         {
-            var alias = NormalizeIdentifier(match.Groups["alias"].Value);
-            var sourceName = NormalizeIdentifier(match.Groups["table"].Value);
-            if (string.IsNullOrWhiteSpace(alias) || string.IsNullOrWhiteSpace(sourceName))
+            if (!IsKeyword(tokens, i, "from") &&
+                !IsKeyword(tokens, i, "join") &&
+                !IsKeyword(tokens, i, "update") &&
+                !IsKeyword(tokens, i, "into"))
+            {
+                continue;
+            }
+
+            var cursor = i + 1;
+            if (!TryReadQualifiedName(tokens, ref cursor, out var sourceName))
+                continue;
+
+            var aliasCursor = cursor;
+            if (IsKeyword(tokens, aliasCursor, "as"))
+                aliasCursor++;
+
+            if (!TryReadIdentifier(tokens, ref aliasCursor, out var alias) || IsReservedAliasKeyword(alias))
                 continue;
 
             sourceName = sourceName.Contains('.') ? sourceName.Split('.').Last() : sourceName;
@@ -349,23 +352,53 @@ public static class SqlCompletionProvider
     private static Dictionary<string, string[]> ExtractCteDefinitions(string editorText)
     {
         var result = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
+        var tokens = TokenizeSql(editorText);
+        var index = 0;
 
-        foreach (Match match in CteRegex.Matches(editorText))
+        while (index < tokens.Count && tokens[index].Kind == SqlScanTokenKind.Symbol && tokens[index].Text == ";")
+            index++;
+
+        if (!IsKeyword(tokens, index, "with"))
+            return result;
+
+        index++;
+        while (index < tokens.Count)
         {
-            var cteName = NormalizeIdentifier(match.Groups["name"].Value);
-            if (string.IsNullOrWhiteSpace(cteName))
-                continue;
+            if (!TryReadIdentifier(tokens, ref index, out var cteName))
+                break;
 
-            var explicitColumns = ParseExplicitCteColumns(match.Groups["columns"].Value);
+            string[] explicitColumns = Array.Empty<string>();
+            if (index < tokens.Count && tokens[index].Kind == SqlScanTokenKind.Symbol && tokens[index].Text == "(")
+            {
+                if (!TryReadParenthesizedTokenRange(tokens, ref index, out var columnsStart, out var columnsEnd))
+                    break;
+
+                explicitColumns = ParseExplicitCteColumns(editorText[columnsStart..columnsEnd]);
+            }
+
+            if (!IsKeyword(tokens, index, "as"))
+                break;
+
+            index++;
+            if (!TryReadParenthesizedTokenRange(tokens, ref index, out var bodyStart, out var bodyEnd))
+                break;
+
             if (explicitColumns.Length > 0)
             {
                 result[cteName] = explicitColumns;
+            }
+            else
+            {
+                result[cteName] = InferColumnsFromQuery(editorText[bodyStart..bodyEnd]);
+            }
+
+            if (index < tokens.Count && tokens[index].Kind == SqlScanTokenKind.Symbol && tokens[index].Text == ",")
+            {
+                index++;
                 continue;
             }
 
-            var bodyStart = match.Index + match.Length;
-            var cteBody = ExtractParenthesizedContent(editorText, bodyStart);
-            result[cteName] = InferColumnsFromQuery(cteBody);
+            break;
         }
 
         return result;
@@ -384,25 +417,9 @@ public static class SqlCompletionProvider
         if (!string.IsNullOrWhiteSpace(objectNameBeforeDot))
             return new CompletionContext(SqlClause.None, CompletionTrigger.Columns, objectNameBeforeDot, targetTableName, isInsideInsertColumnList, isInsideUpdateSetList);
 
-        var matches = Regex.Matches(textBeforeCaret, @"(?ix)\b(select|from|join|where|group\s+by|order\s+by|update|into|set|delete)\b");
-        if (matches.Count == 0)
+        var clause = DetectLastClause(textBeforeCaret);
+        if (clause == SqlClause.None)
             return new CompletionContext(SqlClause.None, CompletionTrigger.Any, null, targetTableName, isInsideInsertColumnList, isInsideUpdateSetList);
-
-        var token = matches[^1].Value.ToUpperInvariant().Replace(" ", "");
-        var clause = token switch
-        {
-            "SELECT" => SqlClause.Select,
-            "FROM" => SqlClause.From,
-            "JOIN" => SqlClause.Join,
-            "WHERE" => SqlClause.Where,
-            "GROUPBY" => SqlClause.GroupBy,
-            "ORDERBY" => SqlClause.OrderBy,
-            "UPDATE" => SqlClause.Update,
-            "INTO" => SqlClause.Into,
-            "SET" => SqlClause.Set,
-            "DELETE" => SqlClause.Delete,
-            _ => SqlClause.None
-        };
 
         var trigger = clause switch
         {
@@ -414,6 +431,103 @@ public static class SqlCompletionProvider
         };
 
         return new CompletionContext(clause, trigger, null, targetTableName, isInsideInsertColumnList, isInsideUpdateSetList);
+    }
+
+    private static SqlClause DetectLastClause(string textBeforeCaret)
+    {
+        var tokens = TokenizeSql(textBeforeCaret);
+        var clause = SqlClause.None;
+        var parenDepth = 0;
+
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i].Kind == SqlScanTokenKind.Symbol)
+            {
+                if (tokens[i].Text == "(")
+                {
+                    parenDepth++;
+                    continue;
+                }
+
+                if (tokens[i].Text == ")")
+                {
+                    if (parenDepth > 0)
+                        parenDepth--;
+                    continue;
+                }
+            }
+
+            if (parenDepth > 0)
+                continue;
+
+            if (IsKeyword(tokens, i, "group") && IsKeyword(tokens, i + 1, "by"))
+            {
+                clause = SqlClause.GroupBy;
+                i++;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "order") && IsKeyword(tokens, i + 1, "by"))
+            {
+                clause = SqlClause.OrderBy;
+                i++;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "select"))
+            {
+                clause = SqlClause.Select;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "from"))
+            {
+                clause = SqlClause.From;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "join") ||
+                (IsKeyword(tokens, i, "inner") && IsKeyword(tokens, i + 1, "join")) ||
+                (IsKeyword(tokens, i, "left") && IsKeyword(tokens, i + 1, "join")) ||
+                (IsKeyword(tokens, i, "right") && IsKeyword(tokens, i + 1, "join")) ||
+                (IsKeyword(tokens, i, "full") && IsKeyword(tokens, i + 1, "join")) ||
+                (IsKeyword(tokens, i, "cross") && IsKeyword(tokens, i + 1, "join")))
+            {
+                clause = SqlClause.Join;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "where"))
+            {
+                clause = SqlClause.Where;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "update"))
+            {
+                clause = SqlClause.Update;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "into"))
+            {
+                clause = SqlClause.Into;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "set"))
+            {
+                clause = SqlClause.Set;
+                continue;
+            }
+
+            if (IsKeyword(tokens, i, "delete"))
+            {
+                clause = SqlClause.Delete;
+            }
+        }
+
+        return clause;
     }
 
     private static double GetObjectPriority(CompletionKind kind, SqlClause clause)
@@ -438,18 +552,39 @@ public static class SqlCompletionProvider
 
     private static string? DetectTargetTableName(string textBeforeCaret)
     {
-        Match? latestMatch = null;
-        foreach (var regex in new[] { UpdateTargetRegex, InsertTargetRegex, DeleteTargetRegex })
+        var tokens = TokenizeSql(textBeforeCaret);
+        string? targetTable = null;
+
+        for (var i = 0; i < tokens.Count; i++)
         {
-            var match = GetLastMatch(regex, textBeforeCaret);
-            if (match.Success && (latestMatch is null || match.Index > latestMatch.Index))
-                latestMatch = match;
+            var cursor = i;
+            if (IsKeyword(tokens, cursor, "insert") && IsKeyword(tokens, cursor + 1, "into"))
+            {
+                cursor += 2;
+            }
+            else if (IsKeyword(tokens, cursor, "update"))
+            {
+                cursor += 1;
+            }
+            else if (IsKeyword(tokens, cursor, "delete") && IsKeyword(tokens, cursor + 1, "from"))
+            {
+                cursor += 2;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (!TryReadQualifiedName(tokens, ref cursor, out var parsedName))
+                continue;
+
+            targetTable = parsedName;
         }
 
-        if (latestMatch is null)
+        if (string.IsNullOrWhiteSpace(targetTable))
             return null;
 
-        var tableName = NormalizeIdentifier(latestMatch.Groups["table"].Value);
+        var tableName = NormalizeIdentifier(targetTable);
         if (tableName.Contains('.'))
             tableName = tableName.Split('.').Last();
 
@@ -533,6 +668,126 @@ public static class SqlCompletionProvider
         return value.Trim().Trim('[', ']', '`', '"');
     }
 
+    private static bool IsKeyword(IReadOnlyList<SqlScanToken> tokens, int index, string keyword)
+    {
+        return index >= 0 &&
+               index < tokens.Count &&
+               tokens[index].Kind == SqlScanTokenKind.Word &&
+               string.Equals(tokens[index].UpperText, keyword, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryReadIdentifier(IReadOnlyList<SqlScanToken> tokens, ref int index, out string value)
+    {
+        value = string.Empty;
+        if (index >= tokens.Count || !tokens[index].IsIdentifier)
+            return false;
+
+        value = NormalizeIdentifier(tokens[index].Text);
+        index++;
+        return true;
+    }
+
+    private static bool TryReadQualifiedName(IReadOnlyList<SqlScanToken> tokens, ref int index, out string value)
+    {
+        value = string.Empty;
+        if (!TryReadIdentifier(tokens, ref index, out var first))
+            return false;
+
+        value = first;
+        if (index + 1 < tokens.Count &&
+            tokens[index].Kind == SqlScanTokenKind.Symbol &&
+            tokens[index].Text == "." &&
+            tokens[index + 1].IsIdentifier)
+        {
+            var second = NormalizeIdentifier(tokens[index + 1].Text);
+            value = $"{first}.{second}";
+            index += 2;
+        }
+
+        return true;
+    }
+
+    private static bool IsReservedAliasKeyword(string value)
+    {
+        return value.Equals("where", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("join", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("inner", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("left", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("right", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("full", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("cross", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("order", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("group", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("set", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("on", StringComparison.OrdinalIgnoreCase) ||
+               value.Equals("values", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<SqlScanToken> TokenizeSql(string text)
+    {
+        var tokens = new List<SqlScanToken>();
+        var index = 0;
+
+        while (index < text.Length)
+        {
+            var current = text[index];
+            if (char.IsWhiteSpace(current))
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '-' && index + 1 < text.Length && text[index + 1] == '-')
+            {
+                index += 2;
+                while (index < text.Length && text[index] != '\n')
+                    index++;
+                continue;
+            }
+
+            if (current == '/' && index + 1 < text.Length && text[index + 1] == '*')
+            {
+                index += 2;
+                while (index + 1 < text.Length && !(text[index] == '*' && text[index + 1] == '/'))
+                    index++;
+
+                if (index + 1 < text.Length)
+                    index += 2;
+
+                continue;
+            }
+
+            if (current is '[' or '`' or '"')
+            {
+                var closing = current == '[' ? ']' : current;
+                var start = index++;
+                while (index < text.Length && text[index] != closing)
+                    index++;
+
+                if (index < text.Length)
+                    index++;
+
+                tokens.Add(new SqlScanToken(text[start..index], SqlScanTokenKind.Identifier, start, index));
+                continue;
+            }
+
+            if (char.IsLetter(current) || current == '_')
+            {
+                var start = index++;
+                while (index < text.Length && (char.IsLetterOrDigit(text[index]) || text[index] is '_' or '$'))
+                    index++;
+
+                tokens.Add(new SqlScanToken(text[start..index], SqlScanTokenKind.Word, start, index));
+                continue;
+            }
+
+            tokens.Add(new SqlScanToken(text[index].ToString(), SqlScanTokenKind.Symbol, index, index + 1));
+            index++;
+        }
+
+        return tokens;
+    }
+
     private static bool IsIdentifierCharacter(char ch, bool allowClosingQuoteOnly)
     {
         return char.IsLetterOrDigit(ch) ||
@@ -557,25 +812,49 @@ public static class SqlCompletionProvider
             .ToArray();
     }
 
-    private static string ExtractParenthesizedContent(string text, int startIndex)
+    private static bool TryReadParenthesizedTokenRange(
+        IReadOnlyList<SqlScanToken> tokens,
+        ref int index,
+        out int contentStart,
+        out int contentEnd)
     {
+        contentStart = 0;
+        contentEnd = 0;
+
+        if (index >= tokens.Count || tokens[index].Kind != SqlScanTokenKind.Symbol || tokens[index].Text != "(")
+            return false;
+
         var depth = 1;
-        for (var i = startIndex; i < text.Length; i++)
+        contentStart = tokens[index].EndIndex;
+        index++;
+
+        while (index < tokens.Count)
         {
-            switch (text[i])
+            if (tokens[index].Kind == SqlScanTokenKind.Symbol)
             {
-                case '(':
+                if (tokens[index].Text == "(")
+                {
                     depth++;
-                    break;
-                case ')':
+                    index++;
+                    continue;
+                }
+
+                if (tokens[index].Text == ")")
+                {
                     depth--;
                     if (depth == 0)
-                        return text[startIndex..i];
-                    break;
+                    {
+                        contentEnd = tokens[index].StartIndex;
+                        index++;
+                        return true;
+                    }
+                }
             }
+
+            index++;
         }
 
-        return text[startIndex..];
+        return false;
     }
 
     private static string[] InferColumnsFromQuery(string query)
@@ -583,94 +862,125 @@ public static class SqlCompletionProvider
         if (string.IsNullOrWhiteSpace(query))
             return Array.Empty<string>();
 
-        var selectIndex = query.IndexOf("select", StringComparison.OrdinalIgnoreCase);
+        var tokens = TokenizeSql(query);
+        var selectIndex = FindTopLevelKeyword(tokens, 0, "select");
         if (selectIndex < 0)
             return Array.Empty<string>();
 
-        var fromIndex = FindTopLevelFrom(query, selectIndex + 6);
-        var projection = fromIndex > selectIndex ? query[(selectIndex + 6)..fromIndex] : query[(selectIndex + 6)..];
+        var fromIndex = FindTopLevelKeyword(tokens, selectIndex + 1, "from");
+        var projectionTokens = fromIndex > selectIndex
+            ? tokens.Skip(selectIndex + 1).Take(fromIndex - selectIndex - 1).ToArray()
+            : tokens.Skip(selectIndex + 1).ToArray();
 
-        return SplitTopLevel(projection)
+        return SplitTopLevel(projectionTokens)
             .Select(InferColumnName)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
-    private static int FindTopLevelFrom(string query, int startIndex)
+    private static int FindTopLevelKeyword(IReadOnlyList<SqlScanToken> tokens, int startIndex, string keyword)
     {
         var depth = 0;
-        for (var i = startIndex; i < query.Length - 3; i++)
+        for (var i = startIndex; i < tokens.Count; i++)
         {
-            switch (query[i])
+            if (tokens[i].Kind == SqlScanTokenKind.Symbol)
             {
-                case '(':
+                if (tokens[i].Text == "(")
+                {
                     depth++;
-                    break;
-                case ')':
+                    continue;
+                }
+
+                if (tokens[i].Text == ")")
+                {
                     depth = Math.Max(0, depth - 1);
-                    break;
+                    continue;
+                }
             }
 
-            if (depth == 0 &&
-                i + 4 <= query.Length &&
-                string.Equals(query.Substring(i, 4), "from", StringComparison.OrdinalIgnoreCase) &&
-                IsWordBoundary(query, i - 1) &&
-                IsWordBoundary(query, i + 4))
-            {
+            if (depth == 0 && IsKeyword(tokens, i, keyword))
                 return i;
-            }
         }
 
         return -1;
     }
 
-    private static IEnumerable<string> SplitTopLevel(string value)
+    private static IEnumerable<IReadOnlyList<SqlScanToken>> SplitTopLevel(IReadOnlyList<SqlScanToken> tokens)
     {
         var depth = 0;
         var start = 0;
-        for (var i = 0; i < value.Length; i++)
+        for (var i = 0; i < tokens.Count; i++)
         {
-            switch (value[i])
+            if (tokens[i].Kind == SqlScanTokenKind.Symbol)
             {
-                case '(':
+                if (tokens[i].Text == "(")
+                {
                     depth++;
-                    break;
-                case ')':
+                    continue;
+                }
+
+                if (tokens[i].Text == ")")
+                {
                     depth = Math.Max(0, depth - 1);
-                    break;
-                case ',' when depth == 0:
-                    yield return value[start..i].Trim();
+                    continue;
+                }
+
+                if (tokens[i].Text == "," && depth == 0)
+                {
+                    yield return tokens.Skip(start).Take(i - start).ToArray();
                     start = i + 1;
-                    break;
+                }
             }
         }
 
-        if (start < value.Length)
-            yield return value[start..].Trim();
+        if (start < tokens.Count)
+            yield return tokens.Skip(start).ToArray();
     }
 
-    private static string InferColumnName(string expression)
+    private static string InferColumnName(IReadOnlyList<SqlScanToken> tokens)
     {
-        if (string.IsNullOrWhiteSpace(expression))
+        if (tokens.Count == 0)
             return string.Empty;
 
-        var asMatch = Regex.Match(expression, $@"(?ix)\bas\s+(?<alias>{IdentifierPattern})\s*$");
-        if (asMatch.Success)
-            return NormalizeIdentifier(asMatch.Groups["alias"].Value);
+        var depth = 0;
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (tokens[i].Kind == SqlScanTokenKind.Symbol)
+            {
+                if (tokens[i].Text == "(")
+                {
+                    depth++;
+                    continue;
+                }
 
-        var parts = expression.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length > 1)
-            return NormalizeIdentifier(parts[^1]);
+                if (tokens[i].Text == ")")
+                {
+                    depth = Math.Max(0, depth - 1);
+                    continue;
+                }
+            }
 
-        var lastDot = expression.LastIndexOf('.');
-        var candidate = lastDot >= 0 ? expression[(lastDot + 1)..] : expression;
-        return NormalizeIdentifier(candidate.Trim());
-    }
+            if (depth == 0 && IsKeyword(tokens, i, "as") && i + 1 < tokens.Count && tokens[i + 1].IsIdentifier)
+                return NormalizeIdentifier(tokens[i + 1].Text);
+        }
 
-    private static bool IsWordBoundary(string text, int index)
-    {
-        return index < 0 || index >= text.Length || (!char.IsLetterOrDigit(text[index]) && text[index] != '_');
+        for (var i = tokens.Count - 1; i >= 1; i--)
+        {
+            if (tokens[i].IsIdentifier &&
+                tokens[i - 1].Kind != SqlScanTokenKind.Symbol)
+                return NormalizeIdentifier(tokens[i].Text);
+        }
+
+        for (var i = tokens.Count - 1; i >= 2; i--)
+        {
+            if (tokens[i].IsIdentifier &&
+                tokens[i - 1].Kind == SqlScanTokenKind.Symbol &&
+                tokens[i - 1].Text == ".")
+                return NormalizeIdentifier(tokens[i].Text);
+        }
+
+        return tokens.LastOrDefault().IsIdentifier ? NormalizeIdentifier(tokens[^1].Text) : string.Empty;
     }
 
     private sealed class SchemaCompletionCache
@@ -705,6 +1015,19 @@ public static class SqlCompletionProvider
     }
 
     private sealed record CompletionSource(string Name, CompletionKind Kind);
+
+    private enum SqlScanTokenKind
+    {
+        Word,
+        Identifier,
+        Symbol
+    }
+
+    private readonly record struct SqlScanToken(string Text, SqlScanTokenKind Kind, int StartIndex, int EndIndex)
+    {
+        public string UpperText => Text.ToUpperInvariant();
+        public bool IsIdentifier => Kind is SqlScanTokenKind.Word or SqlScanTokenKind.Identifier;
+    }
 
     internal sealed record CompletionContext(
         SqlClause Clause,

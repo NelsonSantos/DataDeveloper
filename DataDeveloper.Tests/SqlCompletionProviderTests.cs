@@ -117,6 +117,28 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public void ManualRequest_AfterGroupBy_ReturnsColumnsTrigger()
+    {
+        var sql = "select * from clientes group by ";
+
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal(SqlCompletionProvider.SqlClause.GroupBy, request.Context.Clause);
+    }
+
+    [Fact]
+    public void ManualRequest_AfterOrderBy_ReturnsColumnsTrigger()
+    {
+        var sql = "select * from clientes order by ";
+
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        Assert.Equal(CompletionTrigger.Columns, request.Context.Trigger);
+        Assert.Equal(SqlCompletionProvider.SqlClause.OrderBy, request.Context.Clause);
+    }
+
+    [Fact]
     public void ManualRequest_AfterAliasDot_ReturnsColumnsTrigger()
     {
         var sql = "select c. from clientes c";
@@ -270,6 +292,48 @@ public class SqlCompletionProviderTests
 
         Assert.Contains(completions, item => item.Text == "id");
         Assert.Contains(completions, item => item.Text == "nome");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_ReturnsColumns_ForCteWithExplicitColumns()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = """
+                  with sales_cte (sale_id, customer_name) as (
+                      select id, nome
+                      from clientes
+                  )
+                  select s. from sales_cte s
+                  """;
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.IndexOf("select s.", StringComparison.Ordinal) + "select s.".Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.IndexOf("select s.", StringComparison.Ordinal) + "select s.".Length, request);
+
+        Assert.Contains(completions, item => item.Text == "sale_id");
+        Assert.Contains(completions, item => item.Text == "customer_name");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_ReturnsColumns_ForCteWithInferredProjectionAliases()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = """
+                  with sales_cte as (
+                      select c.id as sale_id, c.nome customer_name
+                      from clientes c
+                  )
+                  select s. from sales_cte s
+                  """;
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.IndexOf("select s.", StringComparison.Ordinal) + "select s.".Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.IndexOf("select s.", StringComparison.Ordinal) + "select s.".Length, request);
+
+        Assert.Contains(completions, item => item.Text == "sale_id");
+        Assert.Contains(completions, item => item.Text == "customer_name");
     }
 
     private static void SeedSchemaCache(Guid connectionId, string tableName, params string[] columns)
