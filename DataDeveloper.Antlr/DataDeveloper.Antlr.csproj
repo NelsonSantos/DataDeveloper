@@ -8,24 +8,14 @@
 
     <ItemGroup>
         <PackageReference Include="Antlr4.Runtime.Standard" Version="4.13.1" />
-        <PackageReference Include="Antlr4BuildTasks" Version="12.10" PrivateAssets="all" IncludeAssets="build" />
     </ItemGroup>
 
     <ItemGroup>
-        <Antlr4 Include="Antlr\SqlServer\TSqlLexer.g4">
-            <Listener>true</Listener>
-            <Visitor>true</Visitor>
-            <GAtn>true</GAtn>
-            <Package>SqlServer</Package>
-            <Error>true</Error>
-        </Antlr4>
-        <Antlr4 Include="Antlr\SqlServer\TSqlParser.g4">
-            <Listener>true</Listener>
-            <Visitor>true</Visitor>
-            <GAtn>true</GAtn>
-            <Package>SqlServer</Package>
-            <Error>true</Error>
-        </Antlr4>
+        <Compile Remove="Generated\SqlServer\TSqlParser.cs" />
+        <Compile Remove="Generated\SqlServer\TSqlParserBaseListener.cs" />
+        <Compile Remove="Generated\SqlServer\TSqlParserListener.cs" />
+        <Compile Remove="Generated\SqlServer\TSqlParserBaseVisitor.cs" />
+        <Compile Remove="Generated\SqlServer\TSqlParserVisitor.cs" />
     </ItemGroup>
 
 </Project>

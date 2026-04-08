@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using SqlServer;
 
@@ -7,13 +6,6 @@ namespace DataDeveloper.Data.Services;
 
 public class StatementSplitter
 {
-    private static readonly Regex OracleRoutineStartRegex = new(
-        @"^\s*create(\s+or\s+replace)?\s+(procedure|function)\b",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex OracleAnonymousBlockStartRegex = new(
-        @"^\s*(begin|declare)\b",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
     public static List<string> SplitStatements(string sqlText)
     {
         var statements = new List<string>();
@@ -24,6 +16,12 @@ public class StatementSplitter
                 continue;
 
             if (IsOracleRoutineBatch(batch))
+            {
+                statements.Add(batch.Trim());
+                continue;
+            }
+
+            if (IsOracleAnonymousBlockBatch(batch))
             {
                 statements.Add(batch.Trim());
                 continue;
@@ -155,11 +153,82 @@ public class StatementSplitter
 
     private static bool IsOracleRoutineBatch(string statement)
     {
-        return OracleRoutineStartRegex.IsMatch(statement);
+        var keywords = ReadLeadingKeywords(statement, 4);
+        if (keywords.Count < 2)
+            return false;
+
+        if (!string.Equals(keywords[0], "create", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var kindIndex = 1;
+        if (keywords.Count >= 4 &&
+            string.Equals(keywords[1], "or", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(keywords[2], "replace", StringComparison.OrdinalIgnoreCase))
+        {
+            kindIndex = 3;
+        }
+
+        return kindIndex < keywords.Count &&
+               (string.Equals(keywords[kindIndex], "procedure", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(keywords[kindIndex], "function", StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool ShouldKeepTrailingSemicolon(string statement)
     {
-        return OracleAnonymousBlockStartRegex.IsMatch(statement);
+        var keywords = ReadLeadingKeywords(statement, 1);
+        if (keywords.Count == 0)
+            return false;
+
+        return string.Equals(keywords[0], "begin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(keywords[0], "declare", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsOracleAnonymousBlockBatch(string statement)
+    {
+        return ShouldKeepTrailingSemicolon(statement) &&
+               statement.TrimEnd().EndsWith("end;", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<string> ReadLeadingKeywords(string statement, int maxKeywords)
+    {
+        var keywords = new List<string>(maxKeywords);
+        var index = 0;
+
+        while (index < statement.Length && keywords.Count < maxKeywords)
+        {
+            while (index < statement.Length && char.IsWhiteSpace(statement[index]))
+                index++;
+
+            if (index + 1 < statement.Length && statement[index] == '-' && statement[index + 1] == '-')
+            {
+                index += 2;
+                while (index < statement.Length && statement[index] != '\n')
+                    index++;
+                continue;
+            }
+
+            if (index + 1 < statement.Length && statement[index] == '/' && statement[index + 1] == '*')
+            {
+                index += 2;
+                while (index + 1 < statement.Length && !(statement[index] == '*' && statement[index + 1] == '/'))
+                    index++;
+
+                if (index + 1 < statement.Length)
+                    index += 2;
+
+                continue;
+            }
+
+            if (index >= statement.Length || !char.IsLetter(statement[index]))
+                break;
+
+            var start = index++;
+            while (index < statement.Length && char.IsLetter(statement[index]))
+                index++;
+
+            keywords.Add(statement[start..index]);
+        }
+
+        return keywords;
     }
 }

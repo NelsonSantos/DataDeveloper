@@ -47,4 +47,34 @@ public class StatementExecutionClassifierTests
     {
         Assert.False(StatementExecutionClassifier.RequiresSchemaRefresh(statement));
     }
+
+    [Theory]
+    [InlineData("create table dbo.Test(Id int)", SchemaRefreshAction.Create, SchemaObjectType.Table, "dbo.Test")]
+    [InlineData("alter view dbo.ActiveCustomers as select 1", SchemaRefreshAction.Alter, SchemaObjectType.View, "dbo.ActiveCustomers")]
+    [InlineData("drop procedure dbo.MyProc", SchemaRefreshAction.Drop, SchemaObjectType.Procedure, "dbo.MyProc")]
+    [InlineData("truncate table dbo.Log", SchemaRefreshAction.Alter, SchemaObjectType.Table, "dbo.Log")]
+    public void ParseSchemaRefreshTarget_ReturnsExpectedTarget(
+        string statement,
+        SchemaRefreshAction expectedAction,
+        SchemaObjectType expectedObjectType,
+        string expectedName)
+    {
+        var target = StatementExecutionClassifier.ParseSchemaRefreshTarget(statement);
+
+        Assert.NotNull(target);
+        Assert.Equal(expectedAction, target!.Action);
+        Assert.Equal(expectedObjectType, target.ObjectType);
+        Assert.Equal(expectedName, target.ObjectName);
+    }
+
+    [Fact]
+    public void ParseSchemaRefreshTarget_ReturnsUnknownTarget_ForRename()
+    {
+        var target = StatementExecutionClassifier.ParseSchemaRefreshTarget("rename table old_name to new_name");
+
+        Assert.NotNull(target);
+        Assert.Equal(SchemaRefreshAction.Unknown, target!.Action);
+        Assert.Equal(SchemaObjectType.Unknown, target.ObjectType);
+        Assert.Null(target.ObjectName);
+    }
 }

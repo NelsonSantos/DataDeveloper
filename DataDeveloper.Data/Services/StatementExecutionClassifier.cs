@@ -7,11 +7,12 @@ public static class StatementExecutionClassifier
         if (string.IsNullOrWhiteSpace(statement))
             return false;
 
-        var trimmed = TrimLeadingTrivia(statement);
-        return trimmed.StartsWith("exec ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("execute ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("call ", System.StringComparison.OrdinalIgnoreCase) ||
-               (trimmed.StartsWith("begin", System.StringComparison.OrdinalIgnoreCase) && ContainsStandaloneExecOrCall(trimmed));
+        var tokens = Tokenize(statement);
+        if (tokens.Count == 0)
+            return false;
+
+        return IsRoutineInvocation(tokens, 0) ||
+               (IsKeyword(tokens, 0, "begin") && ContainsStandaloneExecOrCall(tokens));
     }
 
     public static bool RequiresSchemaRefresh(string statement)
@@ -19,12 +20,11 @@ public static class StatementExecutionClassifier
         if (string.IsNullOrWhiteSpace(statement))
             return false;
 
-        var trimmed = TrimLeadingTrivia(statement);
-        return trimmed.StartsWith("create ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("alter ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("drop ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("truncate ", System.StringComparison.OrdinalIgnoreCase) ||
-               trimmed.StartsWith("rename ", System.StringComparison.OrdinalIgnoreCase);
+        var tokens = Tokenize(statement);
+        if (tokens.Count == 0)
+            return false;
+
+        return tokens[0].UpperText is "CREATE" or "ALTER" or "DROP" or "TRUNCATE" or "RENAME";
     }
 
     public static SchemaRefreshTarget? ParseSchemaRefreshTarget(string statement)
@@ -32,15 +32,12 @@ public static class StatementExecutionClassifier
         if (string.IsNullOrWhiteSpace(statement))
             return null;
 
-        var trimmed = TrimLeadingTrivia(statement).TrimStart();
-        var tokens = trimmed
-            .Split((char[]?)null, 6, System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);
-
-        if (tokens.Length < 2)
+        var tokens = Tokenize(statement);
+        if (tokens.Count < 2)
             return null;
 
-        var action = tokens[0];
-        var objectKeyword = tokens[1];
+        var action = tokens[0].Text;
+        var objectKeyword = tokens[1].Text;
 
         if (action.Equals("truncate", System.StringComparison.OrdinalIgnoreCase) && objectKeyword.Equals("table", System.StringComparison.OrdinalIgnoreCase))
         {
@@ -56,13 +53,33 @@ public static class StatementExecutionClassifier
         return BuildTarget(tokens, 2, refreshAction, objectType);
     }
 
-    private static string TrimLeadingTrivia(string statement)
+    private static bool IsRoutineInvocation(IReadOnlyList<SqlToken> tokens, int index)
     {
+        return IsKeyword(tokens, index, "exec") ||
+               IsKeyword(tokens, index, "execute") ||
+               IsKeyword(tokens, index, "call");
+    }
+
+    private static bool IsKeyword(IReadOnlyList<SqlToken> tokens, int index, string keyword)
+    {
+        return index >= 0 &&
+               index < tokens.Count &&
+               tokens[index].Kind == SqlTokenKind.Word &&
+               string.Equals(tokens[index].UpperText, keyword, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static List<SqlToken> Tokenize(string statement)
+    {
+        var tokens = new List<SqlToken>();
         var index = 0;
+
         while (index < statement.Length)
         {
             while (index < statement.Length && char.IsWhiteSpace(statement[index]))
                 index++;
+
+            if (index >= statement.Length)
+                break;
 
             if (index + 1 < statement.Length && statement[index] == '-' && statement[index + 1] == '-')
             {
@@ -85,35 +102,53 @@ public static class StatementExecutionClassifier
                 continue;
             }
 
-            break;
+            if (statement[index] is '[' or '`' or '"')
+            {
+                var closing = statement[index] == '[' ? ']' : statement[index];
+                var start = index++;
+                while (index < statement.Length && statement[index] != closing)
+                    index++;
+
+                if (index < statement.Length)
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Identifier));
+                continue;
+            }
+
+            if (char.IsLetter(statement[index]) || statement[index] == '_')
+            {
+                var start = index++;
+                while (index < statement.Length && IsIdentifierChar(statement[index]))
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Word));
+                continue;
+            }
+
+            if (char.IsDigit(statement[index]))
+            {
+                var start = index++;
+                while (index < statement.Length && char.IsDigit(statement[index]))
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Other));
+                continue;
+            }
+
+            tokens.Add(new SqlToken(statement[index].ToString(), SqlTokenKind.Symbol));
+            index++;
         }
 
-        return statement[index..];
+        return tokens;
     }
 
-    private static bool ContainsStandaloneExecOrCall(string statement)
+    private static bool ContainsStandaloneExecOrCall(IReadOnlyList<SqlToken> tokens)
     {
-        return ContainsStandaloneKeyword(statement, "exec") ||
-               ContainsStandaloneKeyword(statement, "execute") ||
-               ContainsStandaloneKeyword(statement, "call");
-    }
-
-    private static bool ContainsStandaloneKeyword(string statement, string keyword)
-    {
-        var index = 0;
-        while (index >= 0 && index < statement.Length)
+        for (var i = 0; i < tokens.Count; i++)
         {
-            index = statement.IndexOf(keyword, index, System.StringComparison.OrdinalIgnoreCase);
-            if (index < 0)
-                return false;
-
-            var beforeIsIdentifier = index > 0 && IsIdentifierChar(statement[index - 1]);
-            var afterIndex = index + keyword.Length;
-            var afterIsIdentifier = afterIndex < statement.Length && IsIdentifierChar(statement[afterIndex]);
-            if (!beforeIsIdentifier && !afterIsIdentifier)
+            if (IsRoutineInvocation(tokens, i))
                 return true;
-
-            index = afterIndex;
         }
 
         return false;
@@ -121,7 +156,7 @@ public static class StatementExecutionClassifier
 
     private static bool IsIdentifierChar(char value)
     {
-        return char.IsLetterOrDigit(value) || value == '_' || value == '@';
+        return char.IsLetterOrDigit(value) || value == '_' || value == '@' || value == '$';
     }
 
     private static bool TryMapAction(string value, out SchemaRefreshAction action)
@@ -179,17 +214,38 @@ public static class StatementExecutionClassifier
         return false;
     }
 
-    private static SchemaRefreshTarget? BuildTarget(string[] tokens, int objectNameIndex, SchemaRefreshAction action, SchemaObjectType objectType)
+    private static SchemaRefreshTarget? BuildTarget(IReadOnlyList<SqlToken> tokens, int objectNameIndex, SchemaRefreshAction action, SchemaObjectType objectType)
     {
-        if (tokens.Length <= objectNameIndex)
+        if (tokens.Count <= objectNameIndex)
             return new SchemaRefreshTarget(action, objectType, null);
 
-        var objectName = tokens[objectNameIndex]
+        var objectName = tokens[objectNameIndex].Text
             .Trim()
             .TrimEnd(';', ',')
             .Trim('(', ')');
 
+        if (tokens.Count > objectNameIndex + 2 &&
+            tokens[objectNameIndex + 1].Kind == SqlTokenKind.Symbol &&
+            tokens[objectNameIndex + 1].Text == "." &&
+            tokens[objectNameIndex + 2].Kind is SqlTokenKind.Word or SqlTokenKind.Identifier)
+        {
+            objectName = $"{objectName}.{tokens[objectNameIndex + 2].Text.Trim().TrimEnd(';', ',').Trim('(', ')')}";
+        }
+
         return new SchemaRefreshTarget(action, objectType, objectName);
+    }
+
+    private enum SqlTokenKind
+    {
+        Word,
+        Identifier,
+        Symbol,
+        Other
+    }
+
+    private readonly record struct SqlToken(string Text, SqlTokenKind Kind)
+    {
+        public string UpperText => Text.ToUpperInvariant();
     }
 }
 

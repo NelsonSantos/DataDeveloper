@@ -190,6 +190,9 @@ public static class SqlTokenFormatter
         {
             DatabaseType.SqlServer => new TSqlLexer(new AntlrInputStream(sql)),
             DatabaseType.MySql => new MySQLLexer(new AntlrInputStream(sql)),
+            DatabaseType.PostgresSql => new PostgreSQLLexer(new AntlrInputStream(sql)),
+            DatabaseType.Oracle => new PlSqlLexer(new AntlrInputStream(sql)),
+            DatabaseType.SqLite => new SQLiteLexer(new AntlrInputStream(sql)),
             _ => null
         };
 

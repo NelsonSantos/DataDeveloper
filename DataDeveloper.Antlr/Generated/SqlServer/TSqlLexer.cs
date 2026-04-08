@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-// Generated from TSqlLexer.g4 by ANTLR 4.13.1
+// Generated from /Users/nelsosantos/Documents/Documents - Nelson’s MacBook Pro/Nelson Santos/Projetos/DataDeveloper/DataDeveloper.Antlr/Antlr/SqlServer/TSqlLexer.g4 by ANTLR 4.13.1
 
 // Unreachable code detected
 #pragma warning disable 0162
@@ -19,6 +19,7 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
+namespace SqlServer {
 using System;
 using System.IO;
 using System.Text;
@@ -6280,3 +6281,4 @@ public partial class TSqlLexer : Lexer {
 
 
 }
+} // namespace SqlServer

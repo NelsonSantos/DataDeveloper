@@ -1,56 +1,9 @@
-using System.Text.RegularExpressions;
 using DataDeveloper.Data.Models;
 
 namespace DataDeveloper.Data.Services;
 
 public static class ResultSetEditabilityAnalyzer
 {
-    private const string IdentifierPattern = @"(?:\[[^\]]+\]|`[^`]+`|""[^""]+""|[A-Za-z_][A-Za-z0-9_$]*)";
-
-    private static readonly Regex EditableSelectRegex = new(
-        $"""
-        ^\s*
-        select
-        \s+
-        (?:
-            \*
-            |
-            (?<projectionAlias>{IdentifierPattern})
-            \s*\.\s*
-            \*
-        )
-        \s+
-        from
-        \s+
-        (?<table>
-            {IdentifierPattern}
-            (?:\s*\.\s*{IdentifierPattern})?
-        )
-        (?:
-            \s+
-            (?:as\s+)?
-            (?<tableAlias>{IdentifierPattern})
-        )?
-        (?:
-            \s+
-            where
-            \b
-            .*?
-        )?
-        (?:
-            \s+
-            order
-            \s+
-            by
-            \b
-            .*?
-        )?
-        \s*
-        ;?
-        \s*$
-        """,
-        RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.CultureInvariant | RegexOptions.Singleline);
-
     public static ResultSetEditabilityInfo Analyze(
         string statement,
         IReadOnlyCollection<string>? resultColumns = null,
@@ -59,9 +12,7 @@ public static class ResultSetEditabilityAnalyzer
         if (string.IsNullOrWhiteSpace(statement))
             return new ResultSetEditabilityInfo(false, null, "Statement is empty.");
 
-        var trimmed = TrimLeadingTrivia(statement);
-        var match = EditableSelectRegex.Match(trimmed);
-        if (!match.Success)
+        if (!TryParseEditableSelect(statement, out var parsed))
         {
             return new ResultSetEditabilityInfo(
                 false,
@@ -69,11 +20,11 @@ public static class ResultSetEditabilityAnalyzer
                 "Only simple single-table 'select *' statements are editable.");
         }
 
-        var projectionAlias = match.Groups["projectionAlias"].Value;
-        var tableAlias = match.Groups["tableAlias"].Value;
+        var projectionAlias = parsed.ProjectionAlias;
+        var tableAlias = parsed.TableAlias;
         if (!string.IsNullOrWhiteSpace(projectionAlias) &&
             !string.IsNullOrWhiteSpace(tableAlias) &&
-            !string.Equals(projectionAlias, tableAlias, StringComparison.OrdinalIgnoreCase))
+            !string.Equals(NormalizeIdentifier(projectionAlias), NormalizeIdentifier(tableAlias), StringComparison.OrdinalIgnoreCase))
         {
             return new ResultSetEditabilityInfo(
                 false,
@@ -81,7 +32,7 @@ public static class ResultSetEditabilityAnalyzer
                 "Only simple single-table 'select *' statements are editable.");
         }
 
-        var tableName = NormalizeQualifiedName(match.Groups["table"].Value);
+        var tableName = parsed.TableName;
 
         if (tableColumns is null || resultColumns is null)
             return new ResultSetEditabilityInfo(true, tableName, null);
@@ -110,15 +61,206 @@ public static class ResultSetEditabilityAnalyzer
         return new ResultSetEditabilityInfo(true, tableName, null);
     }
 
-    private static string TrimLeadingTrivia(string statement)
+    private static bool TryParseEditableSelect(string statement, out ParsedEditableSelect parsed)
     {
+        var tokens = Tokenize(statement);
         var index = 0;
+        parsed = default;
+
+        if (!TryConsumeKeyword(tokens, ref index, "select"))
+            return false;
+
+        string? projectionAlias = null;
+        if (TryConsumeSymbol(tokens, ref index, "*"))
+        {
+        }
+        else
+        {
+            if (!TryConsumeIdentifier(tokens, ref index, out projectionAlias))
+                return false;
+
+            if (!TryConsumeSymbol(tokens, ref index, "."))
+                return false;
+
+            if (!TryConsumeSymbol(tokens, ref index, "*"))
+                return false;
+        }
+
+        if (!TryConsumeKeyword(tokens, ref index, "from"))
+            return false;
+
+        if (!TryConsumeQualifiedName(tokens, ref index, out var tableName))
+            return false;
+
+        string? tableAlias = null;
+        var aliasIndex = index;
+        TryConsumeKeyword(tokens, ref aliasIndex, "as");
+        if (TryConsumeAlias(tokens, ref aliasIndex, out var parsedAlias))
+        {
+            tableAlias = parsedAlias;
+            index = aliasIndex;
+        }
+
+        var foundWhere = false;
+        var foundOrderBy = false;
+        var parenDepth = 0;
+
+        while (index < tokens.Count)
+        {
+            if (TryConsumeSymbol(tokens, ref index, "("))
+            {
+                parenDepth++;
+                continue;
+            }
+
+            if (TryConsumeSymbol(tokens, ref index, ")"))
+            {
+                if (parenDepth > 0)
+                    parenDepth--;
+                continue;
+            }
+
+            if (TryConsumeSymbol(tokens, ref index, ";"))
+                continue;
+
+            if (parenDepth == 0 && !foundWhere && TryConsumeKeyword(tokens, ref index, "where"))
+            {
+                foundWhere = true;
+                continue;
+            }
+
+            if (parenDepth == 0 &&
+                !foundOrderBy &&
+                TryConsumeKeyword(tokens, ref index, "order") &&
+                TryConsumeKeyword(tokens, ref index, "by"))
+            {
+                foundOrderBy = true;
+                continue;
+            }
+
+            if (parenDepth == 0 && IsUnsupportedTopLevelToken(tokens, index))
+                return false;
+
+            index++;
+        }
+
+        parsed = new ParsedEditableSelect(
+            NormalizeQualifiedName(tableName),
+            projectionAlias,
+            tableAlias);
+        return true;
+    }
+
+    private static string NormalizeQualifiedName(string value)
+    {
+        var parts = value
+            .Split('.', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => part.Trim());
+
+        return string.Join(".", parts);
+    }
+
+    private static string NormalizeIdentifier(string value)
+    {
+        return value.Trim().Trim('[', ']', '`', '"');
+    }
+
+    private static bool IsUnsupportedTopLevelToken(IReadOnlyList<SqlToken> tokens, int index)
+    {
+        if (index < 0 || index >= tokens.Count)
+            return false;
+
+        return tokens[index].Kind == SqlTokenKind.Word &&
+               tokens[index].UpperText is "JOIN" or "INNER" or "LEFT" or "RIGHT" or "FULL" or "CROSS" or "GROUP" or "HAVING";
+    }
+
+    private static bool TryConsumeKeyword(IReadOnlyList<SqlToken> tokens, ref int index, string keyword)
+    {
+        if (index >= tokens.Count || tokens[index].Kind != SqlTokenKind.Word)
+            return false;
+
+        if (!string.Equals(tokens[index].UpperText, keyword, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        index++;
+        return true;
+    }
+
+    private static bool TryConsumeIdentifier(IReadOnlyList<SqlToken> tokens, ref int index, out string value)
+    {
+        value = string.Empty;
+        if (index >= tokens.Count || !tokens[index].IsIdentifier)
+            return false;
+
+        value = tokens[index].Text;
+        index++;
+        return true;
+    }
+
+    private static bool TryConsumeAlias(IReadOnlyList<SqlToken> tokens, ref int index, out string value)
+    {
+        value = string.Empty;
+        if (index >= tokens.Count || !tokens[index].IsIdentifier || IsReservedWord(tokens[index]))
+            return false;
+
+        value = tokens[index].Text;
+        index++;
+        return true;
+    }
+
+    private static bool TryConsumeSymbol(IReadOnlyList<SqlToken> tokens, ref int index, string symbol)
+    {
+        if (index >= tokens.Count || tokens[index].Kind != SqlTokenKind.Symbol)
+            return false;
+
+        if (!string.Equals(tokens[index].Text, symbol, StringComparison.Ordinal))
+            return false;
+
+        index++;
+        return true;
+    }
+
+    private static bool TryConsumeQualifiedName(IReadOnlyList<SqlToken> tokens, ref int index, out string value)
+    {
+        value = string.Empty;
+        if (!TryConsumeIdentifier(tokens, ref index, out var first))
+            return false;
+
+        value = first;
+        var nextIndex = index;
+        if (TryConsumeSymbol(tokens, ref nextIndex, ".") && TryConsumeIdentifier(tokens, ref nextIndex, out var second))
+        {
+            value = $"{first}.{second}";
+            index = nextIndex;
+        }
+
+        return true;
+    }
+
+    private static bool IsReservedWord(SqlToken token)
+    {
+        return token.Kind == SqlTokenKind.Word &&
+               token.UpperText is
+                   "WHERE" or "ORDER" or "GROUP" or "HAVING" or "JOIN" or "INNER" or
+                   "LEFT" or "RIGHT" or "FULL" or "CROSS" or "ON";
+    }
+
+    private static List<SqlToken> Tokenize(string statement)
+    {
+        var tokens = new List<SqlToken>();
+        var index = 0;
+
         while (index < statement.Length)
         {
-            while (index < statement.Length && char.IsWhiteSpace(statement[index]))
-                index++;
+            var current = statement[index];
 
-            if (index + 1 < statement.Length && statement[index] == '-' && statement[index + 1] == '-')
+            if (char.IsWhiteSpace(current))
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '-' && index + 1 < statement.Length && statement[index + 1] == '-')
             {
                 index += 2;
                 while (index < statement.Length && statement[index] != '\n')
@@ -127,7 +269,7 @@ public static class ResultSetEditabilityAnalyzer
                 continue;
             }
 
-            if (index + 1 < statement.Length && statement[index] == '/' && statement[index + 1] == '*')
+            if (current == '/' && index + 1 < statement.Length && statement[index + 1] == '*')
             {
                 index += 2;
                 while (index + 1 < statement.Length && !(statement[index] == '*' && statement[index + 1] == '/'))
@@ -139,18 +281,63 @@ public static class ResultSetEditabilityAnalyzer
                 continue;
             }
 
-            break;
+            if (current is '[' or '`' or '"')
+            {
+                var closing = current == '[' ? ']' : current;
+                var start = index++;
+                while (index < statement.Length && statement[index] != closing)
+                    index++;
+
+                if (index < statement.Length)
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Identifier));
+                continue;
+            }
+
+            if (char.IsLetter(current) || current == '_')
+            {
+                var start = index++;
+                while (index < statement.Length && (char.IsLetterOrDigit(statement[index]) || statement[index] is '_' or '$'))
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Word));
+                continue;
+            }
+
+            if (char.IsDigit(current))
+            {
+                var start = index++;
+                while (index < statement.Length && char.IsDigit(statement[index]))
+                    index++;
+
+                tokens.Add(new SqlToken(statement[start..index], SqlTokenKind.Other));
+                continue;
+            }
+
+            tokens.Add(new SqlToken(statement[index].ToString(), SqlTokenKind.Symbol));
+            index++;
         }
 
-        return statement[index..];
+        return tokens;
     }
 
-    private static string NormalizeQualifiedName(string value)
-    {
-        var parts = value
-            .Split('.', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(part => part.Trim());
+    private readonly record struct ParsedEditableSelect(
+        string TableName,
+        string? ProjectionAlias,
+        string? TableAlias);
 
-        return string.Join(".", parts);
+    private enum SqlTokenKind
+    {
+        Word,
+        Identifier,
+        Symbol,
+        Other
+    }
+
+    private readonly record struct SqlToken(string Text, SqlTokenKind Kind)
+    {
+        public string UpperText => Text.ToUpperInvariant();
+        public bool IsIdentifier => Kind is SqlTokenKind.Identifier or SqlTokenKind.Word;
     }
 }

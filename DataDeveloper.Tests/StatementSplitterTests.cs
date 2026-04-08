@@ -94,4 +94,37 @@ public class StatementSplitterTests
         var statement = Assert.Single(statements);
         Assert.Equal("""begin "MARK_ORDER_SHIPPED"(:p_order_id); end;""", statement);
     }
+
+    [Fact]
+    public void SplitStatements_KeepsOracleRoutineBodiesUntilSlashDelimiter_AfterLeadingComments()
+    {
+        var sql = """
+                  -- deploy comment
+                  create or replace procedure mark_order_shipped
+                  as
+                  begin
+                      null;
+                  end;
+                  /
+                  """;
+
+        var statements = StatementSplitter.SplitStatements(sql);
+
+        var statement = Assert.Single(statements);
+        Assert.Contains("create or replace procedure mark_order_shipped", statement);
+        Assert.DoesNotContain("/", statement);
+    }
+
+    [Fact]
+    public void SplitStatements_KeepsTerminalSemicolon_ForOracleDeclareBlock()
+    {
+        var sql = """
+                  declare v_order_id number := 1; begin null; end;
+                  """;
+
+        var statements = StatementSplitter.SplitStatements(sql);
+
+        var statement = Assert.Single(statements);
+        Assert.Equal("""declare v_order_id number := 1; begin null; end;""", statement);
+    }
 }
