@@ -5,6 +5,10 @@
     <TargetFramework>net8.0</TargetFramework>
     <RuntimeIdentifiers>osx-x64;osx-arm64;win-x64;linux-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/NelsonSantos/DataDeveloper</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/NelsonSantos/DataDeveloper</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
     <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
     <TrimMode>copyused</TrimMode>
     <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>

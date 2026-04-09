@@ -27,6 +27,10 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 
 - GitHub Releases: https://github.com/NelsonSantos/DataDeveloper/releases
 
+## License
+
+DataDeveloper is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
+
 ## Installation
 
 Download the latest package for your operating system from the GitHub Releases page.
@@ -66,3 +70,11 @@ chmod +x DataDeveloper-linux-x64.AppImage
 ```
 
 If your distribution requires FUSE support for AppImage, install the appropriate package first.
+
+## Disclaimer
+
+DataDeveloper is free and open source software.
+
+It is provided "as is", without warranties or guarantees of any kind, express or implied, including but not limited to merchantability, fitness for a particular purpose, and noninfringement.
+
+You are responsible for reviewing, validating, and safely using the software in your own environment, including any interaction with databases, credentials, schema changes, and executed SQL statements.
