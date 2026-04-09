@@ -47,6 +47,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   credential_id,
                                   name,
                                   database_type,
+                                  sql_server_authentication_mode,
                                   user_name,
                                   encrypt,
                                   trust_server_certificate,
@@ -79,6 +80,9 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             switch (connectionSettings)
             {
                 case SqlServerConnectionSettings sqlServer:
+                    sqlServer.AuthenticationMode = reader.IsDBNull(reader.GetOrdinal("sql_server_authentication_mode"))
+                        ? SqlServerAuthenticationMode.SqlLogin
+                        : (SqlServerAuthenticationMode)reader.GetInt32(reader.GetOrdinal("sql_server_authentication_mode"));
                     sqlServer.Server = reader.GetString(reader.GetOrdinal("server"));
                     sqlServer.Database = reader.GetString(reader.GetOrdinal("database_name"));
                     break;
@@ -159,6 +163,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             else if (item.CredentialId is not null)
             {
                 secretStore.DeleteAsync(item.CredentialId.Value.ToString()).GetAwaiter().GetResult();
+                item.CredentialId = null;
             }
 
             using var command = connection.CreateCommand();
@@ -170,6 +175,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       credential_id,
                                       name,
                                       database_type,
+                                      sql_server_authentication_mode,
                                       user_name,
                                       encrypt,
                                       trust_server_certificate,
@@ -186,6 +192,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       $credentialId,
                                       $name,
                                       $databaseType,
+                                      $sqlServerAuthenticationMode,
                                       $userName,
                                       $encrypt,
                                       $trustServerCertificate,
@@ -203,6 +210,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             command.Parameters.AddWithValue("$credentialId", item.CredentialId?.ToString() ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("$name", item.Name);
             command.Parameters.AddWithValue("$databaseType", (int)item.DatabaseType);
+            command.Parameters.AddWithValue("$sqlServerAuthenticationMode", GetSqlServerAuthenticationMode(item));
             command.Parameters.AddWithValue("$userName", item.User);
             command.Parameters.AddWithValue("$encrypt", item.Encrypt ? 1 : 0);
             command.Parameters.AddWithValue("$trustServerCertificate", item.TrustServerCertificate ? 1 : 0);
@@ -242,6 +250,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         else if (connectionSettings.CredentialId is not null && connectionSettings.IsPasswordLoaded)
         {
             _secretStore.DeleteAsync(connectionSettings.CredentialId.Value.ToString()).GetAwaiter().GetResult();
+            connectionSettings.CredentialId = null;
             connectionSettings.LoadedPasswordSnapshot = string.Empty;
         }
 
@@ -254,6 +263,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   credential_id,
                                   name,
                                   database_type,
+                                  sql_server_authentication_mode,
                                   user_name,
                                   encrypt,
                                   trust_server_certificate,
@@ -270,6 +280,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   $credentialId,
                                   $name,
                                   $databaseType,
+                                  $sqlServerAuthenticationMode,
                                   $userName,
                                   $encrypt,
                                   $trustServerCertificate,
@@ -284,6 +295,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   credential_id = excluded.credential_id,
                                   name = excluded.name,
                                   database_type = excluded.database_type,
+                                  sql_server_authentication_mode = excluded.sql_server_authentication_mode,
                                   user_name = excluded.user_name,
                                   encrypt = excluded.encrypt,
                                   trust_server_certificate = excluded.trust_server_certificate,
@@ -301,6 +313,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         command.Parameters.AddWithValue("$credentialId", connectionSettings.CredentialId?.ToString() ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("$name", connectionSettings.Name);
         command.Parameters.AddWithValue("$databaseType", (int)connectionSettings.DatabaseType);
+        command.Parameters.AddWithValue("$sqlServerAuthenticationMode", GetSqlServerAuthenticationMode(connectionSettings));
         command.Parameters.AddWithValue("$userName", connectionSettings.User);
         command.Parameters.AddWithValue("$encrypt", connectionSettings.Encrypt ? 1 : 0);
         command.Parameters.AddWithValue("$trustServerCertificate", connectionSettings.TrustServerCertificate ? 1 : 0);
@@ -347,6 +360,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   credential_id text null,
                                   name text not null,
                                   database_type integer not null,
+                                  sql_server_authentication_mode integer not null default 0,
                                   user_name text not null,
                                   encrypt integer not null,
                                   trust_server_certificate integer not null,
@@ -359,6 +373,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               );
                               """;
         command.ExecuteNonQuery();
+        EnsureColumnExists(connection, "sql_server_authentication_mode", "integer not null default 0");
 
         _isInitialized = true;
     }
@@ -430,4 +445,26 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             MySqlConnectionSettings mySql => (long)mySql.Port,
             _ => DBNull.Value
         };
+
+    private static int GetSqlServerAuthenticationMode(ConnectionSettings connectionSettings) =>
+        connectionSettings is SqlServerConnectionSettings sqlServer
+            ? (int)sqlServer.AuthenticationMode
+            : (int)SqlServerAuthenticationMode.SqlLogin;
+
+    private static void EnsureColumnExists(SqliteConnection connection, string columnName, string columnDefinition)
+    {
+        using var pragmaCommand = connection.CreateCommand();
+        pragmaCommand.CommandText = "pragma table_info(app_connection);";
+        using var reader = pragmaCommand.ExecuteReader();
+
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(reader.GetOrdinal("name")), columnName, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
+        using var alterCommand = connection.CreateCommand();
+        alterCommand.CommandText = $"alter table app_connection add column {columnName} {columnDefinition};";
+        alterCommand.ExecuteNonQuery();
+    }
 }

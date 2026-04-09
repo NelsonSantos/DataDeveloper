@@ -13,6 +13,7 @@ public class SqlServerDatabaseProviderTests
         {
             Server = "localhost",
             Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.SqlLogin,
             User = "sa",
             Password = "pwd",
             Encrypt = true,
@@ -27,6 +28,36 @@ public class SqlServerDatabaseProviderTests
         Assert.Equal("master", builder.InitialCatalog);
         Assert.True(builder.Encrypt);
         Assert.False(builder.TrustServerCertificate);
+        Assert.False(builder.IntegratedSecurity);
+        Assert.Equal("sa", builder.UserID);
+        Assert.Equal("pwd", builder.Password);
+    }
+
+    [Fact]
+    public void GetConnection_UsesIntegratedSecurity_ForWindowsAuthentication()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings
+        {
+            Server = @"(localdb)\MSSQLLocalDB",
+            Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
+            User = "sa",
+            Password = "pwd",
+            Encrypt = true,
+            TrustServerCertificate = true
+        });
+
+        var connection = provider.GetConnection();
+
+        var sqlConnection = Assert.IsType<SqlConnection>(connection);
+        var builder = new SqlConnectionStringBuilder(sqlConnection.ConnectionString);
+        Assert.Equal(@"(localdb)\MSSQLLocalDB", builder.DataSource);
+        Assert.Equal("master", builder.InitialCatalog);
+        Assert.True(builder.IntegratedSecurity);
+        Assert.True(builder.Encrypt);
+        Assert.True(builder.TrustServerCertificate);
+        Assert.True(string.IsNullOrEmpty(builder.UserID));
+        Assert.True(string.IsNullOrEmpty(builder.Password));
     }
 
     [Fact]

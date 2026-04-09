@@ -23,7 +23,7 @@ public class SchemaExplorer : ISchemaExplorer
         var connection = RootConnections.FirstOrDefault();
         if (connection is null)
         {
-            connection = new SchemaNode(NodeType.Connection, ConnectionSettings.Name, isFolder: true, parent: null)
+            connection = new SchemaNode(NodeType.Connection, BuildConnectionNodeName(), isFolder: true, parent: null)
             {
                 IsExpanded = true
             };
@@ -264,6 +264,23 @@ public class SchemaExplorer : ISchemaExplorer
     {
         var connection = RootConnections.FirstOrDefault();
         return connection?.Children.FirstOrDefault(child => child.NodeType == folderType);
+    }
+
+    private string BuildConnectionNodeName()
+    {
+        var databaseName = ConnectionSettings switch
+        {
+            DataDeveloper.Data.Providers.SqlServer.SqlServerConnectionSettings sqlServer => sqlServer.Database,
+            DataDeveloper.Data.Providers.MySql.MySqlConnectionSettings mySql => mySql.Database,
+            DataDeveloper.Data.Providers.PostgresSql.PostgresConnectionSettings postgres => postgres.Database,
+            DataDeveloper.Data.Providers.Oracle.OracleConnectionSettings oracle => oracle.Database,
+            DataDeveloper.Data.Providers.SqLite.SqLiteConnectionSettings sqLite => sqLite.Database,
+            _ => string.Empty
+        };
+
+        return string.IsNullOrWhiteSpace(databaseName)
+            ? ConnectionSettings.Name
+            : $"{ConnectionSettings.Name} ({databaseName})";
     }
 
     private async Task SyncObjectFolderAsync(SchemaNode folder, IEnumerable<string> objectNames, NodeType nodeType, Func<string, string?>? detailsFactory)

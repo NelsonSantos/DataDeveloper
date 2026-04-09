@@ -37,6 +37,18 @@ public sealed class ConnectionTypeFilterOption
     public bool HasDatabaseType => DatabaseType is not null;
 }
 
+public sealed class SqlServerAuthenticationOption
+{
+    public SqlServerAuthenticationOption(string displayName, SqlServerAuthenticationMode value)
+    {
+        DisplayName = displayName;
+        Value = value;
+    }
+
+    public string DisplayName { get; }
+    public SqlServerAuthenticationMode Value { get; }
+}
+
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
@@ -44,6 +56,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     private readonly ISecretStore _secretStore;
     private readonly IDialogService _dialogService;
     private readonly ObservableCollection<ConnectionSettings> _allConnections = new();
+    private readonly ObservableCollection<string> _availableDatabaseNames = new();
 
     public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore, IDialogService dialogService)
     {
@@ -60,6 +73,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
             new ConnectionTypeFilterOption("MySQL", DatabaseType.MySql),
             new ConnectionTypeFilterOption("SQLite", DatabaseType.SqLite)
         ];
+        SqlServerAuthenticationModes =
+        [
+            new SqlServerAuthenticationOption("SQL Server Authentication", SqlServerAuthenticationMode.SqlLogin),
+            new SqlServerAuthenticationOption("Windows Authentication", SqlServerAuthenticationMode.WindowsIntegrated)
+        ];
+        AvailableDatabaseNames = new ReadOnlyObservableCollection<string>(_availableDatabaseNames);
         LoadConnections();
         SelectedConnectionFilter = AvailableConnectionFilters[0];
         
@@ -111,6 +130,28 @@ public class ConnectionSelectorViewModel : ViewModelBase
             CreateSqLiteFileAsync,
             this.WhenAnyValue(x => x.SelectedConnection, x => x.IsSqLiteConnectionSelected, x => x.IsEditing,
                 (connection, isSqLite, isEditing) => connection is not null && isSqLite && isEditing));
+        RefreshDatabaseNamesCommand = ReactiveCommand.CreateFromTask(
+            RefreshDatabaseNamesAsync,
+            this.WhenAnyValue(x => x.SelectedConnection, x => x.CanRefreshDatabaseNames, x => x.IsEditing,
+                (connection, canRefresh, isEditing) => connection is not null && canRefresh && isEditing));
+
+        this.WhenAnyValue(x => x.SelectedConnection)
+            .Select(connection => connection is SqlServerConnectionSettings sqlServer
+                ? sqlServer.WhenAnyValue(x => x.AuthenticationMode)
+                : Observable.Return(SqlServerAuthenticationMode.SqlLogin))
+            .Switch()
+            .Subscribe(_ =>
+            {
+                this.RaisePropertyChanged(nameof(UsesCredentialsForSelectedConnection));
+                this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
+            });
+
+        this.WhenAnyValue(x => x.SelectedConnection)
+            .Subscribe(connection =>
+            {
+                LoadAvailableDatabaseNames(GetCurrentDatabaseName(connection));
+                this.RaisePropertyChanged(nameof(CanRefreshDatabaseNames));
+            });
     }
 
     private async Task DuplicateConnectionAsync()
@@ -188,7 +229,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
+    public ReadOnlyObservableCollection<string> AvailableDatabaseNames { get; }
     public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
+    public IReadOnlyList<SqlServerAuthenticationOption> SqlServerAuthenticationModes { get; }
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
@@ -207,6 +250,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(UsesCredentials));
             this.RaisePropertyChanged(nameof(ShowsSecurityOptions));
             this.RaisePropertyChanged(nameof(DatabaseLabel));
+            this.RaisePropertyChanged(nameof(UsesSqlServerAuthenticationMode));
+            this.RaisePropertyChanged(nameof(UsesCredentialsForSelectedConnection));
+            this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
         }
     }
 
@@ -239,7 +285,16 @@ public class ConnectionSelectorViewModel : ViewModelBase
         SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
     public bool IsServerConnectionSelected => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
     public bool UsesCredentials => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
+    public bool UsesSqlServerAuthenticationMode => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
+    public bool UsesCredentialsForSelectedConnection =>
+        SelectedConnection switch
+        {
+            SqlServerConnectionSettings sqlServer => sqlServer.AuthenticationMode == SqlServerAuthenticationMode.SqlLogin,
+            null => false,
+            _ => UsesCredentials
+        };
     public bool ShowsSecurityOptions => SelectedConnection?.DatabaseType is DatabaseType.SqlServer or DatabaseType.PostgresSql or DatabaseType.MySql;
+    public bool CanRefreshDatabaseNames => SelectedConnection?.DatabaseType is DatabaseType.SqlServer or DatabaseType.MySql or DatabaseType.PostgresSql;
     public string DatabaseLabel => SelectedConnection?.DatabaseType switch
     {
         DatabaseType.Oracle => "Service Name",
@@ -250,6 +305,19 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public string SecureStorageWarningMessage => _secretStore.UnavailableReason ?? string.Empty;
     public bool CanAddConnection => SelectedConnectionFilter?.DatabaseType is not null;
     public bool ShowFilterSelectionHint => !CanAddConnection;
+    public SqlServerAuthenticationOption? SelectedSqlServerAuthenticationOption
+    {
+        get => SelectedConnection is SqlServerConnectionSettings sqlServer
+            ? SqlServerAuthenticationModes.FirstOrDefault(option => option.Value == sqlServer.AuthenticationMode)
+            : null;
+        set
+        {
+            if (SelectedConnection is not SqlServerConnectionSettings sqlServer || value is null)
+                return;
+
+            sqlServer.AuthenticationMode = value.Value;
+        }
+    }
     
     public SqlConnectionInfo? ConnectionInfo { get; private set; }
 
@@ -263,6 +331,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> DuplicateConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectSqLiteFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CreateSqLiteFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> RefreshDatabaseNamesCommand { get; }
 
     private async Task OkAsync(StyledElement element)
     {
@@ -288,6 +357,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             return false;
         }
 
+        SanitizeAuthenticationSensitiveFields(SelectedConnection);
         await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
 
         if (!_secretStore.IsAvailable && !string.IsNullOrWhiteSpace(SelectedConnection.Password))
@@ -422,6 +492,18 @@ public class ConnectionSelectorViewModel : ViewModelBase
         };
     }
 
+    private static void SanitizeAuthenticationSensitiveFields(ConnectionSettings connectionSettings)
+    {
+        if (connectionSettings is not SqlServerConnectionSettings sqlServer ||
+            sqlServer.AuthenticationMode != SqlServerAuthenticationMode.WindowsIntegrated)
+            return;
+
+        sqlServer.User = string.Empty;
+        sqlServer.Password = string.Empty;
+        sqlServer.IsPasswordLoaded = true;
+        sqlServer.LoadedPasswordSnapshot = string.Empty;
+    }
+
     private async Task SelectSqLiteFileAsync()
     {
         if (SelectedConnection is not SqLiteConnectionSettings sqLiteConnection)
@@ -444,4 +526,58 @@ public class ConnectionSelectorViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(createdPath))
             sqLiteConnection.Database = createdPath;
     }
+
+    private async Task RefreshDatabaseNamesAsync()
+    {
+        if (SelectedConnection is null)
+            return;
+
+        try
+        {
+            await Task.Run(() => _connectionSettingsRepository.LoadPassword(SelectedConnection));
+            SanitizeAuthenticationSensitiveFields(SelectedConnection);
+            var databaseProvider = _databaseProviderFactoryService.GetDatabaseProvider(SelectedConnection);
+            var names = await Task.Run(() => databaseProvider.GetAvailableDatabaseNames());
+            LoadAvailableDatabaseNames(GetCurrentDatabaseName(SelectedConnection), names);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowDialogAsync(
+                $"Could not load databases\r\n\r\n{ex.Message}",
+                "Connection...",
+                DialogButtons.Ok,
+                DialogIcon.Error);
+        }
+    }
+
+    private void LoadAvailableDatabaseNames(string? currentDatabase, IEnumerable<string>? names = null)
+    {
+        _availableDatabaseNames.Clear();
+
+        var values = (names ?? Enumerable.Empty<string>())
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        foreach (var name in values)
+            _availableDatabaseNames.Add(name);
+
+        if (!string.IsNullOrWhiteSpace(currentDatabase) &&
+            !_availableDatabaseNames.Contains(currentDatabase, StringComparer.OrdinalIgnoreCase))
+        {
+            _availableDatabaseNames.Insert(0, currentDatabase);
+        }
+    }
+
+    private static string? GetCurrentDatabaseName(ConnectionSettings? connectionSettings) =>
+        connectionSettings switch
+        {
+            SqlServerConnectionSettings sqlServer => sqlServer.Database,
+            MySqlConnectionSettings mySql => mySql.Database,
+            PostgresConnectionSettings postgres => postgres.Database,
+            OracleConnectionSettings oracle => oracle.Database,
+            SqLiteConnectionSettings sqLite => sqLite.Database,
+            _ => null
+        };
 }

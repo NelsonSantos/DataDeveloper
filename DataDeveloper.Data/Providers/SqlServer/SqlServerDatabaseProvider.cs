@@ -16,15 +16,26 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
 
     public override DbConnection GetConnection()
     {
-        var connectionString =
-            $"Server={ConnectionSettings.Server};" +
-            $"Database={ConnectionSettings.Database};" +
-            $"User Id={ConnectionSettings.User};" +
-            $"Password={ConnectionSettings.Password};" +
-            $"Encrypt={ConnectionSettings.Encrypt};" +
-            $"TrustServerCertificate={ConnectionSettings.TrustServerCertificate};";
-        var conn = new SqlConnection(connectionString);
-        return conn;
+        return new SqlConnection(BuildConnectionString(ConnectionSettings.Database));
+    }
+
+    public override IReadOnlyList<string> GetAvailableDatabaseNames()
+    {
+        using var connection = new SqlConnection(BuildConnectionString("master"));
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+                              select name
+                              from sys.databases
+                              where state = 0
+                                and has_dbaccess(name) = 1
+                              order by name;
+                              """;
+        using var reader = command.ExecuteReader();
+        var names = new List<string>();
+        while (reader.Read())
+            names.Add(reader.GetString(0));
+        return names;
     }
 
     public override string GetTableStatement()
@@ -124,5 +135,28 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
                where concat(p.specific_schema, '.', p.specific_name) = @SpecificName
                order by p.ordinal_position;
                """;
+    }
+
+    private string BuildConnectionString(string? databaseName)
+    {
+        var builder = new SqlConnectionStringBuilder
+        {
+            DataSource = ConnectionSettings.Server,
+            InitialCatalog = string.IsNullOrWhiteSpace(databaseName) ? "master" : databaseName,
+            Encrypt = ConnectionSettings.Encrypt,
+            TrustServerCertificate = ConnectionSettings.TrustServerCertificate
+        };
+
+        if (ConnectionSettings.AuthenticationMode == SqlServerAuthenticationMode.WindowsIntegrated)
+        {
+            builder.IntegratedSecurity = true;
+        }
+        else
+        {
+            builder.UserID = ConnectionSettings.User;
+            builder.Password = ConnectionSettings.Password;
+        }
+
+        return builder.ConnectionString;
     }
 }

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reactive.Threading.Tasks;
 using DataDeveloper.Data.Enums;
+using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Providers.Oracle;
@@ -23,6 +25,7 @@ public class ConnectionSelectorViewModelTests
     {
         private readonly List<ConnectionSettings> _connections;
         public int DeleteCallCount { get; private set; }
+        public ConnectionSettings? LastSavedConnection { get; private set; }
 
         public FakeConnectionSettingsRepository(IEnumerable<ConnectionSettings>? connections = null)
         {
@@ -39,6 +42,7 @@ public class ConnectionSelectorViewModelTests
 
         public void Save(ConnectionSettings connectionSettings)
         {
+            LastSavedConnection = connectionSettings;
         }
 
         public void Delete(ConnectionSettings connectionSettings)
@@ -84,6 +88,38 @@ public class ConnectionSelectorViewModelTests
         public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult(OpenDatabaseFileResult);
 
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult(CreateDatabaseFileResult);
+    }
+
+    private sealed class FakeDatabaseProvider : IDatabaseProvider
+    {
+        private readonly IReadOnlyList<string> _databaseNames;
+
+        public FakeDatabaseProvider(IReadOnlyList<string> databaseNames)
+        {
+            _databaseNames = databaseNames;
+        }
+
+        public DbConnection GetConnection() => throw new NotSupportedException();
+        public TestConnectionResult TestConnection() => new(true, "ok");
+        public IReadOnlyList<string> GetAvailableDatabaseNames() => _databaseNames;
+        public string GetTableStatement() => string.Empty;
+        public string GetViewStatement() => string.Empty;
+        public string GetColumnStatement() => string.Empty;
+        public string GetProcedureStatement() => string.Empty;
+        public string GetFunctionStatement() => string.Empty;
+        public string GetRoutineParameterStatement() => string.Empty;
+    }
+
+    private sealed class FakeDatabaseProviderFactoryService : DatabaseProviderFactoryService
+    {
+        private readonly IDatabaseProvider _provider;
+
+        public FakeDatabaseProviderFactoryService(IDatabaseProvider provider)
+        {
+            _provider = provider;
+        }
+
+        public override IDatabaseProvider GetDatabaseProvider(IConnectionSettings connectionSettings) => _provider;
     }
 
     [Fact]
@@ -181,6 +217,125 @@ public class ConnectionSelectorViewModelTests
         Assert.Equal(DatabaseType.SqLite, connection.DatabaseType);
         Assert.Equal(string.Empty, connection.Database);
     }
+
+    [Fact]
+    public void SqlServer_UsesCredentialsForSelectedConnection_DependsOnAuthenticationMode()
+    {
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqlServer,
+            Name = "SQL Server",
+            Server = @"(localdb)\MSSQLLocalDB",
+            Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.SqlLogin
+        };
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedConnection = connection
+        };
+
+        Assert.True(viewModel.UsesSqlServerAuthenticationMode);
+        Assert.True(viewModel.UsesCredentialsForSelectedConnection);
+
+        viewModel.SelectedSqlServerAuthenticationOption = viewModel.SqlServerAuthenticationModes
+            .Single(option => option.Value == SqlServerAuthenticationMode.WindowsIntegrated);
+
+        Assert.False(viewModel.UsesCredentialsForSelectedConnection);
+    }
+
+    [Fact]
+    public async Task ApplyCommand_ClearsCredentials_ForSqlServerWindowsAuthentication()
+    {
+        var repository = new FakeConnectionSettingsRepository();
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqlServer,
+            Name = "SQL Server",
+            Server = @"(localdb)\MSSQLLocalDB",
+            Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
+            User = "sa",
+            Password = "secret",
+            CredentialId = Guid.NewGuid()
+        };
+        var viewModel = new ConnectionSelectorViewModel(
+            repository,
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedConnection = connection,
+            IsEditing = true
+        };
+
+        await viewModel.ApplyCommand.Execute(null!).ToTask();
+
+        var saved = Assert.IsType<SqlServerConnectionSettings>(repository.LastSavedConnection);
+        Assert.Equal(string.Empty, saved.User);
+        Assert.Equal(string.Empty, saved.Password);
+        Assert.True(saved.IsPasswordLoaded);
+        Assert.Equal(string.Empty, saved.LoadedPasswordSnapshot);
+    }
+
+    [Fact]
+    public async Task RefreshDatabaseNamesCommand_LoadsAvailableDatabases_AndPreservesCurrentValue()
+    {
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqlServer,
+            Name = "SQL Server",
+            Server = @"(localdb)\MSSQLLocalDB",
+            Database = "custom_db",
+            AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated
+        };
+        var provider = new FakeDatabaseProvider(["master", "tempdb", "model"]);
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeDatabaseProviderFactoryService(provider),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedConnection = connection,
+            IsEditing = true
+        };
+
+        await viewModel.RefreshDatabaseNamesCommand.Execute().ToTask();
+
+        Assert.True(viewModel.CanRefreshDatabaseNames);
+        Assert.Equal(["custom_db", "master", "model", "tempdb"], viewModel.AvailableDatabaseNames);
+    }
+
+    [Fact]
+    public void SelectingSqLiteConnection_DisablesDatabaseRefresh()
+    {
+        var connection = new SqLiteConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            DatabaseType = DatabaseType.SqLite,
+            Name = "SQLite",
+            Database = "/tmp/app.db"
+        };
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedConnection = connection
+        };
+
+        Assert.False(viewModel.CanRefreshDatabaseNames);
+        Assert.Single(viewModel.AvailableDatabaseNames);
+        Assert.Equal("/tmp/app.db", viewModel.AvailableDatabaseNames[0]);
+    }
+
 
     [Fact]
     public async Task SelectSqLiteFileCommand_UpdatesDatabasePath()

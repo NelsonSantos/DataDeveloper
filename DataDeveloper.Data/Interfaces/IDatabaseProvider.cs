@@ -8,6 +8,7 @@ public interface IDatabaseProvider
 {
     DbConnection GetConnection();
     TestConnectionResult TestConnection();
+    IReadOnlyList<string> GetAvailableDatabaseNames();
     string GetTableStatement();
     string GetViewStatement();
     string GetColumnStatement();

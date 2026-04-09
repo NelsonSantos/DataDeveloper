@@ -6,6 +6,8 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 ## Features
 
 - Manage saved database connections for SQL Server, Oracle, MySQL, PostgreSQL, and SQLite
+- Connect to SQL Server with SQL login or Windows Authentication, including LocalDB instances such as `(localdb)\MSSQLLocalDB`
+- Load visible database names for SQL Server, MySQL, and PostgreSQL directly from the connection dialog while still allowing manual entry
 - Configure Oracle connections with server, port, service name, and credentials, or point SQLite connections to a local database file
 - Store saved connections in a local app-state database
 - Store connection credentials using the operating system secure storage

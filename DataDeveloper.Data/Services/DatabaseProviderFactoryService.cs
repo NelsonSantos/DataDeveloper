@@ -10,7 +10,7 @@ namespace DataDeveloper.Data.Services;
 
 public class DatabaseProviderFactoryService
 {
-    public IDatabaseProvider GetDatabaseProvider(IConnectionSettings connectionSettings)
+    public virtual IDatabaseProvider GetDatabaseProvider(IConnectionSettings connectionSettings)
     {
         return connectionSettings.DatabaseType switch
         {
