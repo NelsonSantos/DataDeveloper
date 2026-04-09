@@ -1,6 +1,5 @@
 using System.Data;
 using System.Data.Common;
-using System.Text;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 
@@ -16,6 +15,7 @@ public abstract class DatabaseProviderBase<TConnectionSettings> : IDatabaseProvi
 
     public TConnectionSettings ConnectionSettings { get; }
     public abstract DbConnection GetConnection();
+    public virtual IReadOnlyList<string> GetAvailableDatabaseNames() => Array.Empty<string>();
     public abstract string GetTableStatement();
     public abstract string GetViewStatement();
     public abstract string GetColumnStatement();

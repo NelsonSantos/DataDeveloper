@@ -70,6 +70,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             DatabaseType = DatabaseType.SqlServer,
             Server = "sql.local",
             Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
             User = "sa",
             Password = "secret",
             Encrypt = true,
@@ -99,6 +100,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(sqlServer.CredentialId, loadedSqlServer.CredentialId);
         Assert.Equal(sqlServer.Server, loadedSqlServer.Server);
         Assert.Equal(sqlServer.Database, loadedSqlServer.Database);
+        Assert.Equal(sqlServer.AuthenticationMode, loadedSqlServer.AuthenticationMode);
         repository.LoadPassword(loadedSqlServer);
         Assert.Equal(sqlServer.Password, loadedSqlServer.Password);
 
@@ -283,6 +285,74 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal("first-secret", reloadedFirst.Password);
         Assert.Equal("second-secret", reloadedSecond.Password);
         Assert.Equal("Second updated", reloadedSecond.Name);
+    }
+
+    [Fact]
+    public void LoadAll_DefaultsSqlServerAuthenticationMode_WhenColumnIsMissing()
+    {
+        var databasePath = Path.Combine(_tempDirectory, "legacy.db");
+        using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={databasePath}"))
+        {
+            connection.Open();
+            using var createCommand = connection.CreateCommand();
+            createCommand.CommandText = """
+                                        create table app_connection
+                                        (
+                                            id text not null primary key,
+                                            credential_id text null,
+                                            name text not null,
+                                            database_type integer not null,
+                                            user_name text not null,
+                                            encrypt integer not null,
+                                            trust_server_certificate integer not null,
+                                            allow_blank_password integer not null,
+                                            server text not null,
+                                            database_name text not null,
+                                            port integer null,
+                                            created_at text not null,
+                                            updated_at text not null
+                                        );
+                                        insert into app_connection
+                                        (
+                                            id,
+                                            credential_id,
+                                            name,
+                                            database_type,
+                                            user_name,
+                                            encrypt,
+                                            trust_server_certificate,
+                                            allow_blank_password,
+                                            server,
+                                            database_name,
+                                            port,
+                                            created_at,
+                                            updated_at
+                                        )
+                                        values
+                                        (
+                                            '11111111-1111-1111-1111-111111111111',
+                                            null,
+                                            'Legacy SQL',
+                                            0,
+                                            'sa',
+                                            1,
+                                            0,
+                                            0,
+                                            'sql.local',
+                                            'master',
+                                            null,
+                                            '2026-04-08T00:00:00.0000000Z',
+                                            '2026-04-08T00:00:00.0000000Z'
+                                        );
+                                        """;
+            createCommand.ExecuteNonQuery();
+        }
+
+        var repository = new SqliteConnectionSettingsRepository(databasePath, new InMemorySecretStore());
+
+        var loaded = Assert.IsType<SqlServerConnectionSettings>(Assert.Single(repository.LoadAll()));
+
+        Assert.Equal(SqlServerAuthenticationMode.SqlLogin, loaded.AuthenticationMode);
     }
 
     [Fact]
