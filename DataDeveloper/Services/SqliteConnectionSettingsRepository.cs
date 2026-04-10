@@ -52,6 +52,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   encrypt,
                                   trust_server_certificate,
                                   allow_blank_password,
+                                  statement_timeout_seconds,
                                   server,
                                   database_name,
                                   port
@@ -76,6 +77,9 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             connectionSettings.Encrypt = reader.GetBoolean(reader.GetOrdinal("encrypt"));
             connectionSettings.TrustServerCertificate = reader.GetBoolean(reader.GetOrdinal("trust_server_certificate"));
             connectionSettings.AllowBlankPassword = reader.GetBoolean(reader.GetOrdinal("allow_blank_password"));
+            connectionSettings.StatementTimeoutSeconds = reader.IsDBNull(reader.GetOrdinal("statement_timeout_seconds"))
+                ? ConnectionSettings.DefaultStatementTimeoutSeconds
+                : NormalizeStatementTimeout(reader.GetInt32(reader.GetOrdinal("statement_timeout_seconds")));
 
             switch (connectionSettings)
             {
@@ -180,6 +184,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       encrypt,
                                       trust_server_certificate,
                                       allow_blank_password,
+                                      statement_timeout_seconds,
                                       server,
                                       database_name,
                                       port,
@@ -197,6 +202,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       $encrypt,
                                       $trustServerCertificate,
                                       $allowBlankPassword,
+                                      $statementTimeoutSeconds,
                                       $server,
                                       $databaseName,
                                       $port,
@@ -215,6 +221,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             command.Parameters.AddWithValue("$encrypt", item.Encrypt ? 1 : 0);
             command.Parameters.AddWithValue("$trustServerCertificate", item.TrustServerCertificate ? 1 : 0);
             command.Parameters.AddWithValue("$allowBlankPassword", item.AllowBlankPassword ? 1 : 0);
+            command.Parameters.AddWithValue("$statementTimeoutSeconds", NormalizeStatementTimeout(item.StatementTimeoutSeconds));
             command.Parameters.AddWithValue("$server", GetServer(item));
             command.Parameters.AddWithValue("$databaseName", GetDatabase(item));
             command.Parameters.AddWithValue("$port", GetPort(item));
@@ -268,6 +275,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   encrypt,
                                   trust_server_certificate,
                                   allow_blank_password,
+                                  statement_timeout_seconds,
                                   server,
                                   database_name,
                                   port,
@@ -285,6 +293,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   $encrypt,
                                   $trustServerCertificate,
                                   $allowBlankPassword,
+                                  $statementTimeoutSeconds,
                                   $server,
                                   $databaseName,
                                   $port,
@@ -300,6 +309,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   encrypt = excluded.encrypt,
                                   trust_server_certificate = excluded.trust_server_certificate,
                                   allow_blank_password = excluded.allow_blank_password,
+                                  statement_timeout_seconds = excluded.statement_timeout_seconds,
                                   server = excluded.server,
                                   database_name = excluded.database_name,
                                   port = excluded.port,
@@ -318,6 +328,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         command.Parameters.AddWithValue("$encrypt", connectionSettings.Encrypt ? 1 : 0);
         command.Parameters.AddWithValue("$trustServerCertificate", connectionSettings.TrustServerCertificate ? 1 : 0);
         command.Parameters.AddWithValue("$allowBlankPassword", connectionSettings.AllowBlankPassword ? 1 : 0);
+        command.Parameters.AddWithValue("$statementTimeoutSeconds", NormalizeStatementTimeout(connectionSettings.StatementTimeoutSeconds));
         command.Parameters.AddWithValue("$server", GetServer(connectionSettings));
         command.Parameters.AddWithValue("$databaseName", GetDatabase(connectionSettings));
         command.Parameters.AddWithValue("$port", GetPort(connectionSettings));
@@ -365,6 +376,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   encrypt integer not null,
                                   trust_server_certificate integer not null,
                                   allow_blank_password integer not null,
+                                  statement_timeout_seconds integer not null default 60,
                                   server text not null,
                                   database_name text not null,
                                   port integer null,
@@ -374,6 +386,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               """;
         command.ExecuteNonQuery();
         EnsureColumnExists(connection, "sql_server_authentication_mode", "integer not null default 0");
+        EnsureColumnExists(connection, "statement_timeout_seconds", "integer not null default 60");
 
         _isInitialized = true;
     }
@@ -450,6 +463,9 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         connectionSettings is SqlServerConnectionSettings sqlServer
             ? (int)sqlServer.AuthenticationMode
             : (int)SqlServerAuthenticationMode.SqlLogin;
+
+    private static int NormalizeStatementTimeout(int timeoutSeconds) =>
+        timeoutSeconds > 0 ? timeoutSeconds : ConnectionSettings.DefaultStatementTimeoutSeconds;
 
     private static void EnsureColumnExists(SqliteConnection connection, string columnName, string columnDefinition)
     {

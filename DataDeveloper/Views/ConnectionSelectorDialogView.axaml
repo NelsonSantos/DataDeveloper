@@ -196,6 +196,14 @@
                               IsEnabled="{Binding IsEditing}" />
                 </Grid>
 
+                <Grid RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Text="Statement timeout" />
+                    <ComboBox Grid.Row="1"
+                              ItemsSource="{Binding StatementTimeoutOptions}"
+                              SelectedItem="{Binding SelectedStatementTimeoutSeconds, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}" />
+                </Grid>
+
                 <TextBlock Text="Use 'Trust server certificate' only when the SQL Server certificate is not trusted on this machine."
                            FontSize="11"
                            Foreground="DarkGoldenrod"

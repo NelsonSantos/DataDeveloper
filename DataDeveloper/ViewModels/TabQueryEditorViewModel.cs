@@ -25,6 +25,7 @@ namespace DataDeveloper.ViewModels;
 
 public class TabQueryEditorViewModel : BaseTabContent
 {
+    private static readonly HashSet<int> SupportedRunTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly Dictionary<string, int> _cachePages = new();
     private IStatementExecutor? _activeStatementExecutor;
@@ -39,6 +40,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         
         ConnectionSettings = connectionSettings;
         File = file;
+        SelectedRunTimeoutSeconds = NormalizeRunTimeout(connectionSettings.StatementTimeoutSeconds);
 
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
@@ -344,5 +346,12 @@ public class TabQueryEditorViewModel : BaseTabContent
     {
         for (var current = exception; current is not null; current = current.InnerException)
             yield return current;
+    }
+
+    private static int NormalizeRunTimeout(int timeoutSeconds)
+    {
+        return SupportedRunTimeouts.Contains(timeoutSeconds)
+            ? timeoutSeconds
+            : DataDeveloper.Data.Models.ConnectionSettings.DefaultStatementTimeoutSeconds;
     }
 }

@@ -11,5 +11,6 @@ public interface IConnectionSettings
     bool Encrypt { get; set; }
     bool TrustServerCertificate { get; set; }
     bool AllowBlankPassword { get; set; }
+    int StatementTimeoutSeconds { get; set; }
     DatabaseType DatabaseType { get; set; }
 }
