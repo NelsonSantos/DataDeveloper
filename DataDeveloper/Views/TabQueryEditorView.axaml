@@ -25,6 +25,18 @@
             <RowDefinition Height="1*" MinHeight="{Binding ResultsHeaderHeight, Mode=OneWay}" />
         </Grid.RowDefinitions>
         <StackPanel x:Name="StackPanelEditor" Grid.Row="0" Margin="4" Background="#3C3F41" Orientation="Horizontal">
+            <TextBlock Text="Statement timeout:"
+                       Margin="0,0,6,0"
+                       VerticalAlignment="Center"
+                       Foreground="LightGray"
+                       FontSize="11" />
+            <ComboBox Width="72"
+                      Margin="0,0,8,0"
+                      SelectedItem="{Binding SelectedRunTimeoutSeconds, Mode=TwoWay}"
+                      ItemsSource="{Binding RunTimeoutOptions}"
+                      VerticalAlignment="Center"
+                      FontSize="11"
+                      FontFamily="{StaticResource MonospaceFont}" />
             <Button Background="Transparent" Command="{Binding ExecuteCommand}" IsEnabled="{Binding !StatementIsRunning}" ToolTip.Tip="F5 - Run the statement" >
                 <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04b;" Foreground="{Binding !StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
             </Button>
@@ -87,8 +99,42 @@
         </Grid>
         <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
         <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">
-            <StackPanel x:Name="StackPanelResult" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Background="Transparent" Margin="5" Click="ToggleTabs_Click">
+            <Grid x:Name="StackPanelResult" Grid.Row="0" ColumnDefinitions="*,Auto" Margin="4,0">
+                <StackPanel Grid.Column="0"
+                            Orientation="Horizontal"
+                            Spacing="10"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Margin="5,0">
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="11"
+                               FontFamily="{StaticResource MonospaceFont}">
+                        <Run Text="Cursor -> " Foreground="Gray"/>
+                        <Run Text="Lin:" Foreground="Gray"/>
+                        <Run Text="{Binding CursorLine}" />
+                        <Run Text=" Col:" Foreground="Gray"/>
+                        <Run Text="{Binding CursorColumn}" />
+                        <Run Text=" Offset:" Foreground="Gray"/>
+                        <Run Text="{Binding CursorOffSet}" />
+                    </TextBlock>
+                    <Border Width="1"
+                            Height="14"
+                            Background="LightGray"
+                            Opacity="0.5"
+                            VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ExecutionStatusMessage}"
+                               IsVisible="{Binding IsExecutionStatusVisible}"
+                               Foreground="LightGray"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource MonospaceFont}" />
+                    <ProgressBar Width="80"
+                                 Height="8"
+                                 IsIndeterminate="True"
+                                 IsVisible="{Binding IsExecutionStatusVisible}"
+                                 VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Grid.Column="1" Background="Transparent" Margin="5" Click="ToggleTabs_Click">
                     <TextBlock 
                         FontSize="12" 
                         Text="{Binding ResultIsMinimized, Converter={StaticResource BoolToIcon}, ConverterParameter='&#xf077;|&#xf078;'}" 
@@ -96,7 +142,7 @@
                         VerticalAlignment="Center" 
                         />
                 </Button>
-            </StackPanel>
+            </Grid>
             <Border Grid.Row="1" Background="LightGray" Height="0.5" Opacity="0.5" />
             <TabControl Grid.Row="2"  x:Name="Tabs" ItemsSource="{Binding Tabs}" SelectedIndex="{Binding SelectedTabIndex}">
                 <TabControl.ItemTemplate>

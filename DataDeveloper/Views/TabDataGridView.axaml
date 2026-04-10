@@ -26,11 +26,11 @@
                 VerticalAlignment="Center" 
                 ToolTip.Tip="{Binding SelectedPage, StringFormat='Load next {0} records'}"
                 Command="{Binding LoadNextPageCommand}"
-                IsEnabled="{Binding !IsBusy}"
+                IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
                     Text="&#xf04e;" FontFamily="{StaticResource FontAwesomeSolid}" 
-                    Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
+                    Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
             <Button Grid.Column="4"
@@ -38,11 +38,11 @@
                 VerticalAlignment="Center" 
                 ToolTip.Tip="Load all records"
                 Command="{Binding LoadAllRecordsCommand}"
-                IsEnabled="{Binding !IsBusy}"
+                IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
                     Text="&#xf050;" FontFamily="{StaticResource FontAwesomeSolid}"
-                    Foreground="{Binding !IsClosed, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
+                    Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
             <Border Grid.Column="5" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
@@ -50,37 +50,41 @@
                 Background="Transparent"
                 VerticalAlignment="Center"
                 ToolTip.Tip="Discard pending changes"
-                Command="{Binding DiscardChangesCommand}">
+                Command="{Binding DiscardChangesCommand}"
+                IsEnabled="{Binding CanDiscardChanges}">
                 <TextBlock
                     Text="&#xf2ea;" FontFamily="{StaticResource FontAwesomeSolid}"
-                    Foreground="{Binding HasPendingChanges, Converter={StaticResource BoolToColor}, ConverterParameter='Orange|Gray'}" />
+                    Foreground="{Binding CanDiscardChanges, Converter={StaticResource BoolToColor}, ConverterParameter='Orange|Gray'}" />
             </Button>
             <Button Grid.Column="7"
                 Background="Transparent"
                 VerticalAlignment="Center"
                 ToolTip.Tip="Add row"
-                Command="{Binding AddRowCommand}">
+                Command="{Binding AddRowCommand}"
+                IsEnabled="{Binding CanAddRow}">
                 <TextBlock
                     Text="&#xf067;" FontFamily="{StaticResource FontAwesomeSolid}"
-                    Foreground="{Binding IsEditableResult, Converter={StaticResource BoolToColor}, ConverterParameter='LightGreen|Gray'}" />
+                    Foreground="{Binding CanAddRow, Converter={StaticResource BoolToColor}, ConverterParameter='LightGreen|Gray'}" />
             </Button>
             <Button Grid.Column="8"
                 Background="Transparent"
                 VerticalAlignment="Center"
                 ToolTip.Tip="Delete selected row"
-                Command="{Binding DeleteRowCommand}">
+                Command="{Binding DeleteRowCommand}"
+                IsEnabled="{Binding CanDeleteRow}">
                 <TextBlock
                     Text="&#xf2ed;" FontFamily="{StaticResource FontAwesomeSolid}"
-                    Foreground="{Binding IsEditableResult, Converter={StaticResource BoolToColor}, ConverterParameter='Tomato|Gray'}" />
+                    Foreground="{Binding CanDeleteRow, Converter={StaticResource BoolToColor}, ConverterParameter='Tomato|Gray'}" />
             </Button>
             <Button Grid.Column="9"
                 Background="Transparent"
                 VerticalAlignment="Center"
                 ToolTip.Tip="Submit pending changes"
-                Command="{Binding SubmitChangesCommand}">
+                Command="{Binding SubmitChangesCommand}"
+                IsEnabled="{Binding CanSubmitChanges}">
                 <TextBlock
                     Text="&#xf0c7;" FontFamily="{StaticResource FontAwesomeSolid}"
-                    Foreground="{Binding HasPendingChanges, Converter={StaticResource BoolToColor}, ConverterParameter='DeepSkyBlue|Gray'}" />
+                    Foreground="{Binding CanSubmitChanges, Converter={StaticResource BoolToColor}, ConverterParameter='DeepSkyBlue|Gray'}" />
             </Button>
             <Border Grid.Column="10"
                     BorderThickness="0.5"

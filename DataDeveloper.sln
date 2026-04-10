@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper", "DataDeveloper\DataDeveloper.csproj", "{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataDeveloper", "DataDeveloper", "{FAF2B864-AE65-460A-BD62-163B1C1838DE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Data", "DataDeveloper.Data\DataDeveloper.Data.csproj", "{A4835CC5-C00D-4F16-943F-D57B3A8547CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Core", "DataDeveloper.Core\DataDeveloper.Core.csproj", "{C228BF58-BD11-40FB-B356-196CDFE2F5C3}"
@@ -16,8 +14,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.Tests", "DataDeveloper.Tests\DataDeveloper.Tests.csproj", "{2931C0B3-C706-4735-9A54-0A17968DC8EC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDeveloper.NextGrid", "DataDeveloper.NextGrid\DataDeveloper.NextGrid.csproj", "{D9C60A37-EAAE-4CC0-A20C-7E677A18F804}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Teste", "Teste", "{731F0731-3D84-4B85-AE63-9CECB1B445C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,10 +114,5 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{19B9B9F2-2D2B-41CB-ABF2-CDA0FC6BE9F5} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
-		{A4835CC5-C00D-4F16-943F-D57B3A8547CD} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
-		{C228BF58-BD11-40FB-B356-196CDFE2F5C3} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
-		{6575A120-9D75-4C77-A384-A198BC7A4F41} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
-		{D9C60A37-EAAE-4CC0-A20C-7E677A18F804} = {FAF2B864-AE65-460A-BD62-163B1C1838DE}
 	EndGlobalSection
 EndGlobal
