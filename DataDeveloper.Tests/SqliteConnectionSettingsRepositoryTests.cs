@@ -70,6 +70,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             DatabaseType = DatabaseType.SqlServer,
             Server = "sql.local",
             Database = "master",
+            Port = 1433,
             AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
             User = "sa",
             Password = "secret",
@@ -102,6 +103,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(sqlServer.CredentialId, loadedSqlServer.CredentialId);
         Assert.Equal(sqlServer.Server, loadedSqlServer.Server);
         Assert.Equal(sqlServer.Database, loadedSqlServer.Database);
+        Assert.Equal(sqlServer.Port, loadedSqlServer.Port);
         Assert.Equal(sqlServer.AuthenticationMode, loadedSqlServer.AuthenticationMode);
         Assert.Equal(sqlServer.StatementTimeoutSeconds, loadedSqlServer.StatementTimeoutSeconds);
         repository.LoadPassword(loadedSqlServer);
@@ -368,7 +370,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
                                             0,
                                             'sql.local',
                                             'master',
-                                            null,
+                                            1433,
                                             '2026-04-08T00:00:00.0000000Z',
                                             '2026-04-08T00:00:00.0000000Z'
                                         );
@@ -381,6 +383,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         var loaded = Assert.IsType<SqlServerConnectionSettings>(Assert.Single(repository.LoadAll()));
 
         Assert.Equal(SqlServerAuthenticationMode.SqlLogin, loaded.AuthenticationMode);
+        Assert.Equal(1433, loaded.Port);
     }
 
     [Fact]

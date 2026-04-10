@@ -89,6 +89,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                         : (SqlServerAuthenticationMode)reader.GetInt32(reader.GetOrdinal("sql_server_authentication_mode"));
                     sqlServer.Server = reader.GetString(reader.GetOrdinal("server"));
                     sqlServer.Database = reader.GetString(reader.GetOrdinal("database_name"));
+                    sqlServer.Port = reader.IsDBNull(reader.GetOrdinal("port")) ? 1433 : Convert.ToInt32(reader.GetInt64(reader.GetOrdinal("port")));
                     break;
                 case MySqlConnectionSettings mySql:
                     mySql.Server = reader.GetString(reader.GetOrdinal("server"));
@@ -453,6 +454,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
     private static object GetPort(ConnectionSettings connectionSettings) =>
         connectionSettings switch
         {
+            SqlServerConnectionSettings sqlServer => sqlServer.Port,
             OracleConnectionSettings oracle => oracle.Port,
             PostgresConnectionSettings postgres => postgres.Port,
             MySqlConnectionSettings mySql => (long)mySql.Port,

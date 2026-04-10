@@ -12,6 +12,7 @@ public class SqlServerDatabaseProviderTests
         var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings
         {
             Server = "localhost",
+            Port = 1433,
             Database = "master",
             AuthenticationMode = SqlServerAuthenticationMode.SqlLogin,
             User = "sa",
@@ -24,7 +25,7 @@ public class SqlServerDatabaseProviderTests
 
         var sqlConnection = Assert.IsType<SqlConnection>(connection);
         var builder = new SqlConnectionStringBuilder(sqlConnection.ConnectionString);
-        Assert.Equal("localhost", builder.DataSource);
+        Assert.Equal("localhost,1433", builder.DataSource);
         Assert.Equal("master", builder.InitialCatalog);
         Assert.True(builder.Encrypt);
         Assert.False(builder.TrustServerCertificate);
@@ -58,6 +59,26 @@ public class SqlServerDatabaseProviderTests
         Assert.True(builder.TrustServerCertificate);
         Assert.True(string.IsNullOrEmpty(builder.UserID));
         Assert.True(string.IsNullOrEmpty(builder.Password));
+    }
+
+    [Fact]
+    public void GetConnection_PreservesExplicitServerEndpoint_WhenPortIsAlreadyEmbedded()
+    {
+        var provider = new SqlServerDatabaseProvider(new SqlServerConnectionSettings
+        {
+            Server = "localhost,14333",
+            Port = 1433,
+            Database = "master",
+            AuthenticationMode = SqlServerAuthenticationMode.SqlLogin,
+            User = "sa",
+            Password = "pwd"
+        });
+
+        var connection = provider.GetConnection();
+
+        var sqlConnection = Assert.IsType<SqlConnection>(connection);
+        var builder = new SqlConnectionStringBuilder(sqlConnection.ConnectionString);
+        Assert.Equal("localhost,14333", builder.DataSource);
     }
 
     [Fact]

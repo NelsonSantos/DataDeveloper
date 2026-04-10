@@ -286,7 +286,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public bool IsSqLiteConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqLite;
     public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
     public bool IsPortConnectionSelected =>
-        SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
+        SelectedConnection?.DatabaseType is DatabaseType.SqlServer or DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
     public bool IsServerConnectionSelected => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
     public bool UsesCredentials => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
     public bool UsesSqlServerAuthenticationMode => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
@@ -449,6 +449,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Name = "New SQL Server connection",
                 Server = "",
                 Database = "",
+                Port = 1433,
                 User = "",
                 Password = "",
                 Encrypt = true,
