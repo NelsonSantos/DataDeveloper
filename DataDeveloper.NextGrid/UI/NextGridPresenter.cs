@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using DataDeveloper.NextGrid.Clipboard;
 using DataDeveloper.NextGrid.Editors;
@@ -39,6 +40,10 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     private double _lastMeasuredRowHeaderWidth = 44;
     private bool _isSelecting;
     private GridRegionKind _selectionOriginRegion;
+    private bool _isRefreshScheduled;
+    private bool _pendingScrollInvalidation;
+    private bool _pendingMeasureInvalidation;
+    private bool _pendingVisualInvalidation;
     private ObservableCollection<int>? _readOnlyColumnsSubscription;
 
     private ObservableCollection<string>? _headersSubscription;
@@ -176,8 +181,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                 return;
 
             _offset = clamped;
-            RaiseScrollInvalidated(EventArgs.Empty);
-            InvalidateVisual();
+            RequestRefresh(scroll: true, visual: true);
         }
     }
 
@@ -199,6 +203,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
     public event EventHandler? ScrollInvalidated;
     public event EventHandler<GridFocusedCellChangedEventArgs>? FocusedCellChanged;
+    public event EventHandler<GridSelectionChangedEventArgs>? SelectionChanged;
     public event EventHandler<GridCellEditRequestedEventArgs>? CellEditRequested;
     public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
     public event EventHandler? CellEditCanceled;
@@ -340,24 +345,39 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         {
             _autoWidthPending = true;
             _rowRenderCache.Clear();
-            InvalidateMeasure();
-            InvalidateVisual();
+            RequestRefresh(measure: true, visual: true);
         }
 
         if (e.Property == BoundsProperty)
         {
             Offset = ClampOffset(Offset);
-            RaiseScrollInvalidated(EventArgs.Empty);
-            InvalidateVisual();
+            RequestRefresh(scroll: true, visual: true);
         }
     }
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        var isRowsChange = ReferenceEquals(sender, Rows);
+        var shouldInvalidateVisual = true;
+
+        if (isRowsChange)
+        {
+            _tableController.SetDimensions(Rows.Count, Headers.Count);
+            UpdateControllerViewport();
+        }
+
         if (ReferenceEquals(sender, Rows))
         {
-            _autoWidthPending = true;
-            _rowRenderCache.Clear();
+            if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems is not null && !_autoWidthPending)
+            {
+                TrackAddedRowWidths(e.NewItems);
+                shouldInvalidateVisual = ShouldInvalidateVisualForAddedRows(e);
+            }
+            else
+            {
+                _autoWidthPending = true;
+                _rowRenderCache.Clear();
+            }
         }
 
         if (e.Action == NotifyCollectionChangedAction.Reset)
@@ -365,12 +385,43 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
         var rowHeaderWidthChanged = Math.Abs(GetRowHeaderWidth() - _lastMeasuredRowHeaderWidth) > 0.01d;
         Offset = ClampOffset(Offset);
-        RaiseScrollInvalidated(EventArgs.Empty);
+        RequestRefresh(scroll: true);
 
         if (e.Action == NotifyCollectionChangedAction.Reset || rowHeaderWidthChanged)
-            InvalidateMeasure();
+            RequestRefresh(measure: true);
 
-        InvalidateVisual();
+        if (shouldInvalidateVisual || rowHeaderWidthChanged || !isRowsChange)
+            RequestRefresh(visual: true);
+    }
+
+    private bool ShouldInvalidateVisualForAddedRows(NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewStartingIndex < 0)
+            return true;
+
+        var visibleRows = _tableController.GetRowRenderRange();
+        return e.NewStartingIndex < visibleRows.EndExclusive;
+    }
+
+    private void TrackAddedRowWidths(System.Collections.IList newItems)
+    {
+        _columnLayout.EnsureColumnCount(Headers.Count);
+
+        foreach (var item in newItems)
+        {
+            if (item is not IReadOnlyList<object?> row)
+                continue;
+
+            for (var columnIndex = 0; columnIndex < Headers.Count; columnIndex++)
+            {
+                var value = columnIndex < row.Count ? row[columnIndex] : null;
+                var renderer = GetColumnRenderer(columnIndex, value);
+                var width = renderer.MeasureWidth(value, GridRendererContext.Default, text => MeasureTextWidth(text, CellForeground)) + 16;
+                _columnLayout.TrackWidth(columnIndex, width);
+            }
+        }
+
+        _lastMeasuredRowHeaderWidth = GetRowHeaderWidth();
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -397,6 +448,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         {
             _tableController.Selection.SelectAll(Rows.Count, Headers.Count);
             Focus();
+            RaiseSelectionChanged();
             InvalidateVisual();
             return;
         }
@@ -410,6 +462,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         }
 
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
 
         Focus();
         InvalidateVisual();
@@ -441,9 +494,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             if (_columnLayout.SetWidth(_resizingColumnIndex.Value, width))
             {
                 _rowRenderCache.InvalidateColumn(_resizingColumnIndex.Value);
-                RaiseScrollInvalidated(EventArgs.Empty);
-                InvalidateMeasure();
-                InvalidateVisual();
+                RequestRefresh(scroll: true, measure: true, visual: true);
             }
 
             e.Handled = true;
@@ -477,6 +528,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         }
 
         InvalidateVisual();
+        RaiseSelectionChanged();
         e.Handled = true;
     }
 
@@ -553,6 +605,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             : _tableController.MoveFocus(direction.Value, step);
         Offset = ToScrollViewerOffset(result.HorizontalOffset, result.VerticalOffset);
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
         InvalidateVisual();
         e.Handled = true;
     }
@@ -633,11 +686,19 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         FocusedCellChanged?.Invoke(this, new GridFocusedCellChangedEventArgs(_tableController.Selection.FocusCell));
     }
 
+    private void RaiseSelectionChanged()
+    {
+        SelectionChanged?.Invoke(
+            this,
+            new GridSelectionChangedEventArgs(_tableController.Selection.FocusCell, _tableController.Selection.Ranges.ToArray()));
+    }
+
     private void AdvanceFocusAfterEdit(GridCellAddress cell)
     {
         if (cell.Column + 1 >= Headers.Count)
         {
             RaiseFocusedCellChanged();
+            RaiseSelectionChanged();
             return;
         }
 
@@ -646,6 +707,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         _tableController.Selection.SelectCell(visible.Cell);
         Offset = ToScrollViewerOffset(visible.HorizontalOffset, visible.VerticalOffset);
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
     }
 
     private void DrawHeaders(DrawingContext context, GridVisibleRange range)
@@ -851,6 +913,37 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         current.CollectionChanged += handler;
     }
 
+    private void RequestRefresh(bool scroll = false, bool measure = false, bool visual = false)
+    {
+        _pendingScrollInvalidation |= scroll;
+        _pendingMeasureInvalidation |= measure;
+        _pendingVisualInvalidation |= visual;
+
+        if (_isRefreshScheduled)
+            return;
+
+        _isRefreshScheduled = true;
+        Dispatcher.UIThread.Post(FlushRefreshRequests, DispatcherPriority.Render);
+    }
+
+    private void FlushRefreshRequests()
+    {
+        _isRefreshScheduled = false;
+
+        if (_pendingScrollInvalidation)
+            RaiseScrollInvalidated(EventArgs.Empty);
+
+        if (_pendingMeasureInvalidation)
+            InvalidateMeasure();
+
+        if (_pendingVisualInvalidation)
+            InvalidateVisual();
+
+        _pendingScrollInvalidation = false;
+        _pendingMeasureInvalidation = false;
+        _pendingVisualInvalidation = false;
+    }
+
     private void UpdateControllerViewport()
     {
         _tableController.UpdateViewport(new GridViewportState(
@@ -963,6 +1056,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         UpdateControllerViewport();
         var hit = _tableController.HitTest(point.X, point.Y);
         _tableController.HandlePointerSelection(hit, KeyModifiers.None);
+        RaiseSelectionChanged();
     }
 
     internal GridHitTestResult HitTestAtLocalPointForTest(Point point)
@@ -978,6 +1072,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         UpdateControllerViewport();
         _tableController.Selection.SelectCell(start);
         _tableController.Selection.ExtendToCell(end);
+        RaiseSelectionChanged();
     }
 
     internal bool SelectionContainsForTest(GridCellAddress cell)

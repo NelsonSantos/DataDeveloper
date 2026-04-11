@@ -28,6 +28,7 @@ public class ConnectionSettingsConverterTests
                               "Name":"SqlServer",
                               "DatabaseType":"SqlServer",
                               "Server":"localhost",
+                              "Port":1433,
                               "Database":"master",
                               "AuthenticationMode":"WindowsIntegrated",
                               "User":"sa",
@@ -42,6 +43,7 @@ public class ConnectionSettingsConverterTests
         var typed = Assert.IsType<SqlServerConnectionSettings>(connection);
         Assert.Equal(DatabaseType.SqlServer, typed.DatabaseType);
         Assert.Equal("localhost", typed.Server);
+        Assert.Equal(1433, typed.Port);
         Assert.Equal(SqlServerAuthenticationMode.WindowsIntegrated, typed.AuthenticationMode);
     }
 
@@ -146,6 +148,7 @@ public class ConnectionSettingsConverterTests
             Name = "SqlServer",
             DatabaseType = DatabaseType.SqlServer,
             Server = "localhost",
+            Port = 1433,
             Database = "master",
             AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
             User = "sa",
@@ -159,6 +162,7 @@ public class ConnectionSettingsConverterTests
 
         var typed = Assert.IsType<SqlServerConnectionSettings>(deserialized);
         Assert.Equal("localhost", typed.Server);
+        Assert.Equal(1433, typed.Port);
         Assert.Equal(DatabaseType.SqlServer, typed.DatabaseType);
         Assert.Equal(SqlServerAuthenticationMode.WindowsIntegrated, typed.AuthenticationMode);
     }

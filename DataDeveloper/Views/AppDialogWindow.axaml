@@ -51,7 +51,7 @@
                                    LineHeight="21"
                                    TextWrapping="Wrap"
                                    Foreground="#FFD6DAE2"
-                                   TextSelectionEnabled="True" />
+                                   />
                     </ScrollViewer>
                 </StackPanel>
             </Grid>

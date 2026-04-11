@@ -391,6 +391,7 @@ public class SqlCompletionProviderTests
         public bool Encrypt { get; set; }
         public bool TrustServerCertificate { get; set; }
         public bool AllowBlankPassword { get; set; }
+        public int StatementTimeoutSeconds { get; set; } = ConnectionSettings.DefaultStatementTimeoutSeconds;
         public DatabaseType DatabaseType { get; set; }
     }
 }

@@ -51,6 +51,7 @@ public sealed class SqlServerAuthenticationOption
 
 public class ConnectionSelectorViewModel : ViewModelBase
 {
+    private static readonly int[] SupportedStatementTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private readonly ISecretStore _secretStore;
@@ -78,6 +79,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             new SqlServerAuthenticationOption("SQL Server Authentication", SqlServerAuthenticationMode.SqlLogin),
             new SqlServerAuthenticationOption("Windows Authentication", SqlServerAuthenticationMode.WindowsIntegrated)
         ];
+        StatementTimeoutOptions = new ObservableCollection<int>(SupportedStatementTimeouts);
         AvailableDatabaseNames = new ReadOnlyObservableCollection<string>(_availableDatabaseNames);
         LoadConnections();
         SelectedConnectionFilter = AvailableConnectionFilters[0];
@@ -232,6 +234,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReadOnlyObservableCollection<string> AvailableDatabaseNames { get; }
     public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
     public IReadOnlyList<SqlServerAuthenticationOption> SqlServerAuthenticationModes { get; }
+    public ObservableCollection<int> StatementTimeoutOptions { get; }
 
     private ConnectionSettings? _selectedConnection;
     public ConnectionSettings? SelectedConnection
@@ -253,6 +256,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(UsesSqlServerAuthenticationMode));
             this.RaisePropertyChanged(nameof(UsesCredentialsForSelectedConnection));
             this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
+            this.RaisePropertyChanged(nameof(SelectedStatementTimeoutSeconds));
         }
     }
 
@@ -282,7 +286,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public bool IsSqLiteConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqLite;
     public bool IsSqlServerConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
     public bool IsPortConnectionSelected =>
-        SelectedConnection?.DatabaseType is DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
+        SelectedConnection?.DatabaseType is DatabaseType.SqlServer or DatabaseType.MySql or DatabaseType.PostgresSql or DatabaseType.Oracle;
     public bool IsServerConnectionSelected => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
     public bool UsesCredentials => SelectedConnection?.DatabaseType != DatabaseType.SqLite;
     public bool UsesSqlServerAuthenticationMode => SelectedConnection?.DatabaseType == DatabaseType.SqlServer;
@@ -316,6 +320,19 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 return;
 
             sqlServer.AuthenticationMode = value.Value;
+        }
+    }
+
+    public int SelectedStatementTimeoutSeconds
+    {
+        get => NormalizeStatementTimeout(SelectedConnection?.StatementTimeoutSeconds);
+        set
+        {
+            if (SelectedConnection is null)
+                return;
+
+            SelectedConnection.StatementTimeoutSeconds = NormalizeStatementTimeout(value);
+            this.RaisePropertyChanged();
         }
     }
     
@@ -432,10 +449,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Name = "New SQL Server connection",
                 Server = "",
                 Database = "",
+                Port = 1433,
                 User = "",
                 Password = "",
                 Encrypt = true,
                 TrustServerCertificate = false,
+                StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
                 DatabaseType = DatabaseType.SqlServer
             },
             DatabaseType.Oracle => new OracleConnectionSettings
@@ -449,6 +468,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Port = 1521,
                 Encrypt = false,
                 TrustServerCertificate = false,
+                StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
                 DatabaseType = DatabaseType.Oracle
             },
             DatabaseType.PostgresSql => new PostgresConnectionSettings
@@ -462,6 +482,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Port = 5432,
                 Encrypt = false,
                 TrustServerCertificate = false,
+                StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
                 DatabaseType = DatabaseType.PostgresSql
             },
             DatabaseType.MySql => new MySqlConnectionSettings
@@ -475,6 +496,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Port = 3306,
                 Encrypt = false,
                 TrustServerCertificate = true,
+                StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
                 DatabaseType = DatabaseType.MySql
             },
             DatabaseType.SqLite => new SqLiteConnectionSettings
@@ -486,6 +508,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Password = "",
                 Encrypt = false,
                 TrustServerCertificate = false,
+                StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
                 DatabaseType = DatabaseType.SqLite
             },
             _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")
@@ -502,6 +525,16 @@ public class ConnectionSelectorViewModel : ViewModelBase
         sqlServer.Password = string.Empty;
         sqlServer.IsPasswordLoaded = true;
         sqlServer.LoadedPasswordSnapshot = string.Empty;
+    }
+
+    private static int NormalizeStatementTimeout(int? timeoutSeconds)
+    {
+        if (timeoutSeconds is null)
+            return ConnectionSettings.DefaultStatementTimeoutSeconds;
+
+        return SupportedStatementTimeouts.Contains(timeoutSeconds.Value)
+            ? timeoutSeconds.Value
+            : ConnectionSettings.DefaultStatementTimeoutSeconds;
     }
 
     private async Task SelectSqLiteFileAsync()

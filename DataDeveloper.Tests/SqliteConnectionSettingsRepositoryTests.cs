@@ -70,9 +70,11 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             DatabaseType = DatabaseType.SqlServer,
             Server = "sql.local",
             Database = "master",
+            Port = 1433,
             AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
             User = "sa",
             Password = "secret",
+            StatementTimeoutSeconds = 120,
             Encrypt = true,
             TrustServerCertificate = false
         };
@@ -87,6 +89,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             Port = 3307,
             User = "root",
             Password = "mysql-secret",
+            StatementTimeoutSeconds = 240,
             Encrypt = false,
             TrustServerCertificate = true
         };
@@ -100,7 +103,9 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(sqlServer.CredentialId, loadedSqlServer.CredentialId);
         Assert.Equal(sqlServer.Server, loadedSqlServer.Server);
         Assert.Equal(sqlServer.Database, loadedSqlServer.Database);
+        Assert.Equal(sqlServer.Port, loadedSqlServer.Port);
         Assert.Equal(sqlServer.AuthenticationMode, loadedSqlServer.AuthenticationMode);
+        Assert.Equal(sqlServer.StatementTimeoutSeconds, loadedSqlServer.StatementTimeoutSeconds);
         repository.LoadPassword(loadedSqlServer);
         Assert.Equal(sqlServer.Password, loadedSqlServer.Password);
 
@@ -109,8 +114,33 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(mySql.Server, loadedMySql.Server);
         Assert.Equal(mySql.Database, loadedMySql.Database);
         Assert.Equal(mySql.Port, loadedMySql.Port);
+        Assert.Equal(mySql.StatementTimeoutSeconds, loadedMySql.StatementTimeoutSeconds);
         repository.LoadPassword(loadedMySql);
         Assert.Equal(mySql.Password, loadedMySql.Password);
+    }
+
+    [Fact]
+    public void LoadAll_UsesDefaultStatementTimeout_WhenValueIsMissingOrInvalid()
+    {
+        var repository = CreateRepository(secretStore: new InMemorySecretStore());
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "SQL",
+            DatabaseType = DatabaseType.SqlServer,
+            Server = "sql.local",
+            Database = "master",
+            User = "sa",
+            Password = "secret",
+            StatementTimeoutSeconds = 0
+        };
+
+        repository.Save(connection);
+
+        var loaded = repository.LoadAll();
+        var loadedSqlServer = Assert.IsType<SqlServerConnectionSettings>(Assert.Single(loaded));
+
+        Assert.Equal(ConnectionSettings.DefaultStatementTimeoutSeconds, loadedSqlServer.StatementTimeoutSeconds);
     }
 
     [Fact]
@@ -340,7 +370,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
                                             0,
                                             'sql.local',
                                             'master',
-                                            null,
+                                            1433,
                                             '2026-04-08T00:00:00.0000000Z',
                                             '2026-04-08T00:00:00.0000000Z'
                                         );
@@ -353,6 +383,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         var loaded = Assert.IsType<SqlServerConnectionSettings>(Assert.Single(repository.LoadAll()));
 
         Assert.Equal(SqlServerAuthenticationMode.SqlLogin, loaded.AuthenticationMode);
+        Assert.Equal(1433, loaded.Port);
     }
 
     [Fact]

@@ -110,13 +110,31 @@
                              IsEnabled="False" />
                 </Grid>
 
-                <TextBlock Text="Server"
-                           IsVisible="{Binding IsServerConnectionSelected}" />
-                <TextBox 
-                    Text="{Binding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    IsEnabled="{Binding IsEditing}"
-                    IsReadOnly="{Binding !IsEditing}"
-                    IsVisible="{Binding IsServerConnectionSelected}" />
+                <Grid RowDefinitions="Auto,Auto"
+                      ColumnDefinitions="3*,1*"
+                      ColumnSpacing="10"
+                      RowSpacing="8"
+                      IsVisible="{Binding IsServerConnectionSelected}">
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="0"
+                               Text="Server" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="0"
+                             Text="{Binding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding IsEditing}"
+                             IsReadOnly="{Binding !IsEditing}" />
+
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="1"
+                               Text="Port"
+                               IsVisible="{Binding IsPortConnectionSelected}" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="1"
+                             Text="{Binding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding IsEditing}"
+                             IsReadOnly="{Binding !IsEditing}"
+                             IsVisible="{Binding IsPortConnectionSelected}" />
+                </Grid>
 
                 <TextBlock Text="{Binding DatabaseLabel}" />
                 <Grid ColumnDefinitions="*,Auto"
@@ -157,15 +175,6 @@
                     <Button Content="Create File"
                             Command="{Binding CreateSqLiteFileCommand}" />
                 </StackPanel>
-
-                <Grid RowDefinitions="Auto,Auto"
-                      IsVisible="{Binding IsPortConnectionSelected}">
-                    <TextBlock Grid.Row="0" Text="Port" />
-                    <TextBox Grid.Row="1"
-                             Text="{Binding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             IsEnabled="{Binding IsEditing}"
-                             IsReadOnly="{Binding !IsEditing}" />
-                </Grid>
 
                 <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" ColumnSpacing="10" RowSpacing="8"
                       IsVisible="{Binding UsesCredentialsForSelectedConnection}">
@@ -237,6 +246,21 @@
                            Foreground="IndianRed"
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsSecureStorageUnavailable}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,*"
+                      ColumnSpacing="8"
+                      VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0"
+                               Text="Default statement timeout"
+                               FontSize="11"
+                               Foreground="DarkGoldenrod"
+                               VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              Width="110"
+                              ItemsSource="{Binding StatementTimeoutOptions}"
+                              SelectedItem="{Binding SelectedStatementTimeoutSeconds, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}" />
+                </Grid>
 
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Button  

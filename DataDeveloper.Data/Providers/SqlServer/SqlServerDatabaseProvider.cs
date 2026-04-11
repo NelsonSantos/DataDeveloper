@@ -141,7 +141,7 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
     {
         var builder = new SqlConnectionStringBuilder
         {
-            DataSource = ConnectionSettings.Server,
+            DataSource = BuildDataSource(),
             InitialCatalog = string.IsNullOrWhiteSpace(databaseName) ? "master" : databaseName,
             Encrypt = ConnectionSettings.Encrypt,
             TrustServerCertificate = ConnectionSettings.TrustServerCertificate
@@ -158,5 +158,22 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
         }
 
         return builder.ConnectionString;
+    }
+
+    private string BuildDataSource()
+    {
+        if (string.IsNullOrWhiteSpace(ConnectionSettings.Server))
+            return ConnectionSettings.Server;
+
+        if (ConnectionSettings.Server.Contains(",", StringComparison.Ordinal) ||
+            ConnectionSettings.Server.Contains(":", StringComparison.Ordinal) ||
+            ConnectionSettings.Server.Contains("\\", StringComparison.Ordinal))
+        {
+            return ConnectionSettings.Server;
+        }
+
+        return ConnectionSettings.Port > 0
+            ? $"{ConnectionSettings.Server},{ConnectionSettings.Port}"
+            : ConnectionSettings.Server;
     }
 }

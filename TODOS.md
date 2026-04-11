@@ -22,7 +22,7 @@
 
 # FIXs
 
-- [ ] Fazer o progressbar de load ser exibido a cada execução proxima pagina ou de listar até o final
-- [ ] Colocar um botão de stop para interromper o load de pagina de registros
-- [ ] Validar o botão do stop da query para rodar assincrono e poder ser clicado
+- [x] Fazer o progressbar de load ser exibido a cada execução proxima pagina ou de listar até o final
+- [x] Colocar um botão de stop para interromper o load de pagina de registros
+- [x] Validar o botão do stop da query para rodar assincrono e poder ser clicado
 - [ ] Trocar fontAwesome por material-icons

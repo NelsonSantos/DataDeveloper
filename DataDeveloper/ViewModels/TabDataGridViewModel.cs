@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using DataDeveloper.Data;
@@ -17,6 +18,7 @@ using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
+using DataDeveloper.NextGrid;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -26,10 +28,19 @@ namespace DataDeveloper.ViewModels;
 
 public class TabDataGridViewModel : BaseTabContent
 {
+    // Reads from the DataReader off the UI thread before dispatching rows for visual append.
+    private const int UiBatchSize = 200;
+    // Limits how many rows are appended per UI frame to keep the interface responsive.
+    private const int UiFrameBatchSize = 80;
+    // Avoids rebinding the row counter label on every small append.
+    private const int RowNumberUiUpdateBatchSize = 1000;
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly Guid _messageTargetId;
     private readonly Action? _focusMessageTab;
+    private readonly Action<bool, string>? _reportExecutionStatus;
+    private readonly int? _commandTimeoutSeconds;
     private readonly List<PendingDeletedGridRow> _pendingDeletedRows = [];
+    private CancellationTokenSource? _loadCancellationTokenSource;
 
     public TabDataGridViewModel(
         IConnectionSettings connectionSettings,
@@ -39,42 +50,51 @@ public class TabDataGridViewModel : BaseTabContent
         bool canClose,
         IServiceProvider serviceProvider,
         Guid messageTargetId,
-        Action? focusMessageTab = null) 
+        int? commandTimeoutSeconds = null,
+        Action? focusMessageTab = null,
+        Action<bool, string>? reportExecutionStatus = null) 
         : base(TabType.DataGrid, name, canClose, serviceProvider)
     {
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         _messageTargetId = messageTargetId;
         _focusMessageTab = focusMessageTab;
+        _reportExecutionStatus = reportExecutionStatus;
+        _commandTimeoutSeconds = commandTimeoutSeconds;
         ConnectionSettings = connectionSettings;
         StatementResult = statementResult;
 
         SelectedPage = selectedPage;
         LoadNextPageCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(SelectedPage)
             , outputScheduler: RxApp.MainThreadScheduler
-            , canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
+            , canExecute: this.WhenAnyValue(vm => vm.CanLoadMore));
         LoadAllRecordsCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage()
             , outputScheduler: RxApp.MainThreadScheduler
-            , canExecute: this.WhenAnyValue(x => x.IsClosed).Select(_ => _ is false));
+            , canExecute: this.WhenAnyValue(vm => vm.CanLoadMore));
         DiscardChangesCommand = ReactiveCommand.Create(
             DiscardChanges,
-            this.WhenAnyValue(vm => vm.HasPendingChanges, vm => vm.IsBusy, (hasPendingChanges, isBusy) => hasPendingChanges && !isBusy));
+            this.WhenAnyValue(vm => vm.CanDiscardChanges));
         AddRowCommand = ReactiveCommand.Create(
             AddRow,
-            this.WhenAnyValue(vm => vm.IsEditableResult, vm => vm.IsBusy, (isEditableResult, isBusy) => isEditableResult && !isBusy));
+            this.WhenAnyValue(vm => vm.CanAddRow));
         DeleteRowCommand = ReactiveCommand.Create(
             DeleteSelectedRow,
-            this.WhenAnyValue(vm => vm.IsEditableResult, vm => vm.SelectedRowIndex, vm => vm.IsBusy,
-                (isEditableResult, selectedRowIndex, isBusy) => isEditableResult && selectedRowIndex >= 0 && !isBusy));
+            this.WhenAnyValue(vm => vm.CanDeleteRow));
         SubmitChangesCommand = ReactiveCommand.CreateFromTask(
             SubmitChangesAsync,
-            this.WhenAnyValue(vm => vm.IsEditableResult, vm => vm.HasPendingChanges, vm => vm.HasValidationErrors, vm => vm.IsBusy,
-                (isEditableResult, hasPendingChanges, hasValidationErrors, isBusy) =>
-                    isEditableResult && hasPendingChanges && !hasValidationErrors && !isBusy));
+            this.WhenAnyValue(vm => vm.CanSubmitChanges));
         this.WhenAnyValue(vm => vm.IsEditableResult).Subscribe(_ =>
         {
             this.RaisePropertyChanged(nameof(EditabilityStatusText));
             this.RaisePropertyChanged(nameof(ShowReadOnlyReason));
         });
+        this.WhenAnyValue(
+                vm => vm.IsClosed,
+                vm => vm.IsBusy,
+                vm => vm.IsEditorOperationInProgress,
+                vm => vm.IsEditableResult,
+                vm => vm.HasPendingChanges,
+                vm => vm.SelectedRowIndex)
+            .Subscribe(_ => RaiseActionAvailabilityProperties());
     }
 
     public async Task CloseDataReader()
@@ -82,8 +102,16 @@ public class TabDataGridViewModel : BaseTabContent
         if (IsClosed)
             return;
 
+        _loadCancellationTokenSource?.Cancel();
+        StatementResult.CancelExecution();
         await StatementResult.CloseDataReader();
         await Dispatcher.UIThread.InvokeAsync(() => this.IsClosed = true);
+    }
+
+    public async Task CancelLoadingAsync()
+    {
+        _loadCancellationTokenSource?.Cancel();
+        await Task.CompletedTask;
     }
 
     public async Task LoadData()
@@ -118,7 +146,7 @@ public class TabDataGridViewModel : BaseTabContent
         Headers.Add(columns);
         await ResolveEditabilityAsync(dataReader, columns.Select(column => column.Name).ToList());
         
-        await LoadNextPage(SelectedPage);
+        await LoadNextPage(SelectedPage, showExecutionStatus: false);
         
     }
 
@@ -130,39 +158,120 @@ public class TabDataGridViewModel : BaseTabContent
         return typeof(Nullable<>).MakeGenericType(fieldType);
     }
 
-    private async Task LoadNextPage(int itemsPerPage = 0)
+    private async Task LoadNextPage(int itemsPerPage = 0, bool showExecutionStatus = true)
     {
         var dataReader = StatementResult.DataReader;
         if (dataReader is null)
             return;
 
         var countRecords = 0;
-        StatementResult.Watcher.Start();
-        this.IsBusy = true;
-        await Task.Delay(100);
-        var readedUntilEnd = true;
-        while (dataReader.Read())
+        var statusMessage = itemsPerPage > 0
+            ? $"Loading next {itemsPerPage:N0} records..."
+            : "Loading all remaining records...";
+        using var loadCancellationTokenSource = new CancellationTokenSource();
+        _loadCancellationTokenSource = loadCancellationTokenSource;
+        var cancellationToken = loadCancellationTokenSource.Token;
+
+        try
         {
-            RowNumber++;
-            countRecords++;
-            
-            var values = new object[dataReader.FieldCount];
-            dataReader.GetValues(values);
-            this.GridRows.Add(new EditableGridRow(values));
-            
-            if (itemsPerPage > 0 && countRecords == itemsPerPage)
+            if (showExecutionStatus)
             {
-                readedUntilEnd = false;
-                break;
+                _reportExecutionStatus?.Invoke(true, statusMessage);
+                _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, statusMessage));
+            }
+
+            StatementResult.Watcher.Start();
+            this.IsBusy = true;
+            await Task.Delay(100);
+            var readedUntilEnd = await Task.Run(async () =>
+            {
+                var reachedEnd = true;
+                var pendingRows = new List<EditableGridRow>(Math.Min(UiBatchSize, itemsPerPage > 0 ? itemsPerPage : UiBatchSize));
+
+                while (!cancellationToken.IsCancellationRequested && dataReader.Read())
+                {
+                    countRecords++;
+
+                    var values = new object[dataReader.FieldCount];
+                    dataReader.GetValues(values);
+                    pendingRows.Add(new EditableGridRow(values));
+
+                    if (pendingRows.Count >= UiBatchSize)
+                        await AppendRowsAsync(pendingRows).ConfigureAwait(false);
+
+                    if (itemsPerPage > 0 && countRecords == itemsPerPage)
+                    {
+                        reachedEnd = false;
+                        break;
+                    }
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                await AppendRowsAsync(pendingRows, forceCounterUpdate: true).ConfigureAwait(false);
+                return reachedEnd;
+            }, cancellationToken).ConfigureAwait(false);
+
+            if (readedUntilEnd)
+                await this.CloseDataReader().ConfigureAwait(false);
+            StatementResult.Watcher.Stop();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                this.TimeElapsed = StatementResult.Watcher.Elapsed;
+                ValidateAllRows();
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            StatementResult.Watcher.Stop();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                TimeElapsed = StatementResult.Watcher.Elapsed;
+                RowNumber = GridRows.Count;
+            });
+
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(
+                _messageTargetId,
+                $"{Name}: loading cancelled after {GridRows.Count:N0} row(s)."));
+        }
+        finally
+        {
+            if (ReferenceEquals(_loadCancellationTokenSource, loadCancellationTokenSource))
+                _loadCancellationTokenSource = null;
+
+            await Dispatcher.UIThread.InvokeAsync(() => this.IsBusy = false);
+            if (showExecutionStatus)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _reportExecutionStatus?.Invoke(false, string.Empty);
+                    _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
+                });
             }
         }
+    }
 
-        if (readedUntilEnd)
-            await this.CloseDataReader();
-        StatementResult.Watcher.Stop();
-        this.TimeElapsed = StatementResult.Watcher.Elapsed;
-        this.IsBusy = false;
-        ValidateAllRows();
+    private async Task AppendRowsAsync(List<EditableGridRow> pendingRows, bool forceCounterUpdate = false)
+    {
+        if (pendingRows.Count == 0)
+            return;
+
+        var rowsToAppend = pendingRows.ToArray();
+        pendingRows.Clear();
+
+        for (var index = 0; index < rowsToAppend.Length; index += UiFrameBatchSize)
+        {
+            var chunk = rowsToAppend.Skip(index).Take(UiFrameBatchSize).ToArray();
+            var isFinalChunk = index + UiFrameBatchSize >= rowsToAppend.Length;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                GridRows.AddRange(chunk);
+
+                var loadedRowCount = GridRows.Count;
+                if ((forceCounterUpdate && isFinalChunk) || loadedRowCount - RowNumber >= RowNumberUiUpdateBatchSize)
+                    RowNumber = loadedRowCount;
+            }, DispatcherPriority.Background);
+        }
     }
 
     private async Task ResolveEditabilityAsync(DbDataReader dataReader, IReadOnlyCollection<string> resultColumns)
@@ -301,6 +410,7 @@ public class TabDataGridViewModel : BaseTabContent
         this.RaisePropertyChanged(nameof(PendingDeleteCount));
         this.RaisePropertyChanged(nameof(PendingChangesSummary));
         this.RaisePropertyChanged(nameof(ShowPendingChangesSummary));
+        RaiseActionAvailabilityProperties();
     }
 
     public void NotifyCellEdited(int rowIndex)
@@ -404,7 +514,15 @@ public class TabDataGridViewModel : BaseTabContent
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            try
+            {
+                await transaction.RollbackAsync();
+            }
+            catch
+            {
+                // Some providers auto-complete the transaction after a command failure.
+            }
+
             PublishSubmitFailureMessage(ex);
         }
         finally
@@ -416,14 +534,23 @@ public class TabDataGridViewModel : BaseTabContent
     private async Task RefreshDataAsync()
     {
         await StatementResult.CloseDataReader();
-        var statementExecutor = ConnectionSettings.GetStatementExecutor();
-        var refreshedResult = (await statementExecutor.ExecuteStatement(StatementResult.Statement)).FirstOrDefault(result => result.HasResultSet);
+        var statementExecutor = CreateStatementExecutor();
+        var refreshedResult = (await statementExecutor.ExecuteStatement(
+                StatementResult.Statement,
+                StatementResult.Parameters,
+                commandTimeoutSeconds: _commandTimeoutSeconds))
+            .FirstOrDefault(result => result.HasResultSet);
         if (refreshedResult is null)
             return;
 
         StatementResult = refreshedResult;
         IsClosed = false;
         await LoadData();
+    }
+
+    protected virtual IStatementExecutor CreateStatementExecutor()
+    {
+        return ConnectionSettings.GetStatementExecutor();
     }
 
     private void PublishSubmitMessage(int insertedCount, int updatedCount, int deletedCount)
@@ -487,6 +614,16 @@ public class TabDataGridViewModel : BaseTabContent
 
     public bool ShowReadOnlyReason => !IsEditableResult;
 
+    public bool CanLoadMore => !IsClosed && !IsBusy && !IsEditorOperationInProgress;
+
+    public bool CanDiscardChanges => HasPendingChanges && !IsBusy && !IsEditorOperationInProgress;
+
+    public bool CanAddRow => IsEditableResult && !IsBusy && !IsEditorOperationInProgress;
+
+    public bool CanDeleteRow => IsEditableResult && SelectedRowIndex >= 0 && !IsBusy && !IsEditorOperationInProgress;
+
+    public bool CanSubmitChanges => IsEditableResult && HasPendingChanges && !HasValidationErrors && !IsBusy && !IsEditorOperationInProgress;
+
     public int PendingInsertCount => GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.New);
 
     public int PendingUpdateCount => GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.Modified);
@@ -519,6 +656,15 @@ public class TabDataGridViewModel : BaseTabContent
 
             return string.Join(", ", parts);
         }
+    }
+
+    private void RaiseActionAvailabilityProperties()
+    {
+        this.RaisePropertyChanged(nameof(CanLoadMore));
+        this.RaisePropertyChanged(nameof(CanDiscardChanges));
+        this.RaisePropertyChanged(nameof(CanAddRow));
+        this.RaisePropertyChanged(nameof(CanDeleteRow));
+        this.RaisePropertyChanged(nameof(CanSubmitChanges));
     }
 
     private void ValidateAllRows()
@@ -593,9 +739,11 @@ public class TabDataGridViewModel : BaseTabContent
     public StatementResult StatementResult { get; private set; }
     [Reactive] public EditableResultSetMetadata? EditableMetadata { get; private set; }
     [Reactive] public bool IsEditableResult { get; private set; }
+    [Reactive] public bool IsEditorOperationInProgress { get; set; }
     [Reactive] public string? EditabilityReason { get; private set; }
     [Reactive] public bool HasPendingChanges { get; private set; }
     [Reactive] public int SelectedRowIndex { get; set; } = -1;
+    [Reactive] public string GridSelectionStatusText { get; set; } = "Cell=nothing";
     [Reactive] public TimeSpan TimeElapsed { get; set; }
     [Reactive] public bool IsClosed { get; set; }
     [Reactive] public int RowNumber { get; set; }
@@ -603,7 +751,7 @@ public class TabDataGridViewModel : BaseTabContent
     public ObservableCollection<ColumnHeader> Headers { get; } = new();
     public ObservableCollection<string> GridHeaders { get; } = new();
     public ObservableCollection<Type> GridColumnTypes { get; } = new();
-    public ObservableCollection<IReadOnlyList<object?>> GridRows { get; } = new();
+    public BulkObservableCollection<IReadOnlyList<object?>> GridRows { get; } = new();
     public ObservableCollection<int> ReadOnlyColumnIndexes { get; } = new();
     public ObservableCollection<int> Pages { get; } = new() { 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, };
     public ReactiveCommand<Unit, Unit> LoadNextPageCommand { get; }

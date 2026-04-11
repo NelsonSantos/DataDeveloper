@@ -98,6 +98,12 @@ public sealed class NextGridControl : UserControl
     public static readonly StyledProperty<int> SelectedRowIndexProperty =
         AvaloniaProperty.Register<NextGridControl, int>(nameof(SelectedRowIndex), defaultValue: -1, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
+    public static readonly StyledProperty<string> SelectionStatusTextProperty =
+        AvaloniaProperty.Register<NextGridControl, string>(
+            nameof(SelectionStatusText),
+            defaultValue: "Cell=nothing",
+            defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
     public ObservableCollection<string> Headers
     {
         get => GetValue(HeadersProperty);
@@ -180,6 +186,12 @@ public sealed class NextGridControl : UserControl
     {
         get => GetValue(SelectedRowIndexProperty);
         set => SetValue(SelectedRowIndexProperty, value);
+    }
+
+    public string SelectionStatusText
+    {
+        get => GetValue(SelectionStatusTextProperty);
+        set => SetValue(SelectionStatusTextProperty, value);
     }
 
     public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
@@ -346,6 +358,7 @@ public sealed class NextGridControl : UserControl
         _presenter.PointerExited += OnPresenterPointerExited;
         _scrollViewer.LayoutUpdated += OnScrollViewerLayoutUpdated;
         _presenter.FocusedCellChanged += OnPresenterFocusedCellChanged;
+        _presenter.SelectionChanged += OnPresenterSelectionChanged;
         _presenter.CellEditRequested += OnPresenterCellEditRequested;
         _presenter.CellEditCommitted += OnPresenterCellEditCommitted;
         _presenter.CellEditCanceled += OnPresenterCellEditCanceled;
@@ -455,6 +468,11 @@ public sealed class NextGridControl : UserControl
     private void OnPresenterFocusedCellChanged(object? sender, GridFocusedCellChangedEventArgs e)
     {
         SelectedRowIndex = e.Cell?.Row ?? -1;
+    }
+
+    private void OnPresenterSelectionChanged(object? sender, GridSelectionChangedEventArgs e)
+    {
+        SelectionStatusText = GridSelectionStatusFormatter.Format(e.FocusCell, e.Ranges);
     }
 
     private void OnPresenterPointerMoved(object? sender, PointerEventArgs e)

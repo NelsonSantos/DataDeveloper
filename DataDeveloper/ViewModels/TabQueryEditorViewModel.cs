@@ -6,7 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Services;
@@ -23,8 +25,11 @@ namespace DataDeveloper.ViewModels;
 
 public class TabQueryEditorViewModel : BaseTabContent
 {
+    private static readonly HashSet<int> SupportedRunTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly Dictionary<string, int> _cachePages = new();
+    private IStatementExecutor? _activeStatementExecutor;
+    private CancellationTokenSource? _queryCancellationTokenSource;
     
     public event EventHandler<int>? ShowResultTool; 
 
@@ -35,6 +40,7 @@ public class TabQueryEditorViewModel : BaseTabContent
         
         ConnectionSettings = connectionSettings;
         File = file;
+        SelectedRunTimeoutSeconds = NormalizeRunTimeout(connectionSettings.StatementTimeoutSeconds);
 
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
@@ -43,6 +49,7 @@ public class TabQueryEditorViewModel : BaseTabContent
 
         Tabs.Add(new TabMessageViewModel("Message", false, filterId: this.Id, this.ServiceProvider));
 
+        this.WhenAnyValue(vm => vm.StatementIsRunning).Subscribe(SetEditorOperationState);
         this.WhenAnyValue(vm => vm.CursorOffSet).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorLine).Subscribe(_ => ShowCursorData());
         this.WhenAnyValue(vm => vm.CursorColumn).Subscribe(_ => ShowCursorData());
@@ -87,12 +94,16 @@ public class TabQueryEditorViewModel : BaseTabContent
     [Reactive] public double ResultsHeaderHeight { get; set; }
     [Reactive] public bool TextWasChanged { get; set; }
     [Reactive] public bool StatementIsRunning { get; set; }
+    [Reactive] public bool IsExecutionStatusVisible { get; set; }
+    [Reactive] public string ExecutionStatusMessage { get; set; } = string.Empty;
     [Reactive] public bool ResultIsMinimized { get; set; } = true;
     [Reactive] public int SelectedTabIndex { get; set; }
+    [Reactive] public int SelectedRunTimeoutSeconds { get; set; } = 60;
     public bool HasDetectedParameters => ParameterValues.Count > 0;
     
     public ObservableCollection<BaseTabContent> Tabs { get; } = new();
     public ObservableCollection<QueryParameterValue> ParameterValues { get; } = new();
+    public ObservableCollection<int> RunTimeoutOptions { get; } = new() { 15, 30, 60, 120, 240, 480 };
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
     public ReactiveCommand<BaseTabContent, Unit> CloseTabResultCommand { get; }
@@ -100,31 +111,34 @@ public class TabQueryEditorViewModel : BaseTabContent
     
     private async Task StopQuery()
     {
-        await Task.Delay(100);
-        try
-        {
+        ExecutionStatusMessage = "Cancelling...";
 
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-            throw;
-        }
-        finally
-        {
-            this.StatementIsRunning = false;
-        }
+        _queryCancellationTokenSource?.Cancel();
+        _activeStatementExecutor?.Cancel();
+
+        var activeLoads = Tabs
+            .OfType<TabDataGridViewModel>()
+            .Where(tab => tab.IsBusy)
+            .ToList();
+
+        foreach (var activeLoad in activeLoads)
+            await activeLoad.CancelLoadingAsync();
     }
 
     private async Task ExecuteQuery()
     {
+        using var queryCancellationTokenSource = new CancellationTokenSource();
+        _queryCancellationTokenSource = queryCancellationTokenSource;
         this.StatementIsRunning = true;
+        IsExecutionStatusVisible = true;
+        ExecutionStatusMessage = "Executing query...";
         _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Executing query..."));
         await Task.Delay(100);
 
         try
         {
             var statementExecutor = ConnectionSettings.GetStatementExecutor();
+            _activeStatementExecutor = statementExecutor;
             var previousResultTabs = Tabs.OfType<TabDataGridViewModel>().ToList();
             var cleanupWatcher = Stopwatch.StartNew();
             var statementToExecute = SelectedStatementLength > 0 ? SelectedStatement : SqlStatement;
@@ -132,6 +146,8 @@ public class TabQueryEditorViewModel : BaseTabContent
 
             if (previousResultTabs.Count > 0)
             {
+                IsExecutionStatusVisible = true;
+                ExecutionStatusMessage = "Closing previous result set...";
                 _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Closing previous result set..."));
                 await Task.Delay(100);
                 await Task.WhenAll(
@@ -145,7 +161,15 @@ public class TabQueryEditorViewModel : BaseTabContent
             foreach (var previousTab in previousResultTabs)
                 Tabs.Remove(previousTab);
 
-            var statementResults = (await statementExecutor.ExecuteStatement(statementToExecute, parameterValues)).ToList();
+            IsExecutionStatusVisible = true;
+            ExecutionStatusMessage = "Executing query...";
+            _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Executing query..."));
+
+            var statementResults = (await statementExecutor.ExecuteStatement(
+                statementToExecute,
+                parameterValues,
+                SelectedRunTimeoutSeconds,
+                queryCancellationTokenSource.Token)).ToList();
             var shouldRefreshSchema = statementResults.Any(result => StatementExecutionClassifier.RequiresSchemaRefresh(result.Statement));
 
             if (statementResults.Any())
@@ -171,6 +195,8 @@ public class TabQueryEditorViewModel : BaseTabContent
                     if (hasDataReader)
                     {
                         index++;
+                        IsExecutionStatusVisible = true;
+                        ExecutionStatusMessage = "Loading first rows...";
                         _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Loading first rows..."));
                         await Task.Delay(100);
                         
@@ -182,11 +208,22 @@ public class TabQueryEditorViewModel : BaseTabContent
                             true,
                             this.ServiceProvider,
                             this.Id,
+                            SelectedRunTimeoutSeconds,
                             () =>
                             {
-                                SelectedTabIndex = 0;
-                                ShowResultTool?.Invoke(this, SelectedTabIndex);
+                                Dispatcher.UIThread.Post(() =>
+                                {
+                                    SelectedTabIndex = 0;
+                                    ShowResultTool?.Invoke(this, SelectedTabIndex);
+                                });
+                            },
+                            (isVisible, message) =>
+                            {
+                                StatementIsRunning = isVisible;
+                                IsExecutionStatusVisible = isVisible;
+                                ExecutionStatusMessage = message;
                             });
+                        tabResult.IsEditorOperationInProgress = StatementIsRunning;
                         tabResult.WhenAnyValue(vm => vm.SelectedPage).Subscribe(page => _cachePages[statementResult.Statement] = page);
                         
                         Tabs.Add(tabResult);
@@ -213,6 +250,18 @@ public class TabQueryEditorViewModel : BaseTabContent
                 _eventAggregatorService.Publish(new RefreshSchemaExplorerEvent(ConnectionSettings.Id, ddlStatement));
             }
         }
+        catch (OperationCanceledException)
+        {
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, "Execution cancelled."));
+            this.SelectedTabIndex = 0;
+        }
+        catch (Exception ex) when (IsTimeoutException(ex))
+        {
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(
+                this.Id,
+                $"Query timed out after {SelectedRunTimeoutSeconds} seconds."));
+            this.SelectedTabIndex = 0;
+        }
         catch (Exception ex)
         {
             _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, ex.Message));
@@ -220,8 +269,14 @@ public class TabQueryEditorViewModel : BaseTabContent
         }
         finally
         {
+            if (ReferenceEquals(_queryCancellationTokenSource, queryCancellationTokenSource))
+                _queryCancellationTokenSource = null;
+
+            _activeStatementExecutor = null;
             this.ResultIsMinimized = false;
             this.StatementIsRunning = false;
+            IsExecutionStatusVisible = false;
+            ExecutionStatusMessage = string.Empty;
             _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
             this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
@@ -256,5 +311,47 @@ public class TabQueryEditorViewModel : BaseTabContent
         }
 
         return values;
+    }
+
+    private void SetEditorOperationState(bool isRunning)
+    {
+        foreach (var tab in Tabs.OfType<TabDataGridViewModel>())
+            tab.IsEditorOperationInProgress = isRunning;
+    }
+
+    private static bool IsTimeoutException(Exception exception)
+    {
+        foreach (var current in EnumerateExceptions(exception))
+        {
+            if (current is TimeoutException)
+                return true;
+
+            var message = current.Message;
+            if (message.Contains("Execution Timeout Expired", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("Command Timeout Expired", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("timeout period elapsed", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("query timed out", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("statement timeout", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("canceling statement due to statement timeout", StringComparison.OrdinalIgnoreCase) ||
+                message.Contains("lock wait timeout exceeded", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<Exception> EnumerateExceptions(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+            yield return current;
+    }
+
+    private static int NormalizeRunTimeout(int timeoutSeconds)
+    {
+        return SupportedRunTimeouts.Contains(timeoutSeconds)
+            ? timeoutSeconds
+            : DataDeveloper.Data.Models.ConnectionSettings.DefaultStatementTimeoutSeconds;
     }
 }

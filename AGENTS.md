@@ -15,13 +15,13 @@
 - When running `dotnet build`, `dotnet test`, or other validation commands for `DataDeveloper`, run them sequentially, not in parallel, to avoid wasting time on reruns caused by concurrent build/test interference.
 
 ## Provider compatibility
-- Starting from the `feature/mysql` branch, every new feature must support both SQL Server and MySQL.
-- Do not introduce new SQL Server-only behavior without handling the MySQL equivalent, or without explicitly documenting and approving the limitation.
-- When implementing provider-dependent parsing, completion, navigation, execution, or UI behavior, validate the impact on both providers.
-- When adding database-dependent behavior tests, cover both SQL Server and MySQL whenever applicable.
+- Every new feature must support all currently supported database providers, unless the limitation is explicitly documented and approved.
+- Do not introduce behavior that works for only a subset of supported providers without handling the remaining providers, or without explicitly documenting and approving the limitation.
+- When implementing provider-dependent parsing, completion, navigation, execution, or UI behavior, validate the impact on all supported providers.
+- When adding database-dependent behavior tests, cover all supported providers whenever applicable.
 - For every new provider added in the future, implement provider tests from the start.
 - New providers must include, at minimum, unit coverage for provider factory wiring, connection settings serialization, schema SQL, and completion/execution behavior where applicable.
-- When feasible, add opt-in integration tests for each new provider using real configured connections, following the same pattern used for SQL Server and MySQL.
+- When feasible, add opt-in integration tests for each supported provider using real configured connections.
 
 ## Documentation
 - When adding a new database provider or significant provider capability, update `README.md` in the same branch.
