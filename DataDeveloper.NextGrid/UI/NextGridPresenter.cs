@@ -203,6 +203,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
 
     public event EventHandler? ScrollInvalidated;
     public event EventHandler<GridFocusedCellChangedEventArgs>? FocusedCellChanged;
+    public event EventHandler<GridSelectionChangedEventArgs>? SelectionChanged;
     public event EventHandler<GridCellEditRequestedEventArgs>? CellEditRequested;
     public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
     public event EventHandler? CellEditCanceled;
@@ -447,6 +448,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         {
             _tableController.Selection.SelectAll(Rows.Count, Headers.Count);
             Focus();
+            RaiseSelectionChanged();
             InvalidateVisual();
             return;
         }
@@ -460,6 +462,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         }
 
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
 
         Focus();
         InvalidateVisual();
@@ -525,6 +528,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         }
 
         InvalidateVisual();
+        RaiseSelectionChanged();
         e.Handled = true;
     }
 
@@ -601,6 +605,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             : _tableController.MoveFocus(direction.Value, step);
         Offset = ToScrollViewerOffset(result.HorizontalOffset, result.VerticalOffset);
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
         InvalidateVisual();
         e.Handled = true;
     }
@@ -681,11 +686,19 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         FocusedCellChanged?.Invoke(this, new GridFocusedCellChangedEventArgs(_tableController.Selection.FocusCell));
     }
 
+    private void RaiseSelectionChanged()
+    {
+        SelectionChanged?.Invoke(
+            this,
+            new GridSelectionChangedEventArgs(_tableController.Selection.FocusCell, _tableController.Selection.Ranges.ToArray()));
+    }
+
     private void AdvanceFocusAfterEdit(GridCellAddress cell)
     {
         if (cell.Column + 1 >= Headers.Count)
         {
             RaiseFocusedCellChanged();
+            RaiseSelectionChanged();
             return;
         }
 
@@ -694,6 +707,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         _tableController.Selection.SelectCell(visible.Cell);
         Offset = ToScrollViewerOffset(visible.HorizontalOffset, visible.VerticalOffset);
         RaiseFocusedCellChanged();
+        RaiseSelectionChanged();
     }
 
     private void DrawHeaders(DrawingContext context, GridVisibleRange range)
@@ -1042,6 +1056,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         UpdateControllerViewport();
         var hit = _tableController.HitTest(point.X, point.Y);
         _tableController.HandlePointerSelection(hit, KeyModifiers.None);
+        RaiseSelectionChanged();
     }
 
     internal GridHitTestResult HitTestAtLocalPointForTest(Point point)
@@ -1057,6 +1072,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         UpdateControllerViewport();
         _tableController.Selection.SelectCell(start);
         _tableController.Selection.ExtendToCell(end);
+        RaiseSelectionChanged();
     }
 
     internal bool SelectionContainsForTest(GridCellAddress cell)

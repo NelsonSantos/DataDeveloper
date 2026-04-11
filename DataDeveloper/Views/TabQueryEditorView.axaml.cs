@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Specialized;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -22,7 +23,10 @@ namespace DataDeveloper.Views;
 public partial class TabQueryEditorView : UserControl
 {
     private GridLength _previousTabHeight = new(200);
+    private GridLength _previousParametersPanelWidth = new(320);
     private const double FallbackExpandedResultsHeight = 200;
+    private const double DefaultParametersPanelWidth = 320;
+    private const double MinimumParametersPanelWidth = 220;
     private TabQueryEditorViewModel? _viewModel;
     private readonly TabTemplateSelector? _templateSelector;
     private readonly CompletionInteractionState _completionInteractionState = new();
@@ -50,6 +54,7 @@ public partial class TabQueryEditorView : UserControl
         {
             _viewModel.ShowResultTool -= ViewModelOnShowResultTool;
             _viewModel.Tabs.CollectionChanged -= TabsOnCollectionChanged;
+            _viewModel.PropertyChanged -= ViewModelOnPropertyChanged;
         }
 
         _viewModel = DataContext as TabQueryEditorViewModel;
@@ -62,6 +67,8 @@ public partial class TabQueryEditorView : UserControl
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretOffsetProperty, new Binding(nameof(TabQueryEditorViewModel.CursorOffSet)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretLineProperty, new Binding(nameof(TabQueryEditorViewModel.CursorLine)));
         SqlEditor.Bind(TextEditorBindingHelper.BindableCaretColumnProperty, new Binding(nameof(TabQueryEditorViewModel.CursorColumn)));
+        _viewModel.PropertyChanged += ViewModelOnPropertyChanged;
+        ApplyParametersPanelState();
     }
     
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -76,6 +83,7 @@ public partial class TabQueryEditorView : UserControl
         ConfigureEditorContextMenu();
         UpdateActiveEditorState();
         ApplyResultsPanelState();
+        ApplyParametersPanelState();
     }
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
@@ -99,6 +107,12 @@ public partial class TabQueryEditorView : UserControl
     private void ViewModelOnShowResultTool(object? sender, int e)
     {
         ApplyResultsPanelState();
+    }
+
+    private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TabQueryEditorViewModel.HasDetectedParameters))
+            ApplyParametersPanelState();
     }
 
     private void ToggleTabs_Click(object? sender, RoutedEventArgs e)
@@ -144,6 +158,34 @@ public partial class TabQueryEditorView : UserControl
     private static bool IsExpandedHeightCandidate(GridLength length, double collapsedHeight)
     {
         return !length.IsAbsolute || length.Value > collapsedHeight + 1;
+    }
+
+    private void ApplyParametersPanelState()
+    {
+        var splitterColumn = EditorLayoutGrid.ColumnDefinitions[1];
+        var panelColumn = EditorLayoutGrid.ColumnDefinitions[2];
+
+        if (_viewModel?.HasDetectedParameters == true)
+        {
+            splitterColumn.Width = new GridLength(5);
+            panelColumn.MinWidth = MinimumParametersPanelWidth;
+            panelColumn.Width = IsParametersPanelWidthCandidate(_previousParametersPanelWidth)
+                ? _previousParametersPanelWidth
+                : new GridLength(DefaultParametersPanelWidth);
+            return;
+        }
+
+        if (panelColumn.ActualWidth > MinimumParametersPanelWidth)
+            _previousParametersPanelWidth = new GridLength(panelColumn.ActualWidth);
+
+        splitterColumn.Width = new GridLength(0);
+        panelColumn.MinWidth = 0;
+        panelColumn.Width = new GridLength(0);
+    }
+
+    private static bool IsParametersPanelWidthCandidate(GridLength width)
+    {
+        return !width.IsAbsolute || width.Value >= MinimumParametersPanelWidth;
     }
 
     private async void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)

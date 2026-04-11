@@ -1,6 +1,7 @@
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace DataDeveloper.Data.Models;
 
@@ -15,7 +16,8 @@ public class StatementResult
         DbCommand? command,
         string statement,
         Stopwatch watcher,
-        int? recordsAffected = null)
+        int? recordsAffected = null,
+        IReadOnlyDictionary<string, object?>? parameters = null)
     {
         DataReader = dataReader;
         Connection = connection;
@@ -23,6 +25,9 @@ public class StatementResult
         Statement = statement;
         Watcher = watcher;
         RecordsAffected = recordsAffected ?? dataReader?.RecordsAffected ?? 0;
+        Parameters = parameters is null
+            ? null
+            : new ReadOnlyDictionary<string, object?>(new Dictionary<string, object?>(parameters, StringComparer.OrdinalIgnoreCase));
     }
 
     public DbDataReader? DataReader { get; }
@@ -31,6 +36,7 @@ public class StatementResult
     public string Statement { get; }
     public Stopwatch Watcher { get; }
     public int RecordsAffected { get; }
+    public IReadOnlyDictionary<string, object?>? Parameters { get; }
     public bool HasRows => DataReader?.HasRows ?? false;
     public bool HasDataReader => DataReader is not null;
     public bool HasResultSet => (DataReader?.FieldCount ?? 0) > 0;

@@ -53,7 +53,7 @@ public class StatementExecutor : IStatementExecutor
                 var reader = await command.ExecuteReaderAsync(cancellationToken);
                 watcher.Stop();
 
-                result.Add(new StatementResult(reader, connection, command, statement, watcher));
+                result.Add(new StatementResult(reader, connection, command, statement, watcher, parameters: parameters));
                 ClearActiveCommand(command);
             }
 
@@ -130,12 +130,12 @@ public class StatementExecutor : IStatementExecutor
             {
                 var table = ResultSetMaterializer.MaterializeCurrentResult(reader);
                 watcher.Stop();
-                results.Add(new StatementResult(table.CreateDataReader(), null, null, statement, watcher, table.Rows.Count));
+                results.Add(new StatementResult(table.CreateDataReader(), null, null, statement, watcher, table.Rows.Count, parameters));
             }
             else
             {
                 watcher.Stop();
-                results.Add(new StatementResult(null, null, null, statement, watcher, reader.RecordsAffected));
+                results.Add(new StatementResult(null, null, null, statement, watcher, reader.RecordsAffected, parameters));
             }
         } while (await reader.NextResultAsync(cancellationToken));
 

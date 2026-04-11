@@ -514,7 +514,15 @@ public class TabDataGridViewModel : BaseTabContent
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            try
+            {
+                await transaction.RollbackAsync();
+            }
+            catch
+            {
+                // Some providers auto-complete the transaction after a command failure.
+            }
+
             PublishSubmitFailureMessage(ex);
         }
         finally
@@ -526,9 +534,10 @@ public class TabDataGridViewModel : BaseTabContent
     private async Task RefreshDataAsync()
     {
         await StatementResult.CloseDataReader();
-        var statementExecutor = ConnectionSettings.GetStatementExecutor();
+        var statementExecutor = CreateStatementExecutor();
         var refreshedResult = (await statementExecutor.ExecuteStatement(
                 StatementResult.Statement,
+                StatementResult.Parameters,
                 commandTimeoutSeconds: _commandTimeoutSeconds))
             .FirstOrDefault(result => result.HasResultSet);
         if (refreshedResult is null)
@@ -537,6 +546,11 @@ public class TabDataGridViewModel : BaseTabContent
         StatementResult = refreshedResult;
         IsClosed = false;
         await LoadData();
+    }
+
+    protected virtual IStatementExecutor CreateStatementExecutor()
+    {
+        return ConnectionSettings.GetStatementExecutor();
     }
 
     private void PublishSubmitMessage(int insertedCount, int updatedCount, int deletedCount)
@@ -729,6 +743,7 @@ public class TabDataGridViewModel : BaseTabContent
     [Reactive] public string? EditabilityReason { get; private set; }
     [Reactive] public bool HasPendingChanges { get; private set; }
     [Reactive] public int SelectedRowIndex { get; set; } = -1;
+    [Reactive] public string GridSelectionStatusText { get; set; } = "Cell=nothing";
     [Reactive] public TimeSpan TimeElapsed { get; set; }
     [Reactive] public bool IsClosed { get; set; }
     [Reactive] public int RowNumber { get; set; }

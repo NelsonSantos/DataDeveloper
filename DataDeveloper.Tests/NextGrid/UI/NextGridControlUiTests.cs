@@ -110,6 +110,51 @@ public sealed class NextGridControlUiTests
     }
 
     [AvaloniaFact]
+    public void InitialSelectionStatus_ShowsNothing()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 4);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        Assert.Equal("Cell=nothing", grid.SelectionStatusText);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void FirstClick_UpdatesSelectionStatusWithCellCoordinate()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 4);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var cell = grid.GetCellBoundsForTest(2, 1);
+        var clickPoint = new Point(cell.X + Math.Min(12, cell.Width / 2), cell.Y + Math.Min(12, cell.Height / 2));
+        grid.SelectCellAtLocalPointForTest(clickPoint);
+
+        Assert.Equal("Cell=3:2", grid.SelectionStatusText);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void DragSelection_UpdatesSelectionStatusWithSelectedSize()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 6);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        grid.DragSelectCellsForTest(new GridCellAddress(1, 1), new GridCellAddress(3, 4));
+
+        Assert.Equal("Selected=3 row(s) x 4 column(s)", grid.SelectionStatusText);
+        window.Close();
+    }
+
+    [AvaloniaFact]
     public void BeginEditAndCommit_UpdatesCellValue()
     {
         var grid = CreateGrid(rowCount: 20, columnCount: 4);
