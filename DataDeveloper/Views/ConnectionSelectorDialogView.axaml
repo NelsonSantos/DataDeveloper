@@ -73,14 +73,14 @@
                                         Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                         CommandParameter="{Binding .}"
                                         >
-                                    <TextBlock Text="&#xf304;" FontFamily="{StaticResource FontAwesomeSolid}" />
+                                    <TextBlock Text="&#xF03EB;" Classes="MaterialIcon" />
                                 </Button>
                                 <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="2" 
                                         Background="Transparent" ToolTip.Tip="Delete"
                                         Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                         CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
                                         >
-                                    <TextBlock Text="&#xf2ed;" FontFamily="{StaticResource FontAwesomeSolid}" Foreground="Brown" />
+                                    <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Brown" />
                                 </Button>
                             </Grid>
                         </DataTemplate>

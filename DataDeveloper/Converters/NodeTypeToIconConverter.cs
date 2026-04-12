@@ -10,18 +10,18 @@ public class NodeTypeToIconConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not NodeType nodeType)
-            return "\uf07b";
+            return "\U000F024B";
 
         return nodeType switch
         {
-            NodeType.Connection => "\uf1c0",
-            NodeType.Table => "\uf00b",
-            NodeType.View => "\uf06e",
-            NodeType.Procedure => "\uf085",
-            NodeType.Function => "\uf661",
-            NodeType.Column => "\uf0ca",
-            NodeType.Parameter => "\uf1de",
-            _ => "\uf07b"
+            NodeType.Connection => "\U000F01BC",
+            NodeType.Table => "\U000F04EB",
+            NodeType.View => "\U000F0208",
+            NodeType.Procedure => "\U000F0493",
+            NodeType.Function => "\U000F0295",
+            NodeType.Column => "\U000F08DF",
+            NodeType.Parameter => "\U000F062E",
+            _ => "\U000F024B"
         };
     }
 
