@@ -75,6 +75,12 @@
         <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 
+        <Style Selector="TextBlock.MaterialIcon">
+            <Setter Property="FontFamily" Value="{StaticResource MaterialDesignIcons}" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <Style Selector="Window">
             <Setter Property="Background" Value="#FF212121"></Setter>
         </Style>        

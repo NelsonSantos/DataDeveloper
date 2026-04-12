@@ -43,8 +43,7 @@
                     Click="ToggleSchemaExplorer_Click"
                     ToolTip.Tip="Show or hide schema explorer">
                 <TextBlock x:Name="SchemaRailIcon"
-                           FontFamily="{StaticResource MaterialDesignIcons}"
-                           FontSize="13"
+                           Classes="MaterialIcon"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            Text="&#xF04AA;"/>
@@ -60,7 +59,7 @@
                     Command="{Binding RefreshCommand}"
                     Background="Transparent">
                     <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock FontSize="15" Text="&#xF0450;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
+                        <TextBlock Text="&#xF0450;" Classes="MaterialIcon" VerticalAlignment="Center" />
                         <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                 </Button>
@@ -72,7 +71,7 @@
                     Command="{Binding AddQueryEditorCommand}"
                     Background="Transparent">
                     <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock FontSize="15" Text="&#xF09EE;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
+                        <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" VerticalAlignment="Center" />
                         <TextBlock FontSize="13" Text="New query" VerticalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                 </Button>
@@ -98,14 +97,14 @@
                         <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4" PointerPressed="SchemaNode_PointerPressed">
                             <TextBlock 
                                 Grid.Column="0" 
-                                FontFamily="{StaticResource MaterialDesignIcons}" 
+                                Classes="MaterialIcon" 
                                 Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" 
                                 VerticalAlignment="Center"
                                 Margin="2"
                                 />
                             <TextBlock 
                                 Grid.Column="0" 
-                                FontFamily="{StaticResource MaterialDesignIcons}" 
+                                Classes="MaterialIcon" 
                                 Text="&#xF0306;" 
                                 IsVisible="{Binding Tag, Converter={StaticResource ColumnModelIsPrimaryKey}}"
                                 VerticalAlignment="Bottom"
@@ -129,12 +128,12 @@
             <TabControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
-                        <TextBlock FontSize="15" Text="&#xF09EE;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
+                        <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" VerticalAlignment="Center" />
                         <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,4,0,0" />
                         <TextBlock 
                             FontSize="8" 
                             Text="&#xF0765;" 
-                            FontFamily="{StaticResource MaterialDesignIcons}" 
+                            Classes="MaterialIcon" 
                             VerticalAlignment="Center" 
                             IsVisible="{Binding TextWasChanged}"
                             Foreground="DodgerBlue"
@@ -146,7 +145,7 @@
                             CommandParameter="{Binding .}"
                             Margin="0"
                             >
-                            <TextBlock FontSize="12" Text="&#xF0156;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
+                            <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />
                         </Button>
                     </StackPanel>
                 </DataTemplate>
