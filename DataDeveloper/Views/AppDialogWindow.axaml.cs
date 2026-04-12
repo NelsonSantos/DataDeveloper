@@ -98,7 +98,7 @@ public partial class AppDialogWindow : Window
             Child = new TextBlock
             {
                 Text = viewModel.IconGlyph,
-                FontFamily = FontFamily.Parse("avares://DataDeveloper/Assets/Fonts/fa-solid-900.ttf#Font Awesome 5 Pro Solid"),
+                FontFamily = FontFamily.Parse("avares://DataDeveloper/Assets/Fonts/materialdesignicons-webfont.ttf#Material Design Icons"),
                 FontSize = 22,
                 FontWeight = FontWeight.Normal,
                 HorizontalAlignment = HorizontalAlignment.Center,

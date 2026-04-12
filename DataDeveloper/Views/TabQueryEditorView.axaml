@@ -38,10 +38,10 @@
                       FontSize="11"
                       FontFamily="{StaticResource MonospaceFont}" />
             <Button Background="Transparent" Command="{Binding ExecuteCommand}" IsEnabled="{Binding !StatementIsRunning}" ToolTip.Tip="F5 - Run the statement" >
-                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04b;" Foreground="{Binding !StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
+                <TextBlock FontFamily="{StaticResource MaterialDesignIcons}" Text="&#xF040A;" Foreground="{Binding !StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
             </Button>
             <Button Background="Transparent" Command="{Binding StopCommand}" IsEnabled="{Binding StatementIsRunning}" ToolTip.Tip="Ctrl+F5 - Stop the execution of the statement">
-                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04d;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
+                <TextBlock FontFamily="{StaticResource MaterialDesignIcons}" Text="&#xF04DB;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
             </Button>
             <Border Width="1"
                     Height="16"
@@ -50,10 +50,10 @@
                     VerticalAlignment="Center"
                     Margin="6,0" />
             <Button Background="Transparent" Command="{Binding CommitTransactionCommand}" ToolTip.Tip="Commit pending transaction">
-                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf00c;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
+                <TextBlock FontFamily="{StaticResource MaterialDesignIcons}" Text="&#xF012C;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
             </Button>
             <Button Background="Transparent" Command="{Binding RollbackTransactionCommand}" ToolTip.Tip="Rollback pending transaction">
-                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf0e2;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
+                <TextBlock FontFamily="{StaticResource MaterialDesignIcons}" Text="&#xF054C;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
             </Button>
             <TextBlock Text="{Binding TransactionStatusMessage}"
                        Margin="6,0,0,0"
@@ -176,8 +176,8 @@
                 <Button Grid.Column="1" Background="Transparent" Margin="5" Click="ToggleTabs_Click">
                     <TextBlock 
                         FontSize="12" 
-                        Text="{Binding ResultIsMinimized, Converter={StaticResource BoolToIcon}, ConverterParameter='&#xf077;|&#xf078;'}" 
-                        FontFamily="{StaticResource FontAwesomeLight}" 
+                        Text="{Binding ResultIsMinimized, Converter={StaticResource BoolToIcon}, ConverterParameter='&#xF0143;|&#xF0140;'}" 
+                        FontFamily="{StaticResource MaterialDesignIcons}" 
                         VerticalAlignment="Center" 
                         />
                 </Button>
@@ -194,7 +194,7 @@
                                 Command="{Binding DataContext.CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                 CommandParameter="{Binding .}"
                                 >
-                                <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
+                                <TextBlock FontSize="12" Text="&#xF0156;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
                             </Button>
                         </StackPanel>
                     </DataTemplate>

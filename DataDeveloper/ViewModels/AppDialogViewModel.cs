@@ -59,11 +59,11 @@ public sealed class AppDialogViewModel : ViewModelBase
 
     private static string GetIconGlyph(DialogIcon icon) => icon switch
     {
-        DialogIcon.Warning => "\uf071",
-        DialogIcon.Error => "\uf057",
-        DialogIcon.Question => "\uf059",
-        DialogIcon.Success => "\uf058",
-        _ => "\uf05a"
+        DialogIcon.Warning => "\U000F0028",
+        DialogIcon.Error => "\U000F0159",
+        DialogIcon.Question => "\U000F02D7",
+        DialogIcon.Success => "\U000F05E0",
+        _ => "\U000F02FC"
     };
 
     private static string GetIconColor(DialogIcon icon) => icon switch

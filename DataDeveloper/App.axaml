@@ -27,11 +27,7 @@
             <!-- <x:Double x:Key="DataGridSortIconMinWidth">0</x:Double>  -->
             
             <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
-            <FontFamily x:Key="FontAwesomeBrands">avares://DataDeveloper/Assets/Fonts/fa-brans-regular-400.ttf#Font Awesome 5 Brands Regular</FontFamily>    
-            <FontFamily x:Key="FontAwesomeLight">avares://DataDeveloper/Assets/Fonts/fa-light-300.ttf#Font Awesome 5 Pro Light</FontFamily>
-            <FontFamily x:Key="FontAwesomeRegular">avares://DataDeveloper/Assets/Fonts/fa-regular-400.ttf#Font Awesome 5 Pro Regular</FontFamily>
-            <FontFamily x:Key="FontAwesomeSolid">avares://DataDeveloper/Assets/Fonts/fa-solid-900.ttf#Font Awesome 5 Pro Solid</FontFamily>
-            <FontFamily x:Key="FontAwesomeSolidFree">avares://DataDeveloper/Assets/Fonts/fa-solid-900.ttf#Font Awesome 5 Pro Solid Free</FontFamily>
+            <FontFamily x:Key="MaterialDesignIcons">avares://DataDeveloper/Assets/Fonts/materialdesignicons-webfont.ttf#Material Design Icons</FontFamily>
             
             <ResourceDictionary.MergedDictionaries>
             

@@ -14,7 +14,7 @@
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, Auto, *" Background="Transparent" Margin="0">
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xf7a5;" FontFamily="{StaticResource FontAwesomeLight}" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xF01BC;" FontFamily="{StaticResource MaterialDesignIcons}" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
         <Menu Grid.Row="0" Grid.Column="1">
             <MenuItem Header="_File">
                 <MenuItem Header="_Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
@@ -69,7 +69,7 @@
                                 Command="{Binding DataContext.CloseTabConnectionCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                 CommandParameter="{Binding .}"
                                 >
-                                <TextBlock FontSize="12" Text="&#xf00d;" FontFamily="{StaticResource FontAwesomeLight}" VerticalAlignment="Center" />
+                                <TextBlock FontSize="12" Text="&#xF0156;" FontFamily="{StaticResource MaterialDesignIcons}" VerticalAlignment="Center" />
                             </Button>
                         </StackPanel>
                     </DataTemplate>

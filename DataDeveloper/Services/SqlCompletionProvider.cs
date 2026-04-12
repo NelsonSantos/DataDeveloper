@@ -1110,7 +1110,7 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
 
     private object BuildContent()
     {
-        var fontAwesome = TryGetFont("FontAwesomeSolid");
+        var iconFont = TryGetFont("MaterialDesignIcons");
         var monospace = TryGetFont("MonospaceFont");
 
         var icon = new Avalonia.Controls.TextBlock
@@ -1120,8 +1120,8 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             Margin = new Avalonia.Thickness(0, 0, 8, 0)
         };
-        if (fontAwesome is not null)
-            icon.FontFamily = fontAwesome;
+        if (iconFont is not null)
+            icon.FontFamily = iconFont;
 
         var text = new Avalonia.Controls.TextBlock
         {
@@ -1168,10 +1168,10 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
     {
         return Kind switch
         {
-            CompletionItemKind.Table => "\uf00b",
-            CompletionItemKind.Column => "\uf0ca",
-            CompletionItemKind.Cte => "\uf1c0",
-            _ => "\uf15b"
+            CompletionItemKind.Table => "\U000F04EB",
+            CompletionItemKind.Column => "\U000F056D",
+            CompletionItemKind.Cte => "\U000F01BC",
+            _ => "\U000F09EE"
         };
     }
 }

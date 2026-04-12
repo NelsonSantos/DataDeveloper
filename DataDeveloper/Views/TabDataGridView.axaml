@@ -12,7 +12,7 @@
     <Grid RowDefinitions="Auto, Auto, Auto, *">
         <Border Grid.Row="0" Background="LightGray" Height="0.5" Opacity="0.5" />
         <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
-            <TextBlock Grid.Column="0" Text="&#xf7a5;" FontFamily="{StaticResource FontAwesomeLight}" FontSize="25" Foreground="LightGray" />
+            <TextBlock Grid.Column="0" Text="&#xF01BC;" FontFamily="{StaticResource MaterialDesignIcons}" FontSize="25" Foreground="LightGray" />
             <TextBlock Grid.Column="1" Text="Rows per page:" FontSize="11" VerticalAlignment="Center" Foreground="LightGray" />
             <ComboBox Grid.Column="2" FontSize="12" FontFamily="{StaticResource MonospaceFont}"
                 SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
@@ -29,7 +29,7 @@
                 IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
-                    Text="&#xf04e;" FontFamily="{StaticResource FontAwesomeSolid}" 
+                    Text="&#xF0BB0;" FontFamily="{StaticResource MaterialDesignIcons}" 
                     Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
@@ -41,7 +41,7 @@
                 IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
-                    Text="&#xf050;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Text="&#xF0601;" FontFamily="{StaticResource MaterialDesignIcons}"
                     Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
@@ -53,7 +53,7 @@
                 Command="{Binding DiscardChangesCommand}"
                 IsEnabled="{Binding CanDiscardChanges}">
                 <TextBlock
-                    Text="&#xf2ea;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Text="&#xF006F;" FontFamily="{StaticResource MaterialDesignIcons}"
                     Foreground="{Binding CanDiscardChanges, Converter={StaticResource BoolToColor}, ConverterParameter='Orange|Gray'}" />
             </Button>
             <Button Grid.Column="7"
@@ -63,7 +63,7 @@
                 Command="{Binding AddRowCommand}"
                 IsEnabled="{Binding CanAddRow}">
                 <TextBlock
-                    Text="&#xf067;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Text="&#xF0415;" FontFamily="{StaticResource MaterialDesignIcons}"
                     Foreground="{Binding CanAddRow, Converter={StaticResource BoolToColor}, ConverterParameter='LightGreen|Gray'}" />
             </Button>
             <Button Grid.Column="8"
@@ -73,7 +73,7 @@
                 Command="{Binding DeleteRowCommand}"
                 IsEnabled="{Binding CanDeleteRow}">
                 <TextBlock
-                    Text="&#xf2ed;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Text="&#xF0A7A;" FontFamily="{StaticResource MaterialDesignIcons}"
                     Foreground="{Binding CanDeleteRow, Converter={StaticResource BoolToColor}, ConverterParameter='Tomato|Gray'}" />
             </Button>
             <Button Grid.Column="9"
@@ -83,7 +83,7 @@
                 Command="{Binding SubmitChangesCommand}"
                 IsEnabled="{Binding CanSubmitChanges}">
                 <TextBlock
-                    Text="&#xf0c7;" FontFamily="{StaticResource FontAwesomeSolid}"
+                    Text="&#xF0193;" FontFamily="{StaticResource MaterialDesignIcons}"
                     Foreground="{Binding CanSubmitChanges, Converter={StaticResource BoolToColor}, ConverterParameter='DeepSkyBlue|Gray'}" />
             </Button>
             <Border Grid.Column="10"
@@ -134,8 +134,8 @@
                        VerticalAlignment="Center"
                        Foreground="LightGray" />
             <TextBlock Grid.Column="18"
-                       Text="&#xf05a;"
-                       FontFamily="{StaticResource FontAwesomeSolid}"
+                       Text="&#xF02FC;"
+                       FontFamily="{StaticResource MaterialDesignIcons}"
                        Foreground="#FFD8AE"
                        VerticalAlignment="Center"
                        IsVisible="{Binding ShowReadOnlyReason}"
