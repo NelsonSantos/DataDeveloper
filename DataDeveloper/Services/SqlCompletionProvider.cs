@@ -1169,7 +1169,7 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
         return Kind switch
         {
             CompletionItemKind.Table => "\U000F04EB",
-            CompletionItemKind.Column => "\U000F056D",
+            CompletionItemKind.Column => "\U000F08DF",
             CompletionItemKind.Cte => "\U000F01BC",
             _ => "\U000F09EE"
         };

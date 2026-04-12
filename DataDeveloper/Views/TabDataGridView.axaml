@@ -12,7 +12,7 @@
     <Grid RowDefinitions="Auto, Auto, Auto, *">
         <Border Grid.Row="0" Background="LightGray" Height="0.5" Opacity="0.5" />
         <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
-            <TextBlock Grid.Column="0" Text="&#xF01BC;" Classes="MaterialIcon" FontSize="25" Foreground="LightGray" />
+            <TextBlock Grid.Column="0" Text="&#xF1ABD;" Classes="MaterialIcon" FontSize="25" Foreground="LightGray" />
             <TextBlock Grid.Column="1" Text="Rows per page:" FontSize="11" VerticalAlignment="Center" Foreground="LightGray" />
             <ComboBox Grid.Column="2" FontSize="12" FontFamily="{StaticResource MonospaceFont}"
                 SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
@@ -29,7 +29,7 @@
                 IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
-                    Text="&#xF0BB0;" Classes="MaterialIcon" 
+                    Text="&#xF0211;" Classes="MaterialIcon"
                     Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>
@@ -41,7 +41,7 @@
                 IsEnabled="{Binding CanLoadMore}"
                 >
                 <TextBlock 
-                    Text="&#xF0601;" Classes="MaterialIcon"
+                    Text="&#xF04AC;" Classes="MaterialIcon"
                     Foreground="{Binding CanLoadMore, Converter={StaticResource BoolToColor}, ConverterParameter='DodgerBlue|Gray'}"
                     />
             </Button>

@@ -19,7 +19,7 @@ public class NodeTypeToIconConverter : IValueConverter
             NodeType.View => "\U000F0208",
             NodeType.Procedure => "\U000F0493",
             NodeType.Function => "\U000F0295",
-            NodeType.Column => "\U000F056D",
+            NodeType.Column => "\U000F08DF",
             NodeType.Parameter => "\U000F062E",
             _ => "\U000F024B"
         };

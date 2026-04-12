@@ -14,7 +14,7 @@
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
     </UserControl.Resources>
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, Auto, *" Background="Transparent" Margin="0">
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xF01BC;" Classes="MaterialIcon" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xF1ABD;" Classes="MaterialIcon" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
         <Menu Grid.Row="0" Grid.Column="1">
             <MenuItem Header="_File">
                 <MenuItem Header="_Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
