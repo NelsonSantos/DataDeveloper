@@ -11,7 +11,7 @@
 - [ ] Ferramenta de backup
 - [ ] Ferramenta de transfer de estrutura/dados
 - [ ] MCP client/server
-- [ ] Commit/rollback
+- [x] Commit/rollback
 - [ ] Export CSV/JSON
 - [x] Criar menu Edit: copy/paste/undo/redo/find/replace/upper/lower/beatify/indent/unindent
 - [x] Resolver menus nativos
@@ -25,4 +25,4 @@
 - [x] Fazer o progressbar de load ser exibido a cada execução proxima pagina ou de listar até o final
 - [x] Colocar um botão de stop para interromper o load de pagina de registros
 - [x] Validar o botão do stop da query para rodar assincrono e poder ser clicado
-- [ ] Trocar fontAwesome por material-icons
+- [x] Trocar fontAwesome por material-icons
