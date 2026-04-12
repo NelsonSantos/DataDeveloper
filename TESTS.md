@@ -23,7 +23,7 @@ Recommended validation after parser pipeline changes:
 dotnet build DataDeveloper.Antlr/DataDeveloper.Antlr.csproj
 dotnet build DataDeveloper/DataDeveloper.csproj
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "StatementSplitterTests|SqlParameterDetectorTests"
-dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|StatementExecutionClassifierTests"
+dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|ProviderSqlAnalyzerTests"
 ```
 
 ## Integration Tests

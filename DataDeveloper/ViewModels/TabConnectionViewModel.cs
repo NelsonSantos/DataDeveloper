@@ -25,12 +25,14 @@ public class TabConnectionViewModel : BaseTabContent
     private int _countQueryEditors = 0;
     private readonly IDialogService _dialogService;
     private readonly IEventAggregatorService _eventAggregatorService;
+    private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     
     public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.Connection, connectionSettings.Name, canClose, serviceProvider)
     {
         ConnectionSettings = connectionSettings;    
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
+        _sqlAnalyzer = ConnectionSettings.GetSqlAnalyzer();
         _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         
@@ -74,7 +76,7 @@ public class TabConnectionViewModel : BaseTabContent
             command.CommandText = statement;
             await command.ExecuteNonQueryAsync();
 
-            if (refreshSchema || StatementExecutionClassifier.RequiresSchemaRefresh(statement))
+            if (refreshSchema || _sqlAnalyzer.RequiresSchemaRefresh(statement))
                 await SchemaExplorer.RefreshSchemaObjectAsync(statement);
         }
         catch (Exception ex)
@@ -132,8 +134,35 @@ public class TabConnectionViewModel : BaseTabContent
     public async Task<bool> CloseTabQueryEditor(TabQueryEditorViewModel tabQueryEditor, bool showDialog = true)
     {
         var remove = true;
+
+        if (tabQueryEditor.HasActiveTransaction)
+        {
+            SelectedEditor = QueryEditors.IndexOf(tabQueryEditor);
+            await Task.Delay(100);
+
+            var result = showDialog
+                ? await _dialogService.ShowDialogAsync(
+                    $"{tabQueryEditor.Name} has a pending transaction.\n\r\r\nYes commits the changes, No rolls them back, and Cancel keeps the tab open.",
+                    "Pending transaction",
+                    DialogButtons.YesNoCancel,
+                    DialogIcon.Warning)
+                : DialogResult.No;
+
+            switch (result)
+            {
+                case DialogResult.Yes:
+                    remove = await tabQueryEditor.CommitPendingTransaction();
+                    break;
+                case DialogResult.No:
+                    remove = await tabQueryEditor.RollbackPendingTransaction();
+                    break;
+                case DialogResult.Cancel:
+                    remove = false;
+                    break;
+            }
+        }
         
-        if (tabQueryEditor.TextWasChanged)
+        if (remove && tabQueryEditor.TextWasChanged)
         {
             SelectedEditor = QueryEditors.IndexOf(tabQueryEditor);
             await Task.Delay(100);

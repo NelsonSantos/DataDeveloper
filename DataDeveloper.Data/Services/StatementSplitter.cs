@@ -1,6 +1,6 @@
 using System.Text;
 using Antlr4.Runtime;
-using SqlServer;
+using DataDeveloper.Data.Enums;
 
 namespace DataDeveloper.Data.Services;
 
@@ -8,32 +8,37 @@ public class StatementSplitter
 {
     public static List<string> SplitStatements(string sqlText)
     {
+        return SplitStatements(sqlText, DatabaseType.SqlServer);
+    }
+
+    public static List<string> SplitStatements(string sqlText, DatabaseType databaseType)
+    {
         var statements = new List<string>();
 
-        foreach (var batch in SplitOracleClientBatches(sqlText))
+        foreach (var batch in SplitClientBatches(sqlText, databaseType))
         {
-            if (!ContainsExecutableTokens(batch))
+            if (!ContainsExecutableTokens(batch, databaseType))
                 continue;
 
-            if (IsOracleRoutineBatch(batch))
+            if (databaseType == DatabaseType.Oracle && IsOracleRoutineBatch(batch))
             {
                 statements.Add(batch.Trim());
                 continue;
             }
 
-            if (IsOracleAnonymousBlockBatch(batch))
+            if (databaseType == DatabaseType.Oracle && IsOracleAnonymousBlockBatch(batch))
             {
                 statements.Add(batch.Trim());
                 continue;
             }
 
-            statements.AddRange(SplitStandardStatements(batch));
+            statements.AddRange(SplitStandardStatements(batch, databaseType));
         }
 
         return statements;
     }
 
-    private static IEnumerable<string> SplitOracleClientBatches(string sqlText)
+    private static IEnumerable<string> SplitClientBatches(string sqlText, DatabaseType databaseType)
     {
         var batches = new List<string>();
         var current = new StringBuilder();
@@ -41,7 +46,7 @@ public class StatementSplitter
 
         foreach (var line in lines)
         {
-            if (string.Equals(line.Trim(), "/", StringComparison.Ordinal))
+            if (databaseType == DatabaseType.Oracle && string.Equals(line.Trim(), "/", StringComparison.Ordinal))
             {
                 if (current.Length > 0)
                 {
@@ -61,10 +66,9 @@ public class StatementSplitter
         return batches;
     }
 
-    private static IEnumerable<string> SplitStandardStatements(string sqlText)
+    private static IEnumerable<string> SplitStandardStatements(string sqlText, DatabaseType databaseType)
     {
-        var input = new AntlrInputStream(sqlText);
-        var lexer = new TSqlLexer(input);
+        var lexer = ProviderSqlLexerFactory.Create(databaseType, sqlText);
         var tokens = new CommonTokenStream(lexer);
         tokens.Fill();
 
@@ -75,75 +79,114 @@ public class StatementSplitter
         int? endIndex = null;
         var blockLevel = 0;
 
-        foreach (var token in allTokens)
+        for (var tokenIndex = 0; tokenIndex < allTokens.Count; tokenIndex++)
         {
-            if (token.Type == TSqlLexer.BEGIN)
+            var token = allTokens[tokenIndex];
+            if (token.Type == TokenConstants.EOF || IsHiddenToken(token))
+                continue;
+
+            if (IsToken(token, "begin") && !IsBeginTransaction(allTokens, tokenIndex))
             {
                 blockLevel++;
             }
-            else if (token.Type == TSqlLexer.END)
+            else if (IsToken(token, "end"))
             {
                 if (blockLevel > 0)
                     blockLevel--;
             }
 
-            if ((token.Type == TSqlLexer.GO || token.Type == TSqlLexer.SEMI) && blockLevel == 0)
+            if ((IsBatchSeparator(token, databaseType) || IsToken(token, ";")) && blockLevel == 0)
             {
-                FlushStatement(sqlText, statements, startIndex, endIndex, includeDelimiter: token.Type == TSqlLexer.SEMI);
+                FlushStatement(
+                    sqlText,
+                    statements,
+                    startIndex,
+                    endIndex,
+                    IsToken(token, ";"),
+                    databaseType);
                 startIndex = null;
                 endIndex = null;
                 continue;
             }
 
-            if (token.Type != TokenConstants.EOF)
-            {
-                startIndex ??= token.StartIndex;
-                endIndex = token.StopIndex;
-            }
+            startIndex ??= token.StartIndex;
+            endIndex = token.StopIndex;
         }
 
-        FlushStatement(sqlText, statements, startIndex, endIndex, includeDelimiter: false);
+        FlushStatement(sqlText, statements, startIndex, endIndex, includeDelimiter: false, databaseType);
         return statements;
     }
 
-    private static void FlushStatement(string sqlText, ICollection<string> statements, int? startIndex, int? endIndex, bool includeDelimiter)
+    private static bool IsBeginTransaction(IList<IToken> tokens, int beginTokenIndex)
+    {
+        var nextToken = tokens
+            .Skip(beginTokenIndex + 1)
+            .FirstOrDefault(token => token.Type != TokenConstants.EOF && !IsHiddenToken(token));
+
+        return IsToken(nextToken, "transaction") ||
+               IsToken(nextToken, "tran") ||
+               IsToken(nextToken, "work");
+    }
+
+    private static void FlushStatement(
+        string sqlText,
+        ICollection<string> statements,
+        int? startIndex,
+        int? endIndex,
+        bool includeDelimiter,
+        DatabaseType databaseType)
     {
         if (startIndex is null || endIndex is null)
             return;
 
         var length = endIndex.Value - startIndex.Value + 1;
         var statement = sqlText.Substring(startIndex.Value, length);
-        if (includeDelimiter && ShouldKeepTrailingSemicolon(statement))
+        if (includeDelimiter && ShouldKeepTrailingSemicolon(statement, databaseType))
             statement += ";";
 
-        if (ContainsExecutableTokens(statement))
+        if (ContainsExecutableTokens(statement, databaseType))
             statements.Add(statement.Trim());
     }
 
-    private static bool ContainsExecutableTokens(string statement)
+    private static bool ContainsExecutableTokens(string statement, DatabaseType databaseType)
     {
-        if (string.IsNullOrWhiteSpace(statement) || IsOracleClientDelimiter(statement))
+        if (string.IsNullOrWhiteSpace(statement) ||
+            (databaseType == DatabaseType.Oracle && IsOracleClientDelimiter(statement)))
+        {
             return false;
+        }
 
-        var input = new AntlrInputStream(statement);
-        var lexer = new TSqlLexer(input);
+        var lexer = ProviderSqlLexerFactory.Create(databaseType, statement);
         var tokens = new CommonTokenStream(lexer);
         tokens.Fill();
 
         foreach (var token in tokens.GetTokens())
         {
-            if (token.Type == TokenConstants.EOF ||
-                token.Type == TSqlLexer.SPACE ||
-                token.Type == TSqlLexer.COMMENT ||
-                token.Type == TSqlLexer.LINE_COMMENT)
-            {
+            if (token.Type == TokenConstants.EOF || IsHiddenToken(token))
                 continue;
-            }
 
             return true;
         }
 
         return false;
+    }
+
+    private static bool IsHiddenToken(IToken token)
+    {
+        return token.Channel == Lexer.Hidden ||
+               token.Channel == TokenConstants.HiddenChannel;
+    }
+
+    private static bool IsToken(IToken? token, string text)
+    {
+        return token is not null &&
+               string.Equals(token.Text, text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsBatchSeparator(IToken token, DatabaseType databaseType)
+    {
+        return databaseType == DatabaseType.SqlServer &&
+               IsToken(token, "go");
     }
 
     private static bool IsOracleClientDelimiter(string statement)
@@ -173,8 +216,11 @@ public class StatementSplitter
                 string.Equals(keywords[kindIndex], "function", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static bool ShouldKeepTrailingSemicolon(string statement)
+    private static bool ShouldKeepTrailingSemicolon(string statement, DatabaseType databaseType)
     {
+        if (databaseType != DatabaseType.Oracle)
+            return false;
+
         var keywords = ReadLeadingKeywords(statement, 1);
         if (keywords.Count == 0)
             return false;
@@ -185,7 +231,7 @@ public class StatementSplitter
 
     private static bool IsOracleAnonymousBlockBatch(string statement)
     {
-        return ShouldKeepTrailingSemicolon(statement) &&
+        return ShouldKeepTrailingSemicolon(statement, DatabaseType.Oracle) &&
                statement.TrimEnd().EndsWith("end;", StringComparison.OrdinalIgnoreCase);
     }
 

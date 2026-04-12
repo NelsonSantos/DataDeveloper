@@ -61,6 +61,7 @@ public class TabDataGridViewModelTests
     {
         public string? LastSql { get; private set; }
         public IReadOnlyDictionary<string, object?>? LastParameters { get; private set; }
+        public bool HasActiveTransaction => false;
 
         public Task<IEnumerable<StatementResult>> ExecuteStatement(
             string sqlStatement,
@@ -75,6 +76,21 @@ public class TabDataGridViewModelTests
 
         public void Cancel()
         {
+        }
+
+        public Task BeginTransaction(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task CommitTransaction(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task RollbackTransaction(CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
         }
     }
 

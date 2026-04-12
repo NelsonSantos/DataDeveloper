@@ -45,7 +45,7 @@ public static class SqlCompletionProvider
         if (string.IsNullOrEmpty(text))
             return false;
 
-        return text.All(ch => char.IsLetterOrDigit(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(');
+        return text.All(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(');
     }
 
     public static CompletionRequest? GetAutoCompletionRequest(string editorText, int caretOffset, string? insertedText)
@@ -259,6 +259,10 @@ public static class SqlCompletionProvider
         if (aliases.Count > 0)
             return aliases.Values.Distinct().ToArray();
 
+        var referencedSources = ExtractReferencedSources(editorText, cteDefinitions);
+        if (referencedSources.Count > 0)
+            return referencedSources;
+
         // For INSERT INTO ... ( ... ) and UPDATE ... SET ..., the target table is the
         // most useful fallback source. For SELECT clauses, prefer explicit sources only.
         if (!string.IsNullOrWhiteSpace(context.TargetTableName) &&
@@ -271,6 +275,37 @@ public static class SqlCompletionProvider
         return cache.TableNodes.Values
             .DistinctBy(node => node.Name)
             .Select(node => new CompletionSource(node.Name, CompletionKind.Table))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<CompletionSource> ExtractReferencedSources(
+        string editorText,
+        IReadOnlyDictionary<string, string[]> cteDefinitions)
+    {
+        var sources = new List<CompletionSource>();
+        var tokens = TokenizeSql(editorText);
+
+        for (var i = 0; i < tokens.Count; i++)
+        {
+            if (!IsKeyword(tokens, i, "from") &&
+                !IsKeyword(tokens, i, "join") &&
+                !IsKeyword(tokens, i, "update") &&
+                !IsKeyword(tokens, i, "into"))
+            {
+                continue;
+            }
+
+            var cursor = i + 1;
+            if (!TryReadQualifiedName(tokens, ref cursor, out var sourceName))
+                continue;
+
+            sourceName = sourceName.Contains('.') ? sourceName.Split('.').Last() : sourceName;
+            var kind = cteDefinitions.ContainsKey(sourceName) ? CompletionKind.Cte : CompletionKind.Table;
+            sources.Add(new CompletionSource(sourceName, kind));
+        }
+
+        return sources
+            .Distinct()
             .ToArray();
     }
 

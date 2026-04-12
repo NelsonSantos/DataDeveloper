@@ -37,7 +37,7 @@ internal sealed class CompletionInteractionState
         }
 
         _reopenCompletionOnWhitespace = false;
-        return !char.IsLetterOrDigit(text[0]) && text[0] != '_';
+        return !char.IsLetterOrDigit(text[0]) && text[0] is not '_' and not '.';
     }
 
     public void ResetWhitespaceReopen()

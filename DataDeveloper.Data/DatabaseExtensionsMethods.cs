@@ -28,4 +28,9 @@ public static class DatabaseExtensionsMethods
     {
         return GetFactory().GetStatementExecutor(value);
     }
+
+    public static IProviderSqlAnalyzer GetSqlAnalyzer(this IConnectionSettings value)
+    {
+        return GetFactory().GetSqlAnalyzer(value);
+    }
 }

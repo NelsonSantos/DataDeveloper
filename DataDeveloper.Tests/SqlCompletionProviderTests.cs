@@ -36,6 +36,12 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public void ShouldTriggerCompletion_ReturnsTrue_ForWhitespaceSoValidContextsCanOpen()
+    {
+        Assert.True(SqlCompletionProvider.ShouldTriggerCompletion(" "));
+    }
+
+    [Fact]
     public void AutoRequest_AfterFromSpace_ReturnsObjectsTrigger()
     {
         var sql = "select * from ";
@@ -265,6 +271,43 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public async Task GetCompletionsAsync_AfterSelectSpace_ReturnsColumnsFromSeededSchemaCache()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select ";
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, " ");
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request!);
+
+        Assert.NotNull(request);
+        Assert.Contains(completions, item => item.Text == "id");
+        Assert.Contains(completions, item => item.Text == "nome");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterSelectSpaceWithFromTable_ReturnsColumnsOnlyFromReferencedTable()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(
+            connection.Id,
+            ("clientes", ["id", "nome"]),
+            ("pedidos", ["pedido_id", "valor"]));
+
+        var sql = "select  from clientes";
+        var caretOffset = "select ".Length;
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, caretOffset);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, caretOffset, request);
+
+        Assert.Contains(completions, item => item.Text == "id");
+        Assert.Contains(completions, item => item.Text == "nome");
+        Assert.DoesNotContain(completions, item => item.Text == "pedido_id");
+        Assert.DoesNotContain(completions, item => item.Text == "valor");
+    }
+
+    [Fact]
     public async Task GetCompletionsAsync_ReturnsColumns_ForMySqlQuotedAliasWithSeededSchemaCache()
     {
         var connection = new TestConnectionSettings { DatabaseType = DatabaseType.MySql };
@@ -338,6 +381,11 @@ public class SqlCompletionProviderTests
 
     private static void SeedSchemaCache(Guid connectionId, string tableName, params string[] columns)
     {
+        SeedSchemaCache(connectionId, (tableName, columns));
+    }
+
+    private static void SeedSchemaCache(Guid connectionId, params (string TableName, string[] Columns)[] tablesToSeed)
+    {
         var providerType = typeof(SqlCompletionProvider);
         var cacheField = providerType.GetField("SchemaCache", BindingFlags.Static | BindingFlags.NonPublic)
                          ?? throw new InvalidOperationException("Schema cache field not found.");
@@ -350,20 +398,23 @@ public class SqlCompletionProviderTests
         cacheType.GetProperty("TablesLoaded")!.SetValue(cache, true);
 
         var tables = (ISet<string>)cacheType.GetProperty("Tables")!.GetValue(cache)!;
-        tables.Add(tableName);
-
         var tableNodes = (IDictionary)cacheType.GetProperty("TableNodes")!.GetValue(cache)!;
-        var schemaNode = CreateSchemaNode(NodeType.Table, tableName);
-        tableNodes[tableName] = schemaNode;
-        tableNodes[$"[{tableName}]"] = schemaNode;
-        tableNodes[$"`{tableName}`"] = schemaNode;
-        tableNodes[$"\"{tableName}\""] = schemaNode;
-
         var columnsByTable = (IDictionary)cacheType.GetProperty("ColumnsByTable")!.GetValue(cache)!;
-        columnsByTable[tableName] = columns;
-
         var loadedTables = (ISet<string>)cacheType.GetProperty("LoadedTables")!.GetValue(cache)!;
-        loadedTables.Add(tableName);
+
+        foreach (var (tableName, columns) in tablesToSeed)
+        {
+            tables.Add(tableName);
+
+            var schemaNode = CreateSchemaNode(NodeType.Table, tableName);
+            tableNodes[tableName] = schemaNode;
+            tableNodes[$"[{tableName}]"] = schemaNode;
+            tableNodes[$"`{tableName}`"] = schemaNode;
+            tableNodes[$"\"{tableName}\""] = schemaNode;
+
+            columnsByTable[tableName] = columns;
+            loadedTables.Add(tableName);
+        }
 
         var tryAddMethod = cacheDictionary.GetType().GetMethod("TryAdd")
                           ?? throw new InvalidOperationException("Schema cache TryAdd method not found.");

@@ -10,10 +10,12 @@ namespace DataDeveloper.Data.Services;
 public class SchemaExplorer : ISchemaExplorer
 {
     private readonly IDatabaseProvider _databaseProvider;
+    private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     public SchemaExplorer(IDatabaseProvider databaseProvider, IConnectionSettings connectionSettings)
     {
         ConnectionSettings = connectionSettings;
         _databaseProvider = databaseProvider;
+        _sqlAnalyzer = ProviderSqlAnalyzer.Create(connectionSettings.DatabaseType);
     }
 
     public IConnectionSettings ConnectionSettings { get; }
@@ -55,7 +57,7 @@ public class SchemaExplorer : ISchemaExplorer
 
     public async Task RefreshSchemaObjectAsync(string statement)
     {
-        var target = StatementExecutionClassifier.ParseSchemaRefreshTarget(statement);
+        var target = _sqlAnalyzer.ParseSchemaRefreshTarget(statement);
         if (target is null || target.ObjectType == SchemaObjectType.Unknown)
         {
             await RefreshSchemaAsync();
