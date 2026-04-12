@@ -50,13 +50,13 @@ dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj
 Principal filtro de regressão atual para parsing/completion/formatter:
 
 ```bash
-dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlTokenFormatterTests|SqlCompletionProviderTests|StatementExecutionClassifierTests|ResultSetEditabilityAnalyzerTests|SqlParameterDetectorTests|StatementSplitterTests"
+dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlTokenFormatterTests|SqlCompletionProviderTests|ProviderSqlAnalyzerTests|ResultSetEditabilityAnalyzerTests|SqlParameterDetectorTests|StatementSplitterTests"
 ```
 
 Filtro menor usado durante refactors:
 
 ```bash
-dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|StatementExecutionClassifierTests|ResultSetEditabilityAnalyzerTests|SqlParameterDetectorTests"
+dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|ProviderSqlAnalyzerTests|ResultSetEditabilityAnalyzerTests|SqlParameterDetectorTests"
 ```
 
 ## Testes por área
@@ -66,7 +66,7 @@ dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter SqlCompletio
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter SqlTokenFormatterTests
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter SqlParameterDetectorTests
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter ResultSetEditabilityAnalyzerTests
-dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter StatementExecutionClassifierTests
+dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter ProviderSqlAnalyzerTests
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter StatementSplitterTests
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter EditableResultSetCommandBuilderTests
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter OracleDatabaseProviderTests
@@ -76,7 +76,7 @@ dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter OracleDataba
 
 ```bash
 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "StatementSplitterTests|SqlParameterDetectorTests"
-dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|StatementExecutionClassifierTests"
+dotnet test DataDeveloper.Tests/DataDeveloper.Tests.csproj --filter "SqlCompletionProviderTests|ProviderSqlAnalyzerTests"
 ```
 
 ## Testes de editable result set

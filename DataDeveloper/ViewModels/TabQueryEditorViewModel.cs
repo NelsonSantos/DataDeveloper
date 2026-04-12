@@ -28,6 +28,8 @@ public class TabQueryEditorViewModel : BaseTabContent
     private static readonly HashSet<int> SupportedRunTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly Dictionary<string, int> _cachePages = new();
+    private readonly IStatementExecutor _statementExecutor;
+    private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     private IStatementExecutor? _activeStatementExecutor;
     private CancellationTokenSource? _queryCancellationTokenSource;
     
@@ -39,11 +41,20 @@ public class TabQueryEditorViewModel : BaseTabContent
         _eventAggregatorService = this.ServiceProvider.GetRequiredService<IEventAggregatorService>();    
         
         ConnectionSettings = connectionSettings;
+        _statementExecutor = ConnectionSettings.GetStatementExecutor();
+        _sqlAnalyzer = ConnectionSettings.GetSqlAnalyzer();
         File = file;
         SelectedRunTimeoutSeconds = NormalizeRunTimeout(connectionSettings.StatementTimeoutSeconds);
 
+        var canRunTransactionCommand = this.WhenAnyValue(
+            vm => vm.HasActiveTransaction,
+            vm => vm.StatementIsRunning,
+            (hasActiveTransaction, statementIsRunning) => hasActiveTransaction && !statementIsRunning);
+
         ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
         StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
+        CommitTransactionCommand = ReactiveCommand.CreateFromTask(CommitTransaction, canRunTransactionCommand, RxApp.MainThreadScheduler);
+        RollbackTransactionCommand = ReactiveCommand.CreateFromTask(RollbackTransaction, canRunTransactionCommand, RxApp.MainThreadScheduler);
         CloseTabResultCommand = ReactiveCommand.CreateFromTask<BaseTabContent>(CloseTabResult);
         ShowResultCommand = ReactiveCommand.Create(() => { });
 
@@ -94,6 +105,8 @@ public class TabQueryEditorViewModel : BaseTabContent
     [Reactive] public double ResultsHeaderHeight { get; set; }
     [Reactive] public bool TextWasChanged { get; set; }
     [Reactive] public bool StatementIsRunning { get; set; }
+    [Reactive] public bool HasActiveTransaction { get; set; }
+    [Reactive] public string TransactionStatusMessage { get; set; } = "No pending transaction";
     [Reactive] public bool IsExecutionStatusVisible { get; set; }
     [Reactive] public string ExecutionStatusMessage { get; set; } = string.Empty;
     [Reactive] public bool ResultIsMinimized { get; set; } = true;
@@ -106,6 +119,8 @@ public class TabQueryEditorViewModel : BaseTabContent
     public ObservableCollection<int> RunTimeoutOptions { get; } = new() { 15, 30, 60, 120, 240, 480 };
     public ReactiveCommand<Unit, Unit> ExecuteCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
+    public ReactiveCommand<Unit, Unit> CommitTransactionCommand { get; }
+    public ReactiveCommand<Unit, Unit> RollbackTransactionCommand { get; }
     public ReactiveCommand<BaseTabContent, Unit> CloseTabResultCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowResultCommand { get; set; }
     
@@ -137,8 +152,7 @@ public class TabQueryEditorViewModel : BaseTabContent
 
         try
         {
-            var statementExecutor = ConnectionSettings.GetStatementExecutor();
-            _activeStatementExecutor = statementExecutor;
+            _activeStatementExecutor = _statementExecutor;
             var previousResultTabs = Tabs.OfType<TabDataGridViewModel>().ToList();
             var cleanupWatcher = Stopwatch.StartNew();
             var statementToExecute = SelectedStatementLength > 0 ? SelectedStatement : SqlStatement;
@@ -165,12 +179,13 @@ public class TabQueryEditorViewModel : BaseTabContent
             ExecutionStatusMessage = "Executing query...";
             _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Executing query..."));
 
-            var statementResults = (await statementExecutor.ExecuteStatement(
+            var statementResults = (await _statementExecutor.ExecuteStatement(
                 statementToExecute,
                 parameterValues,
                 SelectedRunTimeoutSeconds,
                 queryCancellationTokenSource.Token)).ToList();
-            var shouldRefreshSchema = statementResults.Any(result => StatementExecutionClassifier.RequiresSchemaRefresh(result.Statement));
+            RefreshTransactionState();
+            var shouldRefreshSchema = statementResults.Any(result => _sqlAnalyzer.RequiresSchemaRefresh(result.Statement));
 
             if (statementResults.Any())
             {
@@ -245,7 +260,7 @@ public class TabQueryEditorViewModel : BaseTabContent
             {
                 var ddlStatement = statementResults
                     .Select(result => result.Statement)
-                    .FirstOrDefault(StatementExecutionClassifier.RequiresSchemaRefresh);
+                    .FirstOrDefault(_sqlAnalyzer.RequiresSchemaRefresh);
 
                 _eventAggregatorService.Publish(new RefreshSchemaExplorerEvent(ConnectionSettings.Id, ddlStatement));
             }
@@ -273,6 +288,7 @@ public class TabQueryEditorViewModel : BaseTabContent
                 _queryCancellationTokenSource = null;
 
             _activeStatementExecutor = null;
+            RefreshTransactionState();
             this.ResultIsMinimized = false;
             this.StatementIsRunning = false;
             IsExecutionStatusVisible = false;
@@ -280,6 +296,62 @@ public class TabQueryEditorViewModel : BaseTabContent
             _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
             this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
+    }
+
+    private async Task CommitTransaction()
+    {
+        await CommitPendingTransaction();
+    }
+
+    private async Task RollbackTransaction()
+    {
+        await RollbackPendingTransaction();
+    }
+
+    public async Task<bool> CommitPendingTransaction()
+    {
+        try
+        {
+            await _statementExecutor.CommitTransaction();
+            RefreshTransactionState();
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, "Transaction committed."));
+            this.SelectedTabIndex = 0;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            RefreshTransactionState();
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, $"Commit failed: {ex.Message}"));
+            this.SelectedTabIndex = 0;
+            return false;
+        }
+    }
+
+    public async Task<bool> RollbackPendingTransaction()
+    {
+        try
+        {
+            await _statementExecutor.RollbackTransaction();
+            RefreshTransactionState();
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, "Transaction rolled back."));
+            this.SelectedTabIndex = 0;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            RefreshTransactionState();
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, $"Rollback failed: {ex.Message}"));
+            this.SelectedTabIndex = 0;
+            return false;
+        }
+    }
+
+    private void RefreshTransactionState()
+    {
+        HasActiveTransaction = _statementExecutor.HasActiveTransaction;
+        TransactionStatusMessage = HasActiveTransaction
+            ? "Pending transaction"
+            : "No pending transaction";
     }
 
     private void RefreshDetectedParameters()

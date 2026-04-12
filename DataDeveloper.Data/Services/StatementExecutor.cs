@@ -13,15 +13,22 @@ public class StatementExecutor : IStatementExecutor
 {
     private readonly IConnectionSettings _connectionSettings;
     private readonly IDatabaseProvider _databaseProvider;
+    private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     private readonly object _activeCommandLock = new();
+    private readonly SemaphoreSlim _transactionLock = new(1, 1);
     private DbCommand? _activeCommand;
+    private DbConnection? _transactionConnection;
+    private DbTransaction? _transaction;
     private int _cancelRequested;
     
     public StatementExecutor(IConnectionSettings connectionSettings)
     {
         _connectionSettings = connectionSettings;
         _databaseProvider = _connectionSettings.GetDatabaseProvider();
+        _sqlAnalyzer = _connectionSettings.GetSqlAnalyzer();
     }
+
+    public bool HasActiveTransaction => _transaction is not null;
 
     public async Task<IEnumerable<StatementResult>> ExecuteStatement(
         string sqlStatement,
@@ -32,13 +39,46 @@ public class StatementExecutor : IStatementExecutor
         try
         {
             var result = new List<StatementResult>();
-            var statements = StatementSplitter.SplitStatements(sqlStatement);
+            var statements = _sqlAnalyzer.SplitStatements(sqlStatement);
 
             foreach (var statement in statements)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (StatementExecutionClassifier.RequiresMaterialization(statement))
+                if (_sqlAnalyzer.IsTransactionControlStatement(statement))
+                {
+                    var transactionControlWatcher = Stopwatch.StartNew();
+                    if (_sqlAnalyzer.IsBeginTransactionStatement(statement))
+                        await BeginTransaction(cancellationToken);
+                    else if (IsCommitStatement(statement))
+                        await CommitTransaction(cancellationToken);
+                    else
+                        await RollbackTransaction(cancellationToken);
+
+                    transactionControlWatcher.Stop();
+                    result.Add(new StatementResult(null, null, null, statement, transactionControlWatcher, 0, parameters));
+                    continue;
+                }
+
+                if (_sqlAnalyzer.IsDmlStatement(statement))
+                {
+                    var dmlResult = await ExecuteTransactionalDmlStatement(statement, parameters, commandTimeoutSeconds, cancellationToken);
+                    result.Add(dmlResult);
+                    continue;
+                }
+
+                if (HasActiveTransaction)
+                {
+                    var transactionResults = await ExecuteMaterializedStatementInActiveTransaction(
+                        statement,
+                        parameters,
+                        commandTimeoutSeconds,
+                        cancellationToken);
+                    result.AddRange(transactionResults);
+                    continue;
+                }
+
+                if (_sqlAnalyzer.RequiresMaterialization(statement))
                 {
                     var materializedResults = await ExecuteMaterializedStatement(statement, parameters, commandTimeoutSeconds, cancellationToken);
                     result.AddRange(materializedResults);
@@ -50,8 +90,19 @@ public class StatementExecutor : IStatementExecutor
                 await connection.OpenAsync(cancellationToken);
                 var command = CreateCommand(connection, statement, parameters, commandTimeoutSeconds);
                 SetActiveCommand(command);
-                var reader = await command.ExecuteReaderAsync(cancellationToken);
-                watcher.Stop();
+                DbDataReader reader;
+                try
+                {
+                    reader = await command.ExecuteReaderAsync(cancellationToken);
+                    watcher.Stop();
+                }
+                catch
+                {
+                    ClearActiveCommand(command);
+                    await command.DisposeAsync();
+                    await connection.DisposeAsync();
+                    throw;
+                }
 
                 result.Add(new StatementResult(reader, connection, command, statement, watcher, parameters: parameters));
                 ClearActiveCommand(command);
@@ -73,6 +124,29 @@ public class StatementExecutor : IStatementExecutor
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    public async Task CommitTransaction(CancellationToken cancellationToken = default)
+    {
+        await CompleteTransaction(commit: true, cancellationToken);
+    }
+
+    public async Task BeginTransaction(CancellationToken cancellationToken = default)
+    {
+        await _transactionLock.WaitAsync(cancellationToken);
+        try
+        {
+            await EnsureTransaction(cancellationToken);
+        }
+        finally
+        {
+            _transactionLock.Release();
+        }
+    }
+
+    public async Task RollbackTransaction(CancellationToken cancellationToken = default)
+    {
+        await CompleteTransaction(commit: false, cancellationToken);
     }
 
     public void Cancel()
@@ -142,6 +216,149 @@ public class StatementExecutor : IStatementExecutor
         ClearActiveCommand(command);
 
         return results;
+    }
+
+    private async Task<StatementResult> ExecuteTransactionalDmlStatement(
+        string statement,
+        IReadOnlyDictionary<string, object?>? parameters,
+        int? commandTimeoutSeconds,
+        CancellationToken cancellationToken)
+    {
+        await _transactionLock.WaitAsync(cancellationToken);
+        try
+        {
+            await EnsureTransaction(cancellationToken);
+
+            var watcher = Stopwatch.StartNew();
+            await using var command = CreateCommand(_transactionConnection!, statement, parameters, commandTimeoutSeconds);
+            command.Transaction = _transaction;
+            SetActiveCommand(command);
+            try
+            {
+                var recordsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+                watcher.Stop();
+                return new StatementResult(null, null, null, statement, watcher, recordsAffected, parameters);
+            }
+            finally
+            {
+                ClearActiveCommand(command);
+            }
+        }
+        finally
+        {
+            _transactionLock.Release();
+        }
+    }
+
+    private async Task<IEnumerable<StatementResult>> ExecuteMaterializedStatementInActiveTransaction(
+        string statement,
+        IReadOnlyDictionary<string, object?>? parameters,
+        int? commandTimeoutSeconds,
+        CancellationToken cancellationToken)
+    {
+        await _transactionLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_transaction is null || _transactionConnection is null)
+                return await ExecuteMaterializedStatement(statement, parameters, commandTimeoutSeconds, cancellationToken);
+
+            await using var command = CreateCommand(_transactionConnection, statement, parameters, commandTimeoutSeconds);
+            command.Transaction = _transaction;
+            return await ExecuteMaterializedCommand(command, statement, parameters, cancellationToken);
+        }
+        finally
+        {
+            _transactionLock.Release();
+        }
+    }
+
+    private async Task<IEnumerable<StatementResult>> ExecuteMaterializedCommand(
+        DbCommand command,
+        string statement,
+        IReadOnlyDictionary<string, object?>? parameters,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<StatementResult>();
+        SetActiveCommand(command);
+        try
+        {
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+            do
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var watcher = Stopwatch.StartNew();
+
+                if (reader.FieldCount > 0)
+                {
+                    var table = ResultSetMaterializer.MaterializeCurrentResult(reader);
+                    watcher.Stop();
+                    results.Add(new StatementResult(table.CreateDataReader(), null, null, statement, watcher, table.Rows.Count, parameters));
+                }
+                else
+                {
+                    watcher.Stop();
+                    results.Add(new StatementResult(null, null, null, statement, watcher, reader.RecordsAffected, parameters));
+                }
+            } while (await reader.NextResultAsync(cancellationToken));
+        }
+        finally
+        {
+            ClearActiveCommand(command);
+        }
+
+        return results;
+    }
+
+    private async Task EnsureTransaction(CancellationToken cancellationToken)
+    {
+        if (_transaction is not null && _transactionConnection is not null)
+            return;
+
+        _transactionConnection = _databaseProvider.GetConnection();
+        await _transactionConnection.OpenAsync(cancellationToken);
+        _transaction = await _transactionConnection.BeginTransactionAsync(cancellationToken);
+    }
+
+    private async Task CompleteTransaction(bool commit, CancellationToken cancellationToken)
+    {
+        await _transactionLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_transaction is null)
+                return;
+
+            try
+            {
+                if (commit)
+                    await _transaction.CommitAsync(cancellationToken);
+                else
+                    await _transaction.RollbackAsync(cancellationToken);
+            }
+            finally
+            {
+                await DisposeTransactionResources();
+            }
+        }
+        finally
+        {
+            _transactionLock.Release();
+        }
+    }
+
+    private async Task DisposeTransactionResources()
+    {
+        if (_transaction is not null)
+        {
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+
+        if (_transactionConnection is not null)
+        {
+            await _transactionConnection.DisposeAsync();
+            _transactionConnection = null;
+        }
     }
 
     private DbCommand CreateCommand(
@@ -231,5 +448,10 @@ public class StatementExecutor : IStatementExecutor
     {
         for (var current = exception; current is not null; current = current.InnerException)
             yield return current;
+    }
+
+    private static bool IsCommitStatement(string statement)
+    {
+        return statement.TrimStart().StartsWith("commit", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -43,6 +43,24 @@
             <Button Background="Transparent" Command="{Binding StopCommand}" IsEnabled="{Binding StatementIsRunning}" ToolTip.Tip="Ctrl+F5 - Stop the execution of the statement">
                 <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf04d;" Foreground="{Binding StatementIsRunning, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
             </Button>
+            <Border Width="1"
+                    Height="16"
+                    Background="LightGray"
+                    Opacity="0.5"
+                    VerticalAlignment="Center"
+                    Margin="6,0" />
+            <Button Background="Transparent" Command="{Binding CommitTransactionCommand}" ToolTip.Tip="Commit pending transaction">
+                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf00c;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Green|Gray'}" Background="Transparent"></TextBlock>
+            </Button>
+            <Button Background="Transparent" Command="{Binding RollbackTransactionCommand}" ToolTip.Tip="Rollback pending transaction">
+                <TextBlock FontFamily="{StaticResource FontAwesomeSolid}" Text="&#xf0e2;" Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='Firebrick|Gray'}" Background="Transparent"></TextBlock>
+            </Button>
+            <TextBlock Text="{Binding TransactionStatusMessage}"
+                       Margin="6,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="{Binding HasActiveTransaction, Converter={StaticResource BoolToColor}, ConverterParameter='LightGreen|LightGray'}"
+                       FontSize="11"
+                       FontFamily="{StaticResource MonospaceFont}" />
         </StackPanel>
         <Grid x:Name="EditorLayoutGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>

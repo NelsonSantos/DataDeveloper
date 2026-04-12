@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Antlr4.Runtime;
 using DataDeveloper.Data.Enums;
-using SqlServer;
+using DataDeveloper.Data.Services;
 
 namespace DataDeveloper.Services;
 
@@ -186,18 +186,15 @@ public static class SqlTokenFormatter
 
     private static List<SqlFormatToken> TryTokenize(string sql, DatabaseType databaseType)
     {
-        Lexer? lexer = databaseType switch
+        Lexer lexer;
+        try
         {
-            DatabaseType.SqlServer => new TSqlLexer(new AntlrInputStream(sql)),
-            DatabaseType.MySql => new MySQLLexer(new AntlrInputStream(sql)),
-            DatabaseType.PostgresSql => new PostgreSQLLexer(new AntlrInputStream(sql)),
-            DatabaseType.Oracle => new PlSqlLexer(new AntlrInputStream(sql)),
-            DatabaseType.SqLite => new SQLiteLexer(new AntlrInputStream(sql)),
-            _ => null
-        };
-
-        if (lexer is null)
+            lexer = ProviderSqlLexerFactory.Create(databaseType, sql);
+        }
+        catch (NotSupportedException)
+        {
             return TokenizeFallback(sql);
+        }
 
         var tokens = new List<SqlFormatToken>();
         while (true)

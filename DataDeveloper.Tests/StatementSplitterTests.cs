@@ -1,4 +1,5 @@
 using DataDeveloper.Data.Services;
+using DataDeveloper.Data.Enums;
 using Xunit;
 
 namespace DataDeveloper.Tests;
@@ -14,7 +15,7 @@ public class StatementSplitterTests
                   --end;
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.SqlServer);
 
         Assert.Single(statements);
         Assert.Contains("exec dbo.MyProc", statements[0]);
@@ -30,7 +31,7 @@ public class StatementSplitterTests
                   /
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.Oracle);
 
         Assert.Single(statements);
         Assert.DoesNotContain("/", statements[0]);
@@ -71,7 +72,7 @@ public class StatementSplitterTests
                   /
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.Oracle);
 
         Assert.Equal(2, statements.Count);
         Assert.Contains("create or replace procedure mark_order_shipped", statements[0]);
@@ -89,10 +90,29 @@ public class StatementSplitterTests
                   begin "MARK_ORDER_SHIPPED"(:p_order_id); end;
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.Oracle);
 
         var statement = Assert.Single(statements);
         Assert.Equal("""begin "MARK_ORDER_SHIPPED"(:p_order_id); end;""", statement);
+    }
+
+    [Fact]
+    public void SplitStatements_SplitsBeginTransactionScript()
+    {
+        var sql = """
+                  begin transaction;
+                  insert into items(name) values ('scripted');
+                  commit;
+                  select count(*) from items;
+                  """;
+
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.SqlServer);
+
+        Assert.Equal(4, statements.Count);
+        Assert.Equal("begin transaction", statements[0]);
+        Assert.StartsWith("insert into items", statements[1], StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("commit", statements[2]);
+        Assert.StartsWith("select count(*)", statements[3], StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -108,7 +128,7 @@ public class StatementSplitterTests
                   /
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.Oracle);
 
         var statement = Assert.Single(statements);
         Assert.Contains("create or replace procedure mark_order_shipped", statement);
@@ -122,7 +142,7 @@ public class StatementSplitterTests
                   declare v_order_id number := 1; begin null; end;
                   """;
 
-        var statements = StatementSplitter.SplitStatements(sql);
+        var statements = StatementSplitter.SplitStatements(sql, DatabaseType.Oracle);
 
         var statement = Assert.Single(statements);
         Assert.Equal("""declare v_order_id number := 1; begin null; end;""", statement);

@@ -169,4 +169,72 @@ public class DatabaseProviderFactoryServiceTests
 
         Assert.NotNull(explorer);
     }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.MySql)]
+    [InlineData(DatabaseType.PostgresSql)]
+    [InlineData(DatabaseType.Oracle)]
+    [InlineData(DatabaseType.SqLite)]
+    public void GetSqlAnalyzer_ReturnsProviderAnalyzer_ForSupportedProviders(DatabaseType databaseType)
+    {
+        var factory = new DatabaseProviderFactoryService();
+        var connection = CreateConnection(databaseType);
+
+        var analyzer = factory.GetSqlAnalyzer(connection);
+
+        Assert.NotNull(analyzer);
+        Assert.Equal(ExpectedAnalyzerType(databaseType), analyzer.GetType());
+        Assert.True(analyzer.IsDmlStatement("update items set name = 'changed'"));
+    }
+
+    private static Type ExpectedAnalyzerType(DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            DatabaseType.SqlServer => typeof(SqlServerSqlAnalyzer),
+            DatabaseType.MySql => typeof(MySqlSqlAnalyzer),
+            DatabaseType.PostgresSql => typeof(PostgresSqlAnalyzer),
+            DatabaseType.Oracle => typeof(OracleSqlAnalyzer),
+            DatabaseType.SqLite => typeof(SqLiteSqlAnalyzer),
+            _ => throw new NotSupportedException($"Database type {databaseType} is not supported by this test.")
+        };
+    }
+
+    private static IConnectionSettings CreateConnection(DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            DatabaseType.SqlServer => new SqlServerConnectionSettings
+            {
+                DatabaseType = DatabaseType.SqlServer,
+                Server = "localhost",
+                Database = "app"
+            },
+            DatabaseType.MySql => new MySqlConnectionSettings
+            {
+                DatabaseType = DatabaseType.MySql,
+                Server = "localhost",
+                Database = "app"
+            },
+            DatabaseType.PostgresSql => new PostgresConnectionSettings
+            {
+                DatabaseType = DatabaseType.PostgresSql,
+                Server = "localhost",
+                Database = "app"
+            },
+            DatabaseType.Oracle => new OracleConnectionSettings
+            {
+                DatabaseType = DatabaseType.Oracle,
+                Server = "localhost",
+                Database = "xe"
+            },
+            DatabaseType.SqLite => new SqLiteConnectionSettings
+            {
+                DatabaseType = DatabaseType.SqLite,
+                Database = "/tmp/app.db"
+            },
+            _ => throw new NotSupportedException($"Database type {databaseType} is not supported by this test.")
+        };
+    }
 }

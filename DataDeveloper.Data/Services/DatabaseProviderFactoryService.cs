@@ -33,4 +33,9 @@ public class DatabaseProviderFactoryService
     {
         return new StatementExecutor(connectionSettings);
     }
+
+    public IProviderSqlAnalyzer GetSqlAnalyzer(IConnectionSettings connectionSettings)
+    {
+        return ProviderSqlAnalyzer.Create(connectionSettings.DatabaseType);
+    }
 }

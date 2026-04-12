@@ -52,6 +52,16 @@ public class CompletionInteractionStateTests
     }
 
     [Fact]
+    public void ShouldRequestInsertion_DotWithOpenWindow_DoesNotRequestInsertion()
+    {
+        var state = new CompletionInteractionState();
+
+        var shouldInsert = state.ShouldRequestInsertion(".", hasCompletionWindow: true);
+
+        Assert.False(shouldInsert);
+    }
+
+    [Fact]
     public void ShouldRequestInsertion_LetterWithOpenWindow_DoesNotRequestInsertion()
     {
         var state = new CompletionInteractionState();
