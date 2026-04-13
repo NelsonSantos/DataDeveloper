@@ -38,6 +38,8 @@ public class TabDataGridViewModel : BaseTabContent
     private readonly Guid _messageTargetId;
     private readonly Action? _focusMessageTab;
     private readonly Action<bool, string>? _reportExecutionStatus;
+    private readonly IStatementExecutor? _sharedStatementExecutor;
+    private readonly Action? _transactionStateChanged;
     private readonly int? _commandTimeoutSeconds;
     private readonly List<PendingDeletedGridRow> _pendingDeletedRows = [];
     private CancellationTokenSource? _loadCancellationTokenSource;
@@ -52,13 +54,17 @@ public class TabDataGridViewModel : BaseTabContent
         Guid messageTargetId,
         int? commandTimeoutSeconds = null,
         Action? focusMessageTab = null,
-        Action<bool, string>? reportExecutionStatus = null) 
+        Action<bool, string>? reportExecutionStatus = null,
+        IStatementExecutor? sharedStatementExecutor = null,
+        Action? transactionStateChanged = null) 
         : base(TabType.DataGrid, name, canClose, serviceProvider)
     {
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         _messageTargetId = messageTargetId;
         _focusMessageTab = focusMessageTab;
         _reportExecutionStatus = reportExecutionStatus;
+        _sharedStatementExecutor = sharedStatementExecutor;
+        _transactionStateChanged = transactionStateChanged;
         _commandTimeoutSeconds = commandTimeoutSeconds;
         ConnectionSettings = connectionSettings;
         StatementResult = statementResult;
@@ -112,6 +118,14 @@ public class TabDataGridViewModel : BaseTabContent
     {
         _loadCancellationTokenSource?.Cancel();
         await Task.CompletedTask;
+    }
+
+    public async Task RefreshAfterTransactionCompletedAsync()
+    {
+        if (IsClosed || IsBusy)
+            return;
+
+        await RefreshDataAsync();
     }
 
     public async Task LoadData()
@@ -433,10 +447,13 @@ public class TabDataGridViewModel : BaseTabContent
         var insertedCount = GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.New);
         var updatedCount = GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.Modified);
         var deletedCount = _pendingDeletedRows.Count;
-        var provider = ConnectionSettings.GetDatabaseProvider();
-        await using var connection = provider.GetConnection();
-        await connection.OpenAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
+        var statementExecutor = CreateStatementExecutor();
+        var useSharedTransaction = ShouldUseSharedTransaction(statementExecutor);
+        var provider = useSharedTransaction ? null : ConnectionSettings.GetDatabaseProvider();
+        await using var connection = useSharedTransaction ? null : provider!.GetConnection();
+        if (connection is not null)
+            await connection.OpenAsync();
+        await using var transaction = connection is null ? null : await connection.BeginTransactionAsync();
 
         try
         {
@@ -472,7 +489,9 @@ public class TabDataGridViewModel : BaseTabContent
                 if (command is null)
                     continue;
 
-                var affectedRows = await ExecuteCommandAsync(connection, transaction, command);
+                var affectedRows = useSharedTransaction
+                    ? await statementExecutor.ExecuteCommandInTransaction(command, _commandTimeoutSeconds)
+                    : await ExecuteCommandAsync(connection!, transaction!, command, _commandTimeoutSeconds);
                 EnsureExpectedRowsWereAffected(row.State, affectedRows, index);
             }
 
@@ -488,11 +507,14 @@ public class TabDataGridViewModel : BaseTabContent
                 if (command is null)
                     continue;
 
-                var affectedRows = await ExecuteCommandAsync(connection, transaction, command);
+                var affectedRows = useSharedTransaction
+                    ? await statementExecutor.ExecuteCommandInTransaction(command, _commandTimeoutSeconds)
+                    : await ExecuteCommandAsync(connection!, transaction!, command, _commandTimeoutSeconds);
                 EnsureExpectedRowsWereAffected(EditableGridRowState.Deleted, affectedRows, pendingDeletedRow.OriginalIndex);
             }
 
-            await transaction.CommitAsync();
+            if (transaction is not null)
+                await transaction.CommitAsync();
             _pendingDeletedRows.Clear();
 
             for (var index = GridRows.Count - 1; index >= 0; index--)
@@ -509,20 +531,25 @@ public class TabDataGridViewModel : BaseTabContent
 
             RowNumber = GridRows.Count;
             RecalculatePendingChanges();
+            _transactionStateChanged?.Invoke();
             await RefreshDataAsync();
             PublishSubmitMessage(insertedCount, updatedCount, deletedCount);
         }
         catch (Exception ex)
         {
-            try
+            if (transaction is not null)
             {
-                await transaction.RollbackAsync();
-            }
-            catch
-            {
-                // Some providers auto-complete the transaction after a command failure.
+                try
+                {
+                    await transaction.RollbackAsync();
+                }
+                catch
+                {
+                    // Some providers auto-complete the transaction after a command failure.
+                }
             }
 
+            _transactionStateChanged?.Invoke();
             PublishSubmitFailureMessage(ex);
         }
         finally
@@ -550,15 +577,28 @@ public class TabDataGridViewModel : BaseTabContent
 
     protected virtual IStatementExecutor CreateStatementExecutor()
     {
-        return ConnectionSettings.GetStatementExecutor();
+        return _sharedStatementExecutor ?? ConnectionSettings.GetStatementExecutor();
+    }
+
+    private bool ShouldUseSharedTransaction(IStatementExecutor statementExecutor)
+    {
+        return _sharedStatementExecutor is not null &&
+               (statementExecutor.HasActiveTransaction ||
+                ConnectionSettings.DmlTransactionMode == DmlTransactionMode.ManualCommitRollback);
     }
 
     private void PublishSubmitMessage(int insertedCount, int updatedCount, int deletedCount)
     {
-        var message = $"Submit completed for {Name}:{Environment.NewLine}" +
+        var transactionMessage = ConnectionSettings.DmlTransactionMode == DmlTransactionMode.ManualCommitRollback ||
+                                 (_sharedStatementExecutor?.HasActiveTransaction ?? false)
+            ? "Commit or rollback the transaction to finish."
+            : "Changes committed.";
+
+        var message = $"Changes applied for {Name}:{Environment.NewLine}" +
                       $"Inserted: {insertedCount}{Environment.NewLine}" +
                       $"Updated: {updatedCount}{Environment.NewLine}" +
                       $"Deleted: {deletedCount}{Environment.NewLine}" +
+                      $"{transactionMessage}{Environment.NewLine}" +
                       $"Refreshed using:{Environment.NewLine}{StatementResult.Statement}";
         _eventAggregatorService.Publish(new ShowResultMessageEvent(_messageTargetId, message));
         _focusMessageTab?.Invoke();
@@ -584,12 +624,18 @@ public class TabDataGridViewModel : BaseTabContent
             $"Could not {operation} row {rowIndex + 1}. The record may have been changed or removed by another process.");
     }
 
-    private static async Task<int> ExecuteCommandAsync(DbConnection connection, DbTransaction transaction, EditableResultSetCommand command)
+    private static async Task<int> ExecuteCommandAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        EditableResultSetCommand command,
+        int? commandTimeoutSeconds)
     {
         await using var dbCommand = connection.CreateCommand();
         dbCommand.Transaction = transaction;
         dbCommand.CommandType = CommandType.Text;
         dbCommand.CommandText = command.Sql;
+        if (commandTimeoutSeconds.HasValue)
+            dbCommand.CommandTimeout = commandTimeoutSeconds.Value;
 
         foreach (var parameter in command.Parameters)
         {

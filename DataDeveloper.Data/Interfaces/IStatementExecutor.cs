@@ -15,6 +15,11 @@ public interface IStatementExecutor
         int? commandTimeoutSeconds = null,
         CancellationToken cancellationToken = default);
 
+    Task<int> ExecuteCommandInTransaction(
+        EditableResultSetCommand command,
+        int? commandTimeoutSeconds = null,
+        CancellationToken cancellationToken = default);
+
     Task CommitTransaction(CancellationToken cancellationToken = default);
 
     Task RollbackTransaction(CancellationToken cancellationToken = default);

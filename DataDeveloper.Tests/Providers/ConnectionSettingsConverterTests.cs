@@ -45,6 +45,7 @@ public class ConnectionSettingsConverterTests
         Assert.Equal("localhost", typed.Server);
         Assert.Equal(1433, typed.Port);
         Assert.Equal(SqlServerAuthenticationMode.WindowsIntegrated, typed.AuthenticationMode);
+        Assert.Equal(DmlTransactionMode.AutoCommit, typed.DmlTransactionMode);
     }
 
     [Fact]
@@ -93,6 +94,7 @@ public class ConnectionSettingsConverterTests
         var typed = Assert.IsType<OracleConnectionSettings>(connection);
         Assert.Equal(DatabaseType.Oracle, typed.DatabaseType);
         Assert.Equal(1522, typed.Port);
+        Assert.Equal(DmlTransactionMode.ManualCommitRollback, typed.DmlTransactionMode);
     }
 
     [Fact]
@@ -153,6 +155,7 @@ public class ConnectionSettingsConverterTests
             AuthenticationMode = SqlServerAuthenticationMode.WindowsIntegrated,
             User = "sa",
             Password = "pwd",
+            DmlTransactionMode = DmlTransactionMode.ManualCommitRollback,
             Encrypt = true,
             TrustServerCertificate = false
         };
@@ -165,6 +168,7 @@ public class ConnectionSettingsConverterTests
         Assert.Equal(1433, typed.Port);
         Assert.Equal(DatabaseType.SqlServer, typed.DatabaseType);
         Assert.Equal(SqlServerAuthenticationMode.WindowsIntegrated, typed.AuthenticationMode);
+        Assert.Equal(DmlTransactionMode.ManualCommitRollback, typed.DmlTransactionMode);
     }
 
     [Fact]

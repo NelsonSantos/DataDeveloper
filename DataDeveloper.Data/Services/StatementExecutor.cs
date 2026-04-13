@@ -62,7 +62,9 @@ public class StatementExecutor : IStatementExecutor
 
                 if (_sqlAnalyzer.IsDmlStatement(statement))
                 {
-                    var dmlResult = await ExecuteTransactionalDmlStatement(statement, parameters, commandTimeoutSeconds, cancellationToken);
+                    var dmlResult = HasActiveTransaction || _connectionSettings.DmlTransactionMode == DmlTransactionMode.ManualCommitRollback
+                        ? await ExecuteTransactionalDmlStatement(statement, parameters, commandTimeoutSeconds, cancellationToken)
+                        : await ExecuteAutocommitDmlStatement(statement, parameters, commandTimeoutSeconds, cancellationToken);
                     result.Add(dmlResult);
                     continue;
                 }
@@ -137,6 +139,34 @@ public class StatementExecutor : IStatementExecutor
         try
         {
             await EnsureTransaction(cancellationToken);
+        }
+        finally
+        {
+            _transactionLock.Release();
+        }
+    }
+
+    public async Task<int> ExecuteCommandInTransaction(
+        EditableResultSetCommand command,
+        int? commandTimeoutSeconds = null,
+        CancellationToken cancellationToken = default)
+    {
+        await _transactionLock.WaitAsync(cancellationToken);
+        try
+        {
+            await EnsureTransaction(cancellationToken);
+
+            await using var dbCommand = CreateCommand(_transactionConnection!, command.Sql, command.Parameters, commandTimeoutSeconds);
+            dbCommand.Transaction = _transaction;
+            SetActiveCommand(dbCommand);
+            try
+            {
+                return await dbCommand.ExecuteNonQueryAsync(cancellationToken);
+            }
+            finally
+            {
+                ClearActiveCommand(dbCommand);
+            }
         }
         finally
         {
@@ -247,6 +277,29 @@ public class StatementExecutor : IStatementExecutor
         finally
         {
             _transactionLock.Release();
+        }
+    }
+
+    private async Task<StatementResult> ExecuteAutocommitDmlStatement(
+        string statement,
+        IReadOnlyDictionary<string, object?>? parameters,
+        int? commandTimeoutSeconds,
+        CancellationToken cancellationToken)
+    {
+        var watcher = Stopwatch.StartNew();
+        await using var connection = _databaseProvider.GetConnection();
+        await connection.OpenAsync(cancellationToken);
+        await using var command = CreateCommand(connection, statement, parameters, commandTimeoutSeconds);
+        SetActiveCommand(command);
+        try
+        {
+            var recordsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+            watcher.Stop();
+            return new StatementResult(null, null, null, statement, watcher, recordsAffected, parameters);
+        }
+        finally
+        {
+            ClearActiveCommand(command);
         }
     }
 

@@ -443,6 +443,7 @@ public class SqlCompletionProviderTests
         public bool TrustServerCertificate { get; set; }
         public bool AllowBlankPassword { get; set; }
         public int StatementTimeoutSeconds { get; set; } = ConnectionSettings.DefaultStatementTimeoutSeconds;
+        public DmlTransactionMode DmlTransactionMode { get; set; } = DmlTransactionMode.AutoCommit;
         public DatabaseType DatabaseType { get; set; }
     }
 }

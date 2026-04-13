@@ -14,6 +14,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Browse database schema from a dedicated explorer panel
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
+- Configure DML transaction mode per connection, using either auto commit or manual commit/rollback
 - Use provider-aware SQL completion for tables and columns
 - Navigate query results with the custom `NextGrid` control
 - Detect named SQL parameters and fill them through a side panel in the editor

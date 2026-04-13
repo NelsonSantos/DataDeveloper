@@ -12,5 +12,6 @@ public interface IConnectionSettings
     bool TrustServerCertificate { get; set; }
     bool AllowBlankPassword { get; set; }
     int StatementTimeoutSeconds { get; set; }
+    DmlTransactionMode DmlTransactionMode { get; set; }
     DatabaseType DatabaseType { get; set; }
 }

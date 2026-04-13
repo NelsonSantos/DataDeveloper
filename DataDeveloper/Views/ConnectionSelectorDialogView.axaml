@@ -154,17 +154,30 @@
                 </Grid>
 
                 <Grid RowDefinitions="Auto,Auto"
-                      IsVisible="{Binding UsesSqlServerAuthenticationMode}">
-                    <TextBlock Grid.Row="0" Text="Authentication" />
-                    <ComboBox Grid.Row="1"
+                      ColumnDefinitions="*,*"
+                      IsVisible="{Binding UsesSqlServerAuthenticationMode}"
+                      ColumnSpacing="8"
+                      >
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Authentication" />
+                    <ComboBox Grid.Column="0" Grid.Row="1"
                               ItemsSource="{Binding SqlServerAuthenticationModes}"
-                              SelectedItem="{Binding SelectedSqlServerAuthenticationOption, Mode=TwoWay}">
+                              SelectedItem="{Binding SelectedSqlServerAuthenticationOption, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch"
+                              >
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding DisplayName}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                               Text="For LocalDB,&#10;use SQL Server with Windows Authentication&#10;and a server such as (localdb)\MSSQLLocalDB."
+                               FontSize="10.5"
+                               Foreground="DarkGoldenrod"
+                               TextWrapping="WrapWithOverflow"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Stretch"
+                               IsVisible="{Binding IsSqlServerConnectionSelected}" />
                 </Grid>
 
                 <StackPanel Orientation="Horizontal"
@@ -211,12 +224,6 @@
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsSqlServerConnectionSelected}" />
 
-                <TextBlock Text="For LocalDB, use SQL Server with Windows Authentication and a server such as (localdb)\MSSQLLocalDB."
-                           FontSize="11"
-                           Foreground="DarkGoldenrod"
-                           TextWrapping="Wrap"
-                           IsVisible="{Binding IsSqlServerConnectionSelected}" />
-
                 <TextBlock Text="For MySQL, use 'Encrypt connection' to require TLS. 'Trust server certificate' relaxes certificate validation."
                            FontSize="11"
                            Foreground="DarkGoldenrod"
@@ -247,16 +254,26 @@
                            TextWrapping="Wrap"
                            IsVisible="{Binding IsSecureStorageUnavailable}" />
 
-                <Grid ColumnDefinitions="Auto,Auto,*"
-                      ColumnSpacing="8"
-                      VerticalAlignment="Center">
-                    <TextBlock Grid.Column="0"
-                               Text="Default statement timeout"
-                               FontSize="11"
-                               Foreground="DarkGoldenrod"
-                               VerticalAlignment="Center" />
-                    <ComboBox Grid.Column="1"
-                              Width="110"
+                <Grid ColumnDefinitions="*,*"
+                      ColumnSpacing="12"
+                      RowSpacing="8"
+                      RowDefinitions="Auto, Auto"
+                      >
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="DML transaction mode" />
+                    <ComboBox Grid.Row="1" Grid.Column="0"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding DmlTransactionModes}"
+                              SelectedItem="{Binding SelectedDmlTransactionModeOption, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Default statement timeout" />
+                    <ComboBox Grid.Row="1" Grid.Column="1"
+                              HorizontalAlignment="Stretch"
                               ItemsSource="{Binding StatementTimeoutOptions}"
                               SelectedItem="{Binding SelectedStatementTimeoutSeconds, Mode=TwoWay}"
                               IsEnabled="{Binding IsEditing}" />
