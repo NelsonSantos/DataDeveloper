@@ -164,8 +164,23 @@ public static class TextEditorBindingHelper
             if (editor.Text == newValue)
                 return;
 
+            var caretOffset = editor.CaretOffset;
+            var selectionStart = editor.SelectionStart;
+            var selectionLength = editor.SelectionLength;
             editor.Text = newValue;
+            RestoreCaretAndSelection(editor, caretOffset, selectionStart, selectionLength);
         }, DispatcherPriority.Background);
+    }
+
+    private static void RestoreCaretAndSelection(TextEditor editor, int caretOffset, int selectionStart, int selectionLength)
+    {
+        var textLength = editor.Document?.TextLength ?? editor.Text?.Length ?? 0;
+        var safeCaretOffset = Math.Clamp(caretOffset, 0, textLength);
+        var safeSelectionStart = Math.Clamp(selectionStart, 0, textLength);
+        var safeSelectionLength = Math.Clamp(selectionLength, 0, textLength - safeSelectionStart);
+
+        editor.Select(safeSelectionStart, safeSelectionLength);
+        editor.CaretOffset = safeCaretOffset;
     }
 
     private static void DebouncedTextUpdate(TextEditor editor)
