@@ -198,6 +198,7 @@ public class ConnectionSelectorViewModelTests
         var connection = Assert.IsType<OracleConnectionSettings>(viewModel.SelectedConnection);
         Assert.Equal(1521, connection.Port);
         Assert.Equal(DatabaseType.Oracle, connection.DatabaseType);
+        Assert.Equal(DmlTransactionMode.ManualCommitRollback, connection.DmlTransactionMode);
     }
 
     [Fact]
@@ -216,6 +217,7 @@ public class ConnectionSelectorViewModelTests
         var connection = Assert.IsType<SqLiteConnectionSettings>(viewModel.SelectedConnection);
         Assert.Equal(DatabaseType.SqLite, connection.DatabaseType);
         Assert.Equal(string.Empty, connection.Database);
+        Assert.Equal(DmlTransactionMode.AutoCommit, connection.DmlTransactionMode);
     }
 
     [Fact]

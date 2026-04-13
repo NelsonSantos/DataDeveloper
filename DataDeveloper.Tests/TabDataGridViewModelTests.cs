@@ -88,6 +88,14 @@ public class TabDataGridViewModelTests
             return Task.CompletedTask;
         }
 
+        public Task<int> ExecuteCommandInTransaction(
+            EditableResultSetCommand command,
+            int? commandTimeoutSeconds = null,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(0);
+        }
+
         public Task RollbackTransaction(CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;

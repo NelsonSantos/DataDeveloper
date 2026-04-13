@@ -237,7 +237,9 @@ public class TabQueryEditorViewModel : BaseTabContent
                                 StatementIsRunning = isVisible;
                                 IsExecutionStatusVisible = isVisible;
                                 ExecutionStatusMessage = message;
-                            });
+                            },
+                            _statementExecutor,
+                            RefreshTransactionState);
                         tabResult.IsEditorOperationInProgress = StatementIsRunning;
                         tabResult.WhenAnyValue(vm => vm.SelectedPage).Subscribe(page => _cachePages[statementResult.Statement] = page);
                         
@@ -314,7 +316,11 @@ public class TabQueryEditorViewModel : BaseTabContent
         {
             await _statementExecutor.CommitTransaction();
             RefreshTransactionState();
-            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, "Transaction committed."));
+            var refreshError = await RefreshResultTabsAfterTransactionCompleted();
+            var message = refreshError is null
+                ? "Transaction committed."
+                : $"Transaction committed. Result refresh failed: {refreshError}";
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, message));
             this.SelectedTabIndex = 0;
             return true;
         }
@@ -333,7 +339,11 @@ public class TabQueryEditorViewModel : BaseTabContent
         {
             await _statementExecutor.RollbackTransaction();
             RefreshTransactionState();
-            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, "Transaction rolled back."));
+            var refreshError = await RefreshResultTabsAfterTransactionCompleted();
+            var message = refreshError is null
+                ? "Transaction rolled back."
+                : $"Transaction rolled back. Result refresh failed: {refreshError}";
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, message));
             this.SelectedTabIndex = 0;
             return true;
         }
@@ -344,6 +354,28 @@ public class TabQueryEditorViewModel : BaseTabContent
             this.SelectedTabIndex = 0;
             return false;
         }
+    }
+
+    private async Task<string?> RefreshResultTabsAfterTransactionCompleted()
+    {
+        var resultTabs = Tabs
+            .OfType<TabDataGridViewModel>()
+            .Where(tab => !tab.IsClosed)
+            .ToList();
+
+        foreach (var resultTab in resultTabs)
+        {
+            try
+            {
+                await resultTab.RefreshAfterTransactionCompletedAsync();
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        return null;
     }
 
     private void RefreshTransactionState()

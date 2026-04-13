@@ -75,6 +75,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             User = "sa",
             Password = "secret",
             StatementTimeoutSeconds = 120,
+            DmlTransactionMode = DmlTransactionMode.ManualCommitRollback,
             Encrypt = true,
             TrustServerCertificate = false
         };
@@ -90,6 +91,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             User = "root",
             Password = "mysql-secret",
             StatementTimeoutSeconds = 240,
+            DmlTransactionMode = DmlTransactionMode.AutoCommit,
             Encrypt = false,
             TrustServerCertificate = true
         };
@@ -106,6 +108,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(sqlServer.Port, loadedSqlServer.Port);
         Assert.Equal(sqlServer.AuthenticationMode, loadedSqlServer.AuthenticationMode);
         Assert.Equal(sqlServer.StatementTimeoutSeconds, loadedSqlServer.StatementTimeoutSeconds);
+        Assert.Equal(sqlServer.DmlTransactionMode, loadedSqlServer.DmlTransactionMode);
         repository.LoadPassword(loadedSqlServer);
         Assert.Equal(sqlServer.Password, loadedSqlServer.Password);
 
@@ -115,6 +118,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(mySql.Database, loadedMySql.Database);
         Assert.Equal(mySql.Port, loadedMySql.Port);
         Assert.Equal(mySql.StatementTimeoutSeconds, loadedMySql.StatementTimeoutSeconds);
+        Assert.Equal(mySql.DmlTransactionMode, loadedMySql.DmlTransactionMode);
         repository.LoadPassword(loadedMySql);
         Assert.Equal(mySql.Password, loadedMySql.Password);
     }
@@ -191,14 +195,16 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
             Database = "xe",
             Port = 1522,
             User = "system",
-            Password = "oracle-secret"
+            Password = "oracle-secret",
+            DmlTransactionMode = DmlTransactionMode.ManualCommitRollback
         };
         var sqLite = new SqLiteConnectionSettings
         {
             Id = Guid.NewGuid(),
             Name = "SQLite",
             DatabaseType = DatabaseType.SqLite,
-            Database = "/tmp/app.db"
+            Database = "/tmp/app.db",
+            DmlTransactionMode = DmlTransactionMode.AutoCommit
         };
 
         repository.SaveAll([oracle, sqLite]);
@@ -210,11 +216,13 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
         Assert.Equal(oracle.Server, loadedOracle.Server);
         Assert.Equal(oracle.Database, loadedOracle.Database);
         Assert.Equal(oracle.Port, loadedOracle.Port);
+        Assert.Equal(oracle.DmlTransactionMode, loadedOracle.DmlTransactionMode);
         repository.LoadPassword(loadedOracle);
         Assert.Equal(oracle.Password, loadedOracle.Password);
 
         var loadedSqLite = Assert.IsType<SqLiteConnectionSettings>(loaded.Single(item => item.Id == sqLite.Id));
         Assert.Equal(sqLite.Database, loadedSqLite.Database);
+        Assert.Equal(sqLite.DmlTransactionMode, loadedSqLite.DmlTransactionMode);
     }
 
     [Fact]
@@ -384,6 +392,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
 
         Assert.Equal(SqlServerAuthenticationMode.SqlLogin, loaded.AuthenticationMode);
         Assert.Equal(1433, loaded.Port);
+        Assert.Equal(DmlTransactionMode.AutoCommit, loaded.DmlTransactionMode);
     }
 
     [Fact]

@@ -49,6 +49,18 @@ public sealed class SqlServerAuthenticationOption
     public SqlServerAuthenticationMode Value { get; }
 }
 
+public sealed class DmlTransactionModeOption
+{
+    public DmlTransactionModeOption(string displayName, DmlTransactionMode value)
+    {
+        DisplayName = displayName;
+        Value = value;
+    }
+
+    public string DisplayName { get; }
+    public DmlTransactionMode Value { get; }
+}
+
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private static readonly int[] SupportedStatementTimeouts = [15, 30, 60, 120, 240, 480];
@@ -78,6 +90,11 @@ public class ConnectionSelectorViewModel : ViewModelBase
         [
             new SqlServerAuthenticationOption("SQL Server Authentication", SqlServerAuthenticationMode.SqlLogin),
             new SqlServerAuthenticationOption("Windows Authentication", SqlServerAuthenticationMode.WindowsIntegrated)
+        ];
+        DmlTransactionModes =
+        [
+            new DmlTransactionModeOption("Auto commit", DmlTransactionMode.AutoCommit),
+            new DmlTransactionModeOption("Manual commit/rollback", DmlTransactionMode.ManualCommitRollback)
         ];
         StatementTimeoutOptions = new ObservableCollection<int>(SupportedStatementTimeouts);
         AvailableDatabaseNames = new ReadOnlyObservableCollection<string>(_availableDatabaseNames);
@@ -234,6 +251,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReadOnlyObservableCollection<string> AvailableDatabaseNames { get; }
     public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
     public IReadOnlyList<SqlServerAuthenticationOption> SqlServerAuthenticationModes { get; }
+    public IReadOnlyList<DmlTransactionModeOption> DmlTransactionModes { get; }
     public ObservableCollection<int> StatementTimeoutOptions { get; }
 
     private ConnectionSettings? _selectedConnection;
@@ -257,6 +275,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(UsesCredentialsForSelectedConnection));
             this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
             this.RaisePropertyChanged(nameof(SelectedStatementTimeoutSeconds));
+            this.RaisePropertyChanged(nameof(SelectedDmlTransactionModeOption));
         }
     }
 
@@ -332,6 +351,21 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 return;
 
             SelectedConnection.StatementTimeoutSeconds = NormalizeStatementTimeout(value);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public DmlTransactionModeOption? SelectedDmlTransactionModeOption
+    {
+        get => SelectedConnection is null
+            ? null
+            : DmlTransactionModes.FirstOrDefault(option => option.Value == SelectedConnection.DmlTransactionMode);
+        set
+        {
+            if (SelectedConnection is null || value is null)
+                return;
+
+            SelectedConnection.DmlTransactionMode = value.Value;
             this.RaisePropertyChanged();
         }
     }
@@ -455,6 +489,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = true,
                 TrustServerCertificate = false,
                 StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.SqlServer),
                 DatabaseType = DatabaseType.SqlServer
             },
             DatabaseType.Oracle => new OracleConnectionSettings
@@ -469,6 +504,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = false,
                 TrustServerCertificate = false,
                 StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.Oracle),
                 DatabaseType = DatabaseType.Oracle
             },
             DatabaseType.PostgresSql => new PostgresConnectionSettings
@@ -483,6 +519,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = false,
                 TrustServerCertificate = false,
                 StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.PostgresSql),
                 DatabaseType = DatabaseType.PostgresSql
             },
             DatabaseType.MySql => new MySqlConnectionSettings
@@ -497,6 +534,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = false,
                 TrustServerCertificate = true,
                 StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.MySql),
                 DatabaseType = DatabaseType.MySql
             },
             DatabaseType.SqLite => new SqLiteConnectionSettings
@@ -509,6 +547,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 Encrypt = false,
                 TrustServerCertificate = false,
                 StatementTimeoutSeconds = ConnectionSettings.DefaultStatementTimeoutSeconds,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.SqLite),
                 DatabaseType = DatabaseType.SqLite
             },
             _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")

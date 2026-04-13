@@ -53,6 +53,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   trust_server_certificate,
                                   allow_blank_password,
                                   statement_timeout_seconds,
+                                  dml_transaction_mode,
                                   server,
                                   database_name,
                                   port
@@ -80,6 +81,9 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             connectionSettings.StatementTimeoutSeconds = reader.IsDBNull(reader.GetOrdinal("statement_timeout_seconds"))
                 ? ConnectionSettings.DefaultStatementTimeoutSeconds
                 : NormalizeStatementTimeout(reader.GetInt32(reader.GetOrdinal("statement_timeout_seconds")));
+            connectionSettings.DmlTransactionMode = reader.IsDBNull(reader.GetOrdinal("dml_transaction_mode"))
+                ? ConnectionSettings.GetDefaultDmlTransactionMode(databaseType)
+                : (DmlTransactionMode)reader.GetInt32(reader.GetOrdinal("dml_transaction_mode"));
 
             switch (connectionSettings)
             {
@@ -186,6 +190,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       trust_server_certificate,
                                       allow_blank_password,
                                       statement_timeout_seconds,
+                                      dml_transaction_mode,
                                       server,
                                       database_name,
                                       port,
@@ -204,6 +209,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                       $trustServerCertificate,
                                       $allowBlankPassword,
                                       $statementTimeoutSeconds,
+                                      $dmlTransactionMode,
                                       $server,
                                       $databaseName,
                                       $port,
@@ -223,6 +229,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             command.Parameters.AddWithValue("$trustServerCertificate", item.TrustServerCertificate ? 1 : 0);
             command.Parameters.AddWithValue("$allowBlankPassword", item.AllowBlankPassword ? 1 : 0);
             command.Parameters.AddWithValue("$statementTimeoutSeconds", NormalizeStatementTimeout(item.StatementTimeoutSeconds));
+            command.Parameters.AddWithValue("$dmlTransactionMode", (int)item.DmlTransactionMode);
             command.Parameters.AddWithValue("$server", GetServer(item));
             command.Parameters.AddWithValue("$databaseName", GetDatabase(item));
             command.Parameters.AddWithValue("$port", GetPort(item));
@@ -277,6 +284,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   trust_server_certificate,
                                   allow_blank_password,
                                   statement_timeout_seconds,
+                                  dml_transaction_mode,
                                   server,
                                   database_name,
                                   port,
@@ -295,6 +303,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   $trustServerCertificate,
                                   $allowBlankPassword,
                                   $statementTimeoutSeconds,
+                                  $dmlTransactionMode,
                                   $server,
                                   $databaseName,
                                   $port,
@@ -311,6 +320,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   trust_server_certificate = excluded.trust_server_certificate,
                                   allow_blank_password = excluded.allow_blank_password,
                                   statement_timeout_seconds = excluded.statement_timeout_seconds,
+                                  dml_transaction_mode = excluded.dml_transaction_mode,
                                   server = excluded.server,
                                   database_name = excluded.database_name,
                                   port = excluded.port,
@@ -330,6 +340,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         command.Parameters.AddWithValue("$trustServerCertificate", connectionSettings.TrustServerCertificate ? 1 : 0);
         command.Parameters.AddWithValue("$allowBlankPassword", connectionSettings.AllowBlankPassword ? 1 : 0);
         command.Parameters.AddWithValue("$statementTimeoutSeconds", NormalizeStatementTimeout(connectionSettings.StatementTimeoutSeconds));
+        command.Parameters.AddWithValue("$dmlTransactionMode", (int)connectionSettings.DmlTransactionMode);
         command.Parameters.AddWithValue("$server", GetServer(connectionSettings));
         command.Parameters.AddWithValue("$databaseName", GetDatabase(connectionSettings));
         command.Parameters.AddWithValue("$port", GetPort(connectionSettings));
@@ -378,6 +389,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   trust_server_certificate integer not null,
                                   allow_blank_password integer not null,
                                   statement_timeout_seconds integer not null default 60,
+                                  dml_transaction_mode integer null,
                                   server text not null,
                                   database_name text not null,
                                   port integer null,
@@ -388,6 +400,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         command.ExecuteNonQuery();
         EnsureColumnExists(connection, "sql_server_authentication_mode", "integer not null default 0");
         EnsureColumnExists(connection, "statement_timeout_seconds", "integer not null default 60");
+        EnsureColumnExists(connection, "dml_transaction_mode", "integer null");
 
         _isInitialized = true;
     }
@@ -403,11 +416,31 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
     {
         return databaseType switch
         {
-            DatabaseType.SqlServer => new SqlServerConnectionSettings { DatabaseType = DatabaseType.SqlServer },
-            DatabaseType.Oracle => new OracleConnectionSettings { DatabaseType = DatabaseType.Oracle },
-            DatabaseType.PostgresSql => new PostgresConnectionSettings { DatabaseType = DatabaseType.PostgresSql },
-            DatabaseType.MySql => new MySqlConnectionSettings { DatabaseType = DatabaseType.MySql },
-            DatabaseType.SqLite => new SqLiteConnectionSettings { DatabaseType = DatabaseType.SqLite },
+            DatabaseType.SqlServer => new SqlServerConnectionSettings
+            {
+                DatabaseType = DatabaseType.SqlServer,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.SqlServer)
+            },
+            DatabaseType.Oracle => new OracleConnectionSettings
+            {
+                DatabaseType = DatabaseType.Oracle,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.Oracle)
+            },
+            DatabaseType.PostgresSql => new PostgresConnectionSettings
+            {
+                DatabaseType = DatabaseType.PostgresSql,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.PostgresSql)
+            },
+            DatabaseType.MySql => new MySqlConnectionSettings
+            {
+                DatabaseType = DatabaseType.MySql,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.MySql)
+            },
+            DatabaseType.SqLite => new SqLiteConnectionSettings
+            {
+                DatabaseType = DatabaseType.SqLite,
+                DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(DatabaseType.SqLite)
+            },
             _ => throw new NotSupportedException($"Database type {databaseType} is not supported.")
         };
     }

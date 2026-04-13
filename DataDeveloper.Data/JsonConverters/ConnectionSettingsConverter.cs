@@ -30,6 +30,10 @@ public class ConnectionSettingsConverter : JsonConverter<ConnectionSettings>
             DatabaseType.SqLite => (ConnectionSettings?)JsonSerializer.Deserialize<SqLiteConnectionSettings>(json, options),
             _ => throw new NotSupportedException($"Tipo {type} não suportado.")
         } ?? throw new JsonException($"Could not deserialize connection settings for database type {type}.");
+
+        if (!root.TryGetProperty(nameof(ConnectionSettings.DmlTransactionMode), out _))
+            connection.DmlTransactionMode = ConnectionSettings.GetDefaultDmlTransactionMode(type);
+
         return connection;
     }
 

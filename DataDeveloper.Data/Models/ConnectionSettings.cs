@@ -9,6 +9,13 @@ public class ConnectionSettings : ReactiveObject, IConnectionSettings
 {
     public const int DefaultStatementTimeoutSeconds = 60;
 
+    public static DmlTransactionMode GetDefaultDmlTransactionMode(DatabaseType databaseType)
+    {
+        return databaseType == DatabaseType.Oracle
+            ? DmlTransactionMode.ManualCommitRollback
+            : DmlTransactionMode.AutoCommit;
+    }
+
     [Reactive] public Guid Id { get; set; }
     [Reactive] public Guid? CredentialId { get; set; }
     [Reactive] public string Name { get; set; } = string.Empty;
@@ -20,5 +27,6 @@ public class ConnectionSettings : ReactiveObject, IConnectionSettings
     [Reactive] public bool TrustServerCertificate { get; set; }
     [Reactive] public bool AllowBlankPassword { get; set; }
     [Reactive] public int StatementTimeoutSeconds { get; set; } = DefaultStatementTimeoutSeconds;
+    [Reactive] public DmlTransactionMode DmlTransactionMode { get; set; }
     [Reactive] public DatabaseType DatabaseType { get; set; }
 }
