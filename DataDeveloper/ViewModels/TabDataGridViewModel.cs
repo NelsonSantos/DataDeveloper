@@ -725,6 +725,9 @@ public class TabDataGridViewModel : BaseTabContent
     {
         row.ClearValidationErrors();
 
+        if (row.State == EditableGridRowState.Clean)
+            return;
+
         if (EditableMetadata is null)
             return;
 

@@ -72,7 +72,6 @@
         <FluentTheme />
         
         <StyleInclude Source="avares://DataDeveloper/Themes/SelectableTextBlock.axaml" />
-        <StyleInclude Source="avares://MsBox.Avalonia.Markdown/Controls/MarkdownView.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 
         <Style Selector="TextBlock.MaterialIcon">
