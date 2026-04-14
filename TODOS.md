@@ -3,8 +3,8 @@
 - [x] Splash screen
 - [x] Help/About
 - [x] Implementar edicao dos registros
-- [ ] Criar intellisense das functions a partir dos lexers
-- [ ] Mudar o esquema de cores do editor por lexers e dinamico
+- [x] Criar insightWindow das functions
+- [ ] Mudar o esquema de cores do editor dinamicamente
 - [ ] Debug de procedures
 - [ ] Edicao de estrutura tabelas
 - [ ] Implementar visualizacao de tabelas tipo fluxograma
