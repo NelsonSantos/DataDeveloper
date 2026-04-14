@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Avalonia.Input;
 using Avalonia.Media;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
@@ -138,8 +139,29 @@ public static class SqlCompletionProvider
                 var columns = await GetColumnsForSourceAsync(connectionSettings, cache, source, cteDefinitions);
                 foreach (var column in columns)
                 {
-                    completions.TryAdd(column, new SqlCompletionData(column, $"Column from {source.Name}", CompletionItemKind.Column, GetObjectPriority(CompletionKind.Column, request.Context.Clause)));
+                    completions.TryAdd(
+                        column.Name,
+                        new SqlCompletionData(
+                            column.Name,
+                            FormatColumnCompletionDescription(source.Name, column),
+                            CompletionItemKind.Column,
+                            GetObjectPriority(CompletionKind.Column, request.Context.Clause)));
                 }
+            }
+        }
+
+        if (ShouldIncludeFunctions(request.Context))
+        {
+            foreach (var function in SqlFunctionCatalog.GetFunctions(connectionSettings.DatabaseType))
+            {
+                completions.TryAdd(
+                    function.Name,
+                    new SqlCompletionData(
+                        function.Name,
+                        function.Description,
+                        CompletionItemKind.Function,
+                        GetFunctionPriority(request.Context.Clause, function.Category),
+                        $"returns {function.ReturnType}"));
             }
         }
 
@@ -149,6 +171,37 @@ public static class SqlCompletionProvider
             .ThenBy(item => item.Text)
             .Cast<ICompletionData>()
             .ToList();
+    }
+
+    private static bool ShouldIncludeFunctions(CompletionContext context)
+    {
+        if (!string.IsNullOrWhiteSpace(context.ObjectNameBeforeDot) ||
+            context.IsInsideInsertColumnList)
+            return false;
+
+        return context.Trigger is CompletionTrigger.Columns or CompletionTrigger.Any &&
+               context.Clause is (SqlClause.None or
+                   SqlClause.Select or
+                   SqlClause.Where or
+                   SqlClause.GroupBy or
+                   SqlClause.OrderBy or
+                   SqlClause.Set or
+                   SqlClause.Delete);
+    }
+
+    private static double GetFunctionPriority(SqlClause clause, SqlFunctionCategory category)
+    {
+        var basePriority = clause switch
+        {
+            SqlClause.Select or SqlClause.Where or SqlClause.Set => 30,
+            SqlClause.GroupBy or SqlClause.OrderBy => 35,
+            _ => 40
+        };
+
+        return category == SqlFunctionCategory.Aggregate &&
+               clause is (SqlClause.Select or SqlClause.GroupBy or SqlClause.OrderBy)
+            ? basePriority - 2
+            : basePriority;
     }
 
     public static int GetCompletionStartOffset(string editorText, int caretOffset)
@@ -203,25 +256,60 @@ public static class SqlCompletionProvider
 
         cache.ColumnsByTable[tableName] = tableNode.Children
             .Where(node => node.NodeType == NodeType.Column)
-            .Select(node => node.Name)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(name => name)
+            .Select(CreateColumnCompletionInfo)
+            .DistinctBy(column => column.Name, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(column => column.Name)
             .ToArray();
 
         cache.LoadedTables.Add(tableName);
     }
 
-    private static async Task<string[]> GetColumnsForSourceAsync(
+    private static async Task<IReadOnlyList<ColumnCompletionInfo>> GetColumnsForSourceAsync(
         IConnectionSettings connectionSettings,
         SchemaCompletionCache cache,
         CompletionSource source,
         IReadOnlyDictionary<string, string[]> cteDefinitions)
     {
         if (source.Kind == CompletionKind.Cte)
-            return cteDefinitions.TryGetValue(source.Name, out var cteColumns) ? cteColumns : Array.Empty<string>();
+        {
+            return cteDefinitions.TryGetValue(source.Name, out var cteColumns)
+                ? cteColumns.Select(column => new ColumnCompletionInfo(column, string.Empty, 0, 0, 0)).ToArray()
+                : Array.Empty<ColumnCompletionInfo>();
+        }
 
         await EnsureColumnsLoadedAsync(connectionSettings, cache, source.Name);
-        return cache.ColumnsByTable.TryGetValue(source.Name, out var tableColumns) ? tableColumns : Array.Empty<string>();
+        return cache.ColumnsByTable.TryGetValue(source.Name, out var tableColumns) ? tableColumns : Array.Empty<ColumnCompletionInfo>();
+    }
+
+    private static ColumnCompletionInfo CreateColumnCompletionInfo(SchemaNode node)
+    {
+        return node.Tag is ColumnModel column
+            ? new ColumnCompletionInfo(column.Name, column.DataType, column.Length, column.Precision, column.Scale)
+            : new ColumnCompletionInfo(node.Name, string.Empty, 0, 0, 0);
+    }
+
+    private static string FormatColumnCompletionDescription(string sourceName, ColumnCompletionInfo column)
+    {
+        var dataType = FormatColumnDataType(column);
+        return string.IsNullOrWhiteSpace(dataType)
+            ? $"from {sourceName}"
+            : $"from {sourceName} {dataType}";
+    }
+
+    private static string FormatColumnDataType(ColumnCompletionInfo column)
+    {
+        if (string.IsNullOrWhiteSpace(column.DataType))
+            return string.Empty;
+
+        var dataType = column.DataType;
+        return dataType.ToLowerInvariant() switch
+        {
+            "varchar" or "nvarchar" or "char" or "nchar" or "binary" or "varbinary"
+                => column.Length != 0 ? $"{dataType} ({(column.Length == -1 ? "max" : column.Length)})" : dataType,
+            "decimal" or "numeric" or "number"
+                => column.Precision != 0 ? $"{dataType}({column.Precision}{(column.Scale != 0 ? $", {column.Scale}" : string.Empty)})" : dataType,
+            _ => dataType
+        };
     }
 
     private static CompletionSource? ResolveSource(
@@ -1023,9 +1111,11 @@ public static class SqlCompletionProvider
         public bool TablesLoaded { get; set; }
         public HashSet<string> Tables { get; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, SchemaNode> TableNodes { get; } = new(StringComparer.OrdinalIgnoreCase);
-        public Dictionary<string, string[]> ColumnsByTable { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, ColumnCompletionInfo[]> ColumnsByTable { get; } = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> LoadedTables { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
+
+    private sealed record ColumnCompletionInfo(string Name, string DataType, int Length, int Precision, int Scale);
 
     public enum SqlClause
     {
@@ -1094,10 +1184,11 @@ public enum CompletionItemKind
 {
     Table,
     Column,
-    Cte
+    Cte,
+    Function
 }
 
-public sealed record SqlCompletionData(string Text, string Description, CompletionItemKind Kind, double Priority = 0) : ICompletionData
+public sealed record SqlCompletionData(string Text, string Description, CompletionItemKind Kind, double Priority = 0, string? Detail = null) : ICompletionData
 {
     public IImage? Image => null;
     public object Content => BuildContent();
@@ -1105,7 +1196,12 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
 
     public void Complete(TextArea textArea, ISegment completionSegment, EventArgs insertionRequestEventArgs)
     {
-        textArea.Document.Replace(completionSegment, Text);
+        var insertionText = Kind == CompletionItemKind.Function &&
+                            insertionRequestEventArgs is TextInputEventArgs { Text: "(" }
+            ? $"{Text}("
+            : Text;
+
+        textArea.Document.Replace(completionSegment, insertionText);
     }
 
     private object BuildContent()
@@ -1134,7 +1230,7 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
 
         var kind = new Avalonia.Controls.TextBlock
         {
-            Text = Description,
+            Text = Detail ?? Description,
             Foreground = Avalonia.Media.Brushes.Gray,
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
             Margin = new Avalonia.Thickness(10, 0, 0, 0),
@@ -1160,6 +1256,7 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
             CompletionItemKind.Table => Avalonia.Media.Brushes.DeepSkyBlue,
             CompletionItemKind.Column => Avalonia.Media.Brushes.LightGreen,
             CompletionItemKind.Cte => Avalonia.Media.Brushes.Goldenrod,
+            CompletionItemKind.Function => Avalonia.Media.Brushes.Khaki,
             _ => Avalonia.Media.Brushes.White
         };
     }
@@ -1171,6 +1268,7 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
             CompletionItemKind.Table => "\U000F04EB",
             CompletionItemKind.Column => "\U000F08DF",
             CompletionItemKind.Cte => "\U000F01BC",
+            CompletionItemKind.Function => "\U000F0295",
             _ => "\U000F09EE"
         };
     }

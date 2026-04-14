@@ -31,6 +31,9 @@ public partial class TabQueryEditorView : UserControl
     private readonly TabTemplateSelector? _templateSelector;
     private readonly CompletionInteractionState _completionInteractionState = new();
     private CompletionWindow? _completionWindow;
+    private OverloadInsightWindow? _functionInsightWindow;
+    private SqlFunctionOverloadProvider? _functionOverloadProvider;
+    private string? _activeFunctionInsightName;
     private CompletionRequest? _pendingCompletionRequest;
 
     public TabQueryEditorView()
@@ -88,6 +91,7 @@ public partial class TabQueryEditorView : UserControl
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
+        CloseFunctionInsight();
         GetMainWindowViewModel()?.ClearActiveEditor(SqlEditor);
     }
 
@@ -190,6 +194,11 @@ public partial class TabQueryEditorView : UserControl
 
     private async void TextAreaOnTextEntered(object? sender, TextInputEventArgs e)
     {
+        if (e.Text is "(" or ",")
+            ShowOrUpdateFunctionInsight();
+        else if (e.Text == ")")
+            CloseFunctionInsight();
+
         var shouldReopen = _completionInteractionState.HandleTextEntered(e.Text);
         if (shouldReopen)
         {
@@ -222,10 +231,21 @@ public partial class TabQueryEditorView : UserControl
             return;
 
         _completionWindow?.CompletionList.RequestInsertion(e);
+        if (e.Text == "(")
+            Dispatcher.UIThread.Post(ShowOrUpdateFunctionInsight, DispatcherPriority.Background);
     }
 
     private async void TextAreaOnKeyDown(object? sender, KeyEventArgs e)
     {
+        if (e.Key == Key.Space &&
+            e.KeyModifiers.HasFlag(KeyModifiers.Control) &&
+            e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            ShowOrUpdateFunctionInsight();
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == Key.Space && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             var request = SqlCompletionProvider.GetManualCompletionRequest(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset);
@@ -261,22 +281,81 @@ public partial class TabQueryEditorView : UserControl
         if (rememberAsAutoRequest)
             _completionInteractionState.RememberAutoCompletion();
 
+        CloseFunctionInsight();
         _completionWindow?.Close();
-        _completionWindow = new CompletionWindow(SqlEditor.TextArea);
-        _completionWindow.StartOffset = SqlCompletionProvider.GetCompletionStartOffset(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset);
+        var completionWindow = new CompletionWindow(SqlEditor.TextArea);
+        _completionWindow = completionWindow;
+        completionWindow.StartOffset = SqlCompletionProvider.GetCompletionStartOffset(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset);
 
-        var data = _completionWindow.CompletionList.CompletionData;
+        var data = completionWindow.CompletionList.CompletionData;
         foreach (var completion in completions)
         {
             data.Add(completion);
         }
 
-        _completionWindow.Closed += (_, _) =>
+        completionWindow.Closed += (_, _) =>
         {
-            _completionWindow = null;
+            if (ReferenceEquals(_completionWindow, completionWindow))
+                _completionWindow = null;
+
             _completionInteractionState.ResetWhitespaceReopen();
+            Dispatcher.UIThread.Post(ShowOrUpdateFunctionInsight, DispatcherPriority.Background);
         };
-        _completionWindow.Show();
+        completionWindow.Show();
+    }
+
+    private void ShowOrUpdateFunctionInsight()
+    {
+        if (_viewModel is null)
+            return;
+
+        if (_completionWindow is not null)
+            return;
+
+        var context = SqlFunctionCallContextDetector.Detect(SqlEditor.Text ?? string.Empty, SqlEditor.CaretOffset);
+        if (context is null)
+        {
+            CloseFunctionInsight();
+            return;
+        }
+
+        var function = SqlFunctionCatalog.FindFunction(_viewModel.ConnectionSettings.DatabaseType, context.FunctionName);
+        if (function is null)
+        {
+            CloseFunctionInsight();
+            return;
+        }
+
+        if (_functionInsightWindow is not null &&
+            _functionOverloadProvider is not null &&
+            string.Equals(_activeFunctionInsightName, function.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            _functionOverloadProvider.UpdateArgumentIndex(context.ArgumentIndex);
+            return;
+        }
+
+        CloseFunctionInsight();
+        _functionOverloadProvider = new SqlFunctionOverloadProvider(function, context.ArgumentIndex);
+        _activeFunctionInsightName = function.Name;
+        _functionInsightWindow = new OverloadInsightWindow(SqlEditor.TextArea)
+        {
+            Provider = _functionOverloadProvider
+        };
+        _functionInsightWindow.Closed += (_, _) =>
+        {
+            _functionInsightWindow = null;
+            _functionOverloadProvider = null;
+            _activeFunctionInsightName = null;
+        };
+        _functionInsightWindow.Show();
+    }
+
+    private void CloseFunctionInsight()
+    {
+        _functionInsightWindow?.Close();
+        _functionInsightWindow = null;
+        _functionOverloadProvider = null;
+        _activeFunctionInsightName = null;
     }
 
     private void SqlEditorOnGotFocus(object? sender, GotFocusEventArgs e)
