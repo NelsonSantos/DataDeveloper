@@ -287,6 +287,97 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public async Task GetCompletionsAsync_ForColumn_ShowsSourceAndDataTypeInDescription()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(
+            connection.Id,
+            "temp",
+            ("id", "int", 0, 0, 0),
+            ("campo1", "varchar", 100, 0, 0),
+            ("campo3", "decimal", 0, 10, 3));
+
+        var sql = "select ";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request);
+
+        var id = Assert.IsType<SqlCompletionData>(completions.Single(item => item.Text == "id"));
+        var campo1 = Assert.IsType<SqlCompletionData>(completions.Single(item => item.Text == "campo1"));
+        var campo3 = Assert.IsType<SqlCompletionData>(completions.Single(item => item.Text == "campo3"));
+        Assert.Equal("from temp int", id.Description);
+        Assert.Equal("from temp varchar (100)", campo1.Description);
+        Assert.Equal("from temp decimal(10, 3)", campo3.Description);
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterSelectSpace_ReturnsProviderFunctions()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select ";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request);
+
+        var getDate = Assert.IsType<SqlCompletionData>(completions.Single(item => item.Text == "GETDATE"));
+        Assert.Equal(CompletionItemKind.Function, getDate.Kind);
+        Assert.Equal("Returns the current database system timestamp.", getDate.Description);
+        Assert.Equal("returns date/time", getDate.Detail);
+        Assert.Contains(completions, item => item.Text == "SUM");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterSelectWord_FiltersProviderFunctions()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.Oracle };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select nv";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request);
+
+        Assert.Contains(completions, item => item.Text == "NVL");
+        Assert.Contains(completions, item => item.Text == "NVL2");
+        Assert.DoesNotContain(completions, item => item.Text == "SYSDATE");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterFrom_DoesNotReturnFunctions()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select * from ";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request);
+
+        Assert.Contains(completions, item => item.Text == "clientes");
+        Assert.DoesNotContain(completions, item => item.Text == "GETDATE");
+        Assert.DoesNotContain(completions.OfType<SqlCompletionData>(), item => item.Kind == CompletionItemKind.Function);
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterAliasDot_DoesNotReturnFunctions()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.PostgresSql };
+        SeedSchemaCache(connection.Id, "clientes", "id", "nome");
+
+        var sql = "select c. from clientes c";
+        var caretOffset = "select c.".Length;
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, caretOffset);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, caretOffset, request);
+
+        Assert.Contains(completions, item => item.Text == "id");
+        Assert.DoesNotContain(completions, item => item.Text == "NOW");
+        Assert.DoesNotContain(completions.OfType<SqlCompletionData>(), item => item.Kind == CompletionItemKind.Function);
+    }
+
+    [Fact]
     public async Task GetCompletionsAsync_AfterSelectSpaceWithFromTable_ReturnsColumnsOnlyFromReferencedTable()
     {
         var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
@@ -381,10 +472,31 @@ public class SqlCompletionProviderTests
 
     private static void SeedSchemaCache(Guid connectionId, string tableName, params string[] columns)
     {
+        SeedSchemaCache(connectionId, (tableName, columns.Select(column => (column, string.Empty, 0, 0, 0)).ToArray()));
+    }
+
+    private static void SeedSchemaCache(
+        Guid connectionId,
+        string tableName,
+        params (string Name, string DataType, int Length, int Precision, int Scale)[] columns)
+    {
         SeedSchemaCache(connectionId, (tableName, columns));
     }
 
     private static void SeedSchemaCache(Guid connectionId, params (string TableName, string[] Columns)[] tablesToSeed)
+    {
+        SeedSchemaCache(
+            connectionId,
+            tablesToSeed
+                .Select(table => (
+                    table.TableName,
+                    table.Columns.Select(column => (column, string.Empty, 0, 0, 0)).ToArray()))
+                .ToArray());
+    }
+
+    private static void SeedSchemaCache(
+        Guid connectionId,
+        params (string TableName, (string Name, string DataType, int Length, int Precision, int Scale)[] Columns)[] tablesToSeed)
     {
         var providerType = typeof(SqlCompletionProvider);
         var cacheField = providerType.GetField("SchemaCache", BindingFlags.Static | BindingFlags.NonPublic)
@@ -393,6 +505,8 @@ public class SqlCompletionProviderTests
 
         var cacheType = providerType.GetNestedType("SchemaCompletionCache", BindingFlags.NonPublic)
                        ?? throw new InvalidOperationException("Schema completion cache type not found.");
+        var columnInfoType = providerType.GetNestedType("ColumnCompletionInfo", BindingFlags.NonPublic)
+                             ?? throw new InvalidOperationException("Column completion info type not found.");
         var cache = Activator.CreateInstance(cacheType) ?? throw new InvalidOperationException("Could not create schema cache.");
 
         cacheType.GetProperty("TablesLoaded")!.SetValue(cache, true);
@@ -412,13 +526,35 @@ public class SqlCompletionProviderTests
             tableNodes[$"`{tableName}`"] = schemaNode;
             tableNodes[$"\"{tableName}\""] = schemaNode;
 
-            columnsByTable[tableName] = columns;
+            columnsByTable[tableName] = CreateColumnInfoArray(columnInfoType, columns);
             loadedTables.Add(tableName);
         }
 
         var tryAddMethod = cacheDictionary.GetType().GetMethod("TryAdd")
                           ?? throw new InvalidOperationException("Schema cache TryAdd method not found.");
         _ = tryAddMethod.Invoke(cacheDictionary, [connectionId, cache]);
+    }
+
+    private static Array CreateColumnInfoArray(
+        Type columnInfoType,
+        (string Name, string DataType, int Length, int Precision, int Scale)[] columns)
+    {
+        var array = Array.CreateInstance(columnInfoType, columns.Length);
+        for (var index = 0; index < columns.Length; index++)
+        {
+            var column = columns[index];
+            var columnInfo = Activator.CreateInstance(
+                                 columnInfoType,
+                                 column.Name,
+                                 column.DataType,
+                                 column.Length,
+                                 column.Precision,
+                                 column.Scale)
+                             ?? throw new InvalidOperationException("Could not create column completion info.");
+            array.SetValue(columnInfo, index);
+        }
+
+        return array;
     }
 
     private static SchemaNode CreateSchemaNode(NodeType nodeType, string name)
