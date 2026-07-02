@@ -108,6 +108,10 @@ public class ConnectionSelectorViewModelTests
         public string GetProcedureStatement() => string.Empty;
         public string GetFunctionStatement() => string.Empty;
         public string GetRoutineParameterStatement() => string.Empty;
+        public string GetColumnDefaultValueStatement() => string.Empty;
+        public string GetPrimaryKeyStatement() => string.Empty;
+        public string GetForeignKeyStatement() => string.Empty;
+        public string GetIndexStatement() => string.Empty;
     }
 
     private sealed class FakeDatabaseProviderFactoryService : DatabaseProviderFactoryService

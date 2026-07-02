@@ -247,6 +247,17 @@ public class TabDataGridViewModel : BaseTabContent
                 _messageTargetId,
                 $"{Name}: loading cancelled after {GridRows.Count:N0} row(s)."));
         }
+        catch (Exception ex)
+        {
+            StatementResult.Watcher.Stop();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                TimeElapsed = StatementResult.Watcher.Elapsed;
+                RowNumber = GridRows.Count;
+            });
+
+            PublishLoadFailureMessage(ex);
+        }
         finally
         {
             if (ReferenceEquals(_loadCancellationTokenSource, loadCancellationTokenSource))
@@ -607,6 +618,13 @@ public class TabDataGridViewModel : BaseTabContent
     private void PublishSubmitFailureMessage(Exception exception)
     {
         var message = $"Submit failed for {Name}:{Environment.NewLine}{exception.Message}";
+        _eventAggregatorService.Publish(new ShowResultMessageEvent(_messageTargetId, message));
+        _focusMessageTab?.Invoke();
+    }
+
+    private void PublishLoadFailureMessage(Exception exception)
+    {
+        var message = $"{Name}: loading failed after {GridRows.Count:N0} row(s).{Environment.NewLine}{exception.Message}";
         _eventAggregatorService.Publish(new ShowResultMessageEvent(_messageTargetId, message));
         _focusMessageTab?.Invoke();
     }

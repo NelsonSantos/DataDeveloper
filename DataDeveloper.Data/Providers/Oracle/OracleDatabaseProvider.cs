@@ -116,4 +116,81 @@ public class OracleDatabaseProvider : DatabaseProviderBase<OracleConnectionSetti
                order by sequence
                """;
     }
+
+    public override string GetColumnDefaultValueStatement()
+    {
+        // Note: data_default is a LONG column; Oracle's managed provider reads it as the
+        // first/only LONG-typed column in the result set, which is sufficient for typical
+        // default expressions but may truncate unusually large ones (accepted limitation).
+        return """
+               select
+                   column_name as "ColumnName",
+                   data_default as "DefaultValueExpression"
+               from user_tab_columns
+               where table_name = upper(:TableName)
+               order by column_id
+               """;
+    }
+
+    public override string GetPrimaryKeyStatement()
+    {
+        return """
+               select
+                   uc.constraint_name as "ConstraintName",
+                   ucc.column_name as "ColumnName",
+                   ucc.position as "OrdinalPosition"
+               from user_constraints uc
+               join user_cons_columns ucc on ucc.constraint_name = uc.constraint_name
+               where uc.table_name = upper(:TableName)
+                 and uc.constraint_type = 'P'
+               order by ucc.position
+               """;
+    }
+
+    public override string GetForeignKeyStatement()
+    {
+        return """
+               select
+                   uc.constraint_name as "ConstraintName",
+                   ucc.column_name as "ColumnName",
+                   ucc.position as "OrdinalPosition",
+                   ruc.owner as "ReferencedSchemaName",
+                   ruc.table_name as "ReferencedTableName",
+                   rucc.column_name as "ReferencedColumnName",
+                   case uc.delete_rule
+                       when 'CASCADE' then 'cascade'
+                       when 'SET NULL' then 'set null'
+                       else '' end as "OnDeleteAction",
+                   '' as "OnUpdateAction"
+               from user_constraints uc
+               join user_cons_columns ucc on ucc.constraint_name = uc.constraint_name
+               join user_constraints ruc on ruc.constraint_name = uc.r_constraint_name
+               join user_cons_columns rucc on rucc.constraint_name = ruc.constraint_name and rucc.position = ucc.position
+               where uc.table_name = upper(:TableName)
+                 and uc.constraint_type = 'R'
+               order by uc.constraint_name, ucc.position
+               """;
+    }
+
+    public override string GetIndexStatement()
+    {
+        return """
+               select
+                   ui.index_name as "IndexName",
+                   case when ui.uniqueness = 'UNIQUE' then 1 else 0 end as "IsUnique",
+                   uic.column_name as "ColumnName",
+                   case when uic.descend = 'DESC' then 1 else 0 end as "IsDescending",
+                   uic.column_position as "OrdinalPosition"
+               from user_indexes ui
+               join user_ind_columns uic on uic.index_name = ui.index_name
+               where ui.table_name = upper(:TableName)
+                 and not exists (
+                     select 1 from user_constraints uc
+                     where uc.table_name = ui.table_name
+                       and uc.constraint_type = 'P'
+                       and uc.index_name = ui.index_name
+                 )
+               order by ui.index_name, uic.column_position
+               """;
+    }
 }
