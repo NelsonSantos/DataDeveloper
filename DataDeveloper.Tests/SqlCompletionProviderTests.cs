@@ -572,6 +572,7 @@ public class SqlCompletionProviderTests
     private sealed class TestConnectionSettings : IConnectionSettings
     {
         public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid? GroupId { get; set; }
         public string Name { get; set; } = "Test";
         public string User { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Reactive.Threading.Tasks;
+using Avalonia.Headless.XUnit;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
@@ -54,6 +55,34 @@ public class ConnectionSelectorViewModelTests
         public void SaveAll(IEnumerable<ConnectionSettings> connections)
         {
         }
+    }
+
+    private sealed class FakeConnectionGroupRepository : IConnectionGroupRepository
+    {
+        private readonly List<ConnectionGroup> _groups;
+
+        public FakeConnectionGroupRepository(IEnumerable<ConnectionGroup>? groups = null)
+        {
+            _groups = groups?.ToList() ?? [];
+        }
+
+        public IReadOnlyList<ConnectionGroup> LoadAll() => _groups.ToList();
+
+        public void Save(ConnectionGroup group)
+        {
+            _groups.RemoveAll(g => g.Id == group.Id);
+            _groups.Add(group);
+        }
+
+        public void Delete(Guid groupId)
+        {
+            _groups.RemoveAll(g => g.Id == groupId);
+        }
+    }
+
+    private sealed class FakeConnectionGroupDialogService : IConnectionGroupDialogService
+    {
+        public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.CompletedTask;
     }
 
     private sealed class FakeDialogService : IDialogService
@@ -146,6 +175,8 @@ public class ConnectionSelectorViewModelTests
 
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([original]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -191,6 +222,8 @@ public class ConnectionSelectorViewModelTests
     {
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository(),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -210,6 +243,8 @@ public class ConnectionSelectorViewModelTests
     {
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository(),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -238,6 +273,8 @@ public class ConnectionSelectorViewModelTests
         };
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -272,6 +309,8 @@ public class ConnectionSelectorViewModelTests
         };
         var viewModel = new ConnectionSelectorViewModel(
             repository,
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -304,6 +343,8 @@ public class ConnectionSelectorViewModelTests
         var provider = new FakeDatabaseProvider(["master", "tempdb", "model"]);
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new FakeDatabaseProviderFactoryService(provider),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -330,6 +371,8 @@ public class ConnectionSelectorViewModelTests
         };
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -359,6 +402,8 @@ public class ConnectionSelectorViewModelTests
         };
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             dialogService)
@@ -388,6 +433,8 @@ public class ConnectionSelectorViewModelTests
         };
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             dialogService)
@@ -406,6 +453,8 @@ public class ConnectionSelectorViewModelTests
     {
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository(),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -433,6 +482,8 @@ public class ConnectionSelectorViewModelTests
 
         var viewModel = new ConnectionSelectorViewModel(
             new FakeConnectionSettingsRepository([sqlServerConnection, mySqlConnection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -445,5 +496,127 @@ public class ConnectionSelectorViewModelTests
         Assert.Equal(DatabaseType.MySql, filteredConnection.DatabaseType);
         Assert.True(viewModel.CanAddConnection);
         Assert.False(viewModel.ShowFilterSelectionHint);
+    }
+
+    [Fact]
+    public void RootNodes_MixesGroupsAndUngroupedConnections_SortedAlphabeticallyByName()
+    {
+        var productionGroup = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Beta group" };
+        var groupedConnection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            GroupId = productionGroup.Id,
+            Name = "Grouped connection",
+            DatabaseType = DatabaseType.SqlServer
+        };
+        var ungroupedFirst = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Alpha connection",
+            DatabaseType = DatabaseType.SqlServer
+        };
+        var ungroupedLast = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Zeta connection",
+            DatabaseType = DatabaseType.SqlServer
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([groupedConnection, ungroupedFirst, ungroupedLast]),
+            new FakeConnectionGroupRepository([productionGroup]),
+            new FakeConnectionGroupDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.Equal(3, viewModel.RootNodes.Count);
+        Assert.Equal("Alpha connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[0]).Name);
+        Assert.Equal("Beta group", Assert.IsType<ConnectionGroupNode>(viewModel.RootNodes[1]).Name);
+        Assert.Equal("Zeta connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[2]).Name);
+
+        var groupNode = (ConnectionGroupNode)viewModel.RootNodes[1];
+        var childConnection = Assert.Single(groupNode.Children);
+        Assert.Equal(groupedConnection.Id, childConnection.Id);
+    }
+
+    [Fact]
+    public void SelectedConnectionGroup_Set_MovesConnectionIntoGroupNode()
+    {
+        var group = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Production" };
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository([group]),
+            new FakeConnectionGroupDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedConnection = connection
+        };
+
+        Assert.IsAssignableFrom<ConnectionSettings>(Assert.Single(viewModel.RootNodes));
+
+        viewModel.SelectedConnectionGroup = viewModel.GroupOptions.Single(option => option.Id == group.Id);
+
+        Assert.Equal(group.Id, connection.GroupId);
+        var groupNode = Assert.IsType<ConnectionGroupNode>(Assert.Single(viewModel.RootNodes));
+        Assert.Same(connection, Assert.Single(groupNode.Children));
+    }
+
+    [AvaloniaFact]
+    public void ManageGroupsCommand_UngroupsConnections_WhenGroupWasDeletedInDialog()
+    {
+        var groupRepository = new FakeConnectionGroupRepository();
+        var group = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Production" };
+        groupRepository.Save(group);
+
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            GroupId = group.Id,
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            groupRepository,
+            new DeletingConnectionGroupDialogService(groupRepository, group.Id),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.IsType<ConnectionGroupNode>(Assert.Single(viewModel.RootNodes));
+
+        viewModel.ManageGroupsCommand.Execute(new Avalonia.Controls.Window()).Subscribe();
+
+        Assert.Null(connection.GroupId);
+        Assert.IsAssignableFrom<ConnectionSettings>(Assert.Single(viewModel.RootNodes));
+    }
+
+    private sealed class DeletingConnectionGroupDialogService : IConnectionGroupDialogService
+    {
+        private readonly FakeConnectionGroupRepository _repository;
+        private readonly Guid _groupIdToDelete;
+
+        public DeletingConnectionGroupDialogService(FakeConnectionGroupRepository repository, Guid groupIdToDelete)
+        {
+            _repository = repository;
+            _groupIdToDelete = groupIdToDelete;
+        }
+
+        public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow)
+        {
+            _repository.Delete(_groupIdToDelete);
+            return Task.CompletedTask;
+        }
     }
 }

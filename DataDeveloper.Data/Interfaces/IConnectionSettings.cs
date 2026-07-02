@@ -5,6 +5,7 @@ namespace DataDeveloper.Data.Interfaces;
 public interface IConnectionSettings
 {
     Guid Id { get; set; }
+    Guid? GroupId { get; set; }
     string Name { get; set; }
     string User { get; set; }
     string Password { get; set; }

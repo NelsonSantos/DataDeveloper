@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="https://github.com/avaloniaui"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+        xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
+        x:Class="DataDeveloper.Views.ManageConnectionGroupsDialog"
+        mc:Ignorable="d"
+        Title="Manage Groups"
+        Width="420" Height="480"
+        WindowStartupLocation="CenterOwner" CanResize="False">
+
+    <Design.DataContext>
+        <vm:ManageConnectionGroupsViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+            <Button Grid.Column="0"
+                    Content="Add group"
+                    Classes="dialog-button"
+                    Command="{Binding AddCommand}"
+                    HorizontalAlignment="Left" />
+            <Button Grid.Column="1"
+                    Content="Close"
+                    Classes="dialog-button primary"
+                    Command="{Binding CloseCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    HorizontalAlignment="Right" />
+        </Grid>
+
+        <ListBox ItemsSource="{Binding Groups}">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:ConnectionGroup}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" Margin="0,4">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding Name, Mode=TwoWay}"
+                                 LostFocus="GroupName_LostFocus" />
+                        <Button Grid.Column="1"
+                                Background="Transparent"
+                                ToolTip.Tip="Delete"
+                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding}">
+                            <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Brown" />
+                        </Button>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

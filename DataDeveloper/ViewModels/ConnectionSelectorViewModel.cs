@@ -64,16 +64,27 @@ public sealed class DmlTransactionModeOption
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private static readonly int[] SupportedStatementTimeouts = [15, 30, 60, 120, 240, 480];
+    private static readonly ConnectionGroup UngroupedOption = new() { Id = Guid.Empty, Name = "(Ungrouped)" };
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
+    private readonly IConnectionGroupRepository _connectionGroupRepository;
+    private readonly IConnectionGroupDialogService _connectionGroupDialogService;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private readonly ISecretStore _secretStore;
     private readonly IDialogService _dialogService;
     private readonly ObservableCollection<ConnectionSettings> _allConnections = new();
     private readonly ObservableCollection<string> _availableDatabaseNames = new();
 
-    public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore, IDialogService dialogService)
+    public ConnectionSelectorViewModel(
+        IConnectionSettingsRepository connectionSettingsRepository,
+        IConnectionGroupRepository connectionGroupRepository,
+        IConnectionGroupDialogService connectionGroupDialogService,
+        DatabaseProviderFactoryService databaseProviderFactoryService,
+        ISecretStore secretStore,
+        IDialogService dialogService)
     {
         _connectionSettingsRepository = connectionSettingsRepository;
+        _connectionGroupRepository = connectionGroupRepository;
+        _connectionGroupDialogService = connectionGroupDialogService;
         _databaseProviderFactoryService = databaseProviderFactoryService;
         _secretStore = secretStore;
         _dialogService = dialogService;
@@ -98,6 +109,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         ];
         StatementTimeoutOptions = new ObservableCollection<int>(SupportedStatementTimeouts);
         AvailableDatabaseNames = new ReadOnlyObservableCollection<string>(_availableDatabaseNames);
+        LoadGroups();
         LoadConnections();
         SelectedConnectionFilter = AvailableConnectionFilters[0];
         
@@ -138,6 +150,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         );
 
         CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);
+        ManageGroupsCommand = ReactiveCommand.CreateFromTask<StyledElement>(ManageGroupsAsync);
         DuplicateConnectionCommand = ReactiveCommand.CreateFromTask(DuplicateConnectionAsync,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
@@ -248,6 +261,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
+    public ObservableCollection<ConnectionGroup> Groups { get; } = new();
+    public ObservableCollection<ConnectionGroup> GroupOptions { get; } = new();
+    public ObservableCollection<object> RootNodes { get; } = new();
     public ReadOnlyObservableCollection<string> AvailableDatabaseNames { get; }
     public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
     public IReadOnlyList<SqlServerAuthenticationOption> SqlServerAuthenticationModes { get; }
@@ -276,6 +292,37 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
             this.RaisePropertyChanged(nameof(SelectedStatementTimeoutSeconds));
             this.RaisePropertyChanged(nameof(SelectedDmlTransactionModeOption));
+            this.RaisePropertyChanged(nameof(SelectedConnectionGroup));
+        }
+    }
+
+    private object? _selectedTreeItem;
+    public object? SelectedTreeItem
+    {
+        get => _selectedTreeItem;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTreeItem, value);
+            SelectedConnection = value as ConnectionSettings;
+        }
+    }
+
+    public ConnectionGroup? SelectedConnectionGroup
+    {
+        get => SelectedConnection is null
+            ? null
+            : GroupOptions.FirstOrDefault(group => group.Id == (SelectedConnection.GroupId ?? Guid.Empty));
+        set
+        {
+            if (SelectedConnection is null || value is null)
+                return;
+
+            var newGroupId = value.Id == Guid.Empty ? (Guid?)null : value.Id;
+            if (SelectedConnection.GroupId == newGroupId)
+                return;
+
+            SelectedConnection.GroupId = newGroupId;
+            RefreshTreeNodes();
         }
     }
 
@@ -379,6 +426,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> TestCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
     public ReactiveCommand<StyledElement, Unit> DeleteCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> ManageGroupsCommand { get; }
     public ReactiveCommand<Unit, Unit> DuplicateConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectSqLiteFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CreateSqLiteFileCommand { get; }
@@ -445,6 +493,78 @@ public class ConnectionSelectorViewModel : ViewModelBase
         RefreshFilteredConnections();
     }
 
+    private void LoadGroups()
+    {
+        var groups = _connectionGroupRepository.LoadAll();
+        Groups.Clear();
+        Groups.AddRange(groups.OrderBy(group => group.Name, StringComparer.OrdinalIgnoreCase));
+        RefreshGroupOptions();
+    }
+
+    private void RefreshGroupOptions()
+    {
+        GroupOptions.Clear();
+        GroupOptions.Add(UngroupedOption);
+        GroupOptions.AddRange(Groups);
+    }
+
+    private async Task ManageGroupsAsync(StyledElement element)
+    {
+        var window = element.GetParentWindow();
+        if (window is null)
+            return;
+
+        await _connectionGroupDialogService.ShowDialogAsync(window);
+
+        ReloadGroupsAndSync();
+    }
+
+    private void ReloadGroupsAndSync()
+    {
+        LoadGroups();
+
+        var validGroupIds = Groups.Select(group => group.Id).ToHashSet();
+        foreach (var connection in _allConnections)
+        {
+            if (connection.GroupId is Guid groupId && !validGroupIds.Contains(groupId))
+                connection.GroupId = null;
+        }
+
+        RefreshFilteredConnections();
+        this.RaisePropertyChanged(nameof(SelectedConnectionGroup));
+    }
+
+    private void RefreshTreeNodes()
+    {
+        var groupedConnections = Connections
+            .Where(connection => connection.GroupId is not null)
+            .ToLookup(connection => connection.GroupId!.Value);
+
+        var groupNodes = Groups
+            .Where(group => groupedConnections.Contains(group.Id))
+            .Select(group => new ConnectionGroupNode(
+                group,
+                groupedConnections[group.Id].OrderBy(connection => connection.Name, StringComparer.OrdinalIgnoreCase)));
+
+        var ungroupedConnections = Connections.Where(connection => connection.GroupId is null);
+
+        var rootItems = groupNodes
+            .Cast<object>()
+            .Concat(ungroupedConnections)
+            .OrderBy(GetRootSortName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        RootNodes.Clear();
+        RootNodes.AddRange(rootItems);
+    }
+
+    private static string GetRootSortName(object node) => node switch
+    {
+        ConnectionGroupNode groupNode => groupNode.Name,
+        ConnectionSettings connection => connection.Name,
+        _ => string.Empty
+    };
+
     private void SortAllConnections()
     {
         var sortedConnections = _allConnections.OrderBy(connection => connection.Name).ToList();
@@ -462,6 +582,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         Connections.Clear();
         Connections.AddRange(filteredConnections);
+        RefreshTreeNodes();
 
         if (selectedConnectionId is null)
         {

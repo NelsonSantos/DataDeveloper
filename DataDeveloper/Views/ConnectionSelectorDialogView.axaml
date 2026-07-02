@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
+             xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.ConnectionSelectorDialogView">
 <!-- Bind the corresponding ViewModel -->
@@ -55,11 +56,26 @@
                            Foreground="DarkGoldenrod"
                            TextWrapping="Wrap" />
 
-                <ListBox Grid.Row="3"
-                         ItemsSource="{Binding Connections}"
-                         SelectedItem="{Binding SelectedConnection, Mode=TwoWay}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
+                <TreeView Grid.Row="3"
+                          ItemsSource="{Binding RootNodes}"
+                          SelectedItem="{Binding SelectedTreeItem, Mode=TwoWay}">
+                    <TreeView.Styles>
+                        <Style Selector="TreeViewItem">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0" />
+                            <Setter Property="MinHeight" Value="20" />
+                        </Style>
+                    </TreeView.Styles>
+                    <TreeView.DataTemplates>
+                        <TreeDataTemplate DataType="{x:Type models:ConnectionGroupNode}"
+                                           ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <TextBlock Text="&#xF024B;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </TreeDataTemplate>
+                        <TreeDataTemplate DataType="{x:Type models:ConnectionSettings}">
                             <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto,Auto">
                                 <controls:DatabaseTypeIcon Grid.Row="0"
                                                            Grid.Column="0"
@@ -68,30 +84,37 @@
                                                            VerticalAlignment="Top" Margin="0, 0, 5, 0" />
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center"  />
                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatabaseType}" VerticalAlignment="Center"  FontSize="10" />
-                                <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2" 
+                                <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
                                         Background="Transparent" ToolTip.Tip="Edit"
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=TreeView}}"
                                         CommandParameter="{Binding .}"
                                         >
                                     <TextBlock Text="&#xF03EB;" Classes="MaterialIcon" />
                                 </Button>
-                                <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="2" 
+                                <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="2"
                                         Background="Transparent" ToolTip.Tip="Delete"
-                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=TreeView}}"
                                         CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
                                         >
                                     <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Brown" />
                                 </Button>
                             </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                        </TreeDataTemplate>
+                    </TreeView.DataTemplates>
+                </TreeView>
 
-                <Button Grid.Row="4"
-                        Content="Add new connection"
-                        Command="{Binding AddCommand}"
-                        IsEnabled="{Binding CanAddConnection}"
-                        HorizontalAlignment="Right" />
+                <Grid Grid.Row="4" ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                    <Button Grid.Column="0"
+                            Content="Manage groups"
+                            Command="{Binding ManageGroupsCommand}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                            HorizontalAlignment="Left" />
+                    <Button Grid.Column="1"
+                            Content="Add new connection"
+                            Command="{Binding AddCommand}"
+                            IsEnabled="{Binding CanAddConnection}"
+                            HorizontalAlignment="Right" />
+                </Grid>
             </Grid>
 
             <!-- Connection detail view -->
@@ -105,9 +128,24 @@
                         IsReadOnly="{Binding !IsEditing}" />
 
                     <TextBlock Grid.Row="0" Grid.Column="1" Text="Database Type" />
-                    <TextBox Grid.Row="1" Grid.Column="1" 
+                    <TextBox Grid.Row="1" Grid.Column="1"
                              Text="{Binding SelectedConnection.DatabaseType, Mode=TwoWay}"
                              IsEnabled="False" />
+                </Grid>
+
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*" RowSpacing="8">
+                    <TextBlock Grid.Row="0" Text="Group" />
+                    <ComboBox Grid.Row="1"
+                              HorizontalAlignment="Stretch"
+                              ItemsSource="{Binding GroupOptions}"
+                              SelectedItem="{Binding SelectedConnectionGroup, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditing}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </Grid>
 
                 <Grid RowDefinitions="Auto,Auto"

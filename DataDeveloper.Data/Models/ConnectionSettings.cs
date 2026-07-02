@@ -17,6 +17,7 @@ public class ConnectionSettings : ReactiveObject, IConnectionSettings
     }
 
     [Reactive] public Guid Id { get; set; }
+    [Reactive] public Guid? GroupId { get; set; }
     [Reactive] public Guid? CredentialId { get; set; }
     [Reactive] public string Name { get; set; } = string.Empty;
     [Reactive] public string User { get; set; } = string.Empty;
