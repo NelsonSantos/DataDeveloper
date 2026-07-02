@@ -1,0 +1,368 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+        x:Class="DataDeveloper.Views.TableDesignerWindow"
+        Width="1300"
+        Height="760"
+        MinWidth="980"
+        MinHeight="620"
+        Title="Create table">
+    <Window.Styles>
+        <Style Selector="TabControl.table-designer-tabs TextBox">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="TabControl.table-designer-tabs ComboBox">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="TabControl.table-designer-tabs CheckBox">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="TabControl.table-designer-tabs Button">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="TabControl.table-designer-tabs TextBlock">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style Selector="Border.column-card.drop-before">
+            <Setter Property="BorderBrush" Value="#62C6FF" />
+            <Setter Property="BorderThickness" Value="0,2,0,0" />
+        </Style>
+        <Style Selector="Border.column-card.drop-after">
+            <Setter Property="BorderBrush" Value="#62C6FF" />
+            <Setter Property="BorderThickness" Value="0,0,0,2" />
+        </Style>
+    </Window.Styles>
+    <Grid RowDefinitions="Auto,*,Auto" Background="#2B2B2B">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,220,Auto,220,*" ColumnSpacing="8" Margin="12">
+            <TextBlock Grid.Column="0" Text="Schema" VerticalAlignment="Center" IsVisible="{Binding SupportsSchemaName}" />
+            <TextBox Grid.Column="1" Text="{Binding SchemaName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsVisible="{Binding SupportsSchemaName}" IsEnabled="{Binding CanEditSchemaName}" Watermark="dbo / public" />
+            <TextBlock Grid.Column="2" Text="Table" VerticalAlignment="Center" />
+            <TextBox Grid.Column="3" Text="{Binding TableName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Table name" />
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="3.4*,5,2.6*" Margin="12,0,12,0">
+            <TabControl Grid.Column="0" Classes="table-designer-tabs">
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Columns" FontSize="13" Margin="5, 0" />
+                    </TabItem.Header>
+                    <Border Padding="5">
+                        <Grid RowDefinitions="Auto,*">
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                                <Button Content="Add column" Command="{Binding AddColumnCommand}" />
+                                <TextBox Width="180"
+                                         Text="{Binding PrimaryKeyName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Watermark="PK name" />
+                            </StackPanel>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Columns}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#2B2B2B"
+                                                    Classes="column-card"
+                                                    Padding="5"
+                                                    Margin="0,0,0,5"
+                                                    DragDrop.AllowDrop="True"
+                                                    DragDrop.DragOver="ColumnCard_DragOver"
+                                                    DragDrop.DragLeave="ColumnCard_DragLeave"
+                                                    DragDrop.Drop="ColumnCard_Drop">
+                                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="20,75,75,75,75,75,75,75,44" ColumnSpacing="6" RowSpacing="4" Margin="0,0,0,10">
+                                                    <TextBlock Grid.Row="0"
+                                                               Grid.RowSpan="2"
+                                                               Grid.Column="0"
+                                                               Text="&#xF01DD;"
+                                                               Classes="MaterialIcon column-drag-handle"
+                                                               FontSize="20"
+                                                               Cursor="Hand"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="#BBBBBB"
+                                                               PointerPressed="ColumnDragHandle_PointerPressed" />
+                                                    <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Column" />
+                                                    <ComboBox Grid.Row="0" Grid.Column="3" Grid.ColumnSpan="2"
+                                                              Width="156"
+                                                              MinWidth="156"
+                                                              MaxWidth="156"
+                                                              ItemsSource="{Binding AvailableDataTypes}"
+                                                              SelectedItem="{Binding SelectedDataType, Mode=TwoWay}" />
+                                                    <TextBox Grid.Row="0" Grid.Column="5" Text="{Binding Length, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEditLength}" Watermark="Len" />
+                                                    <TextBox Grid.Row="0" Grid.Column="6" Text="{Binding Precision, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEditPrecision}" Watermark="Prec" />
+                                                    <TextBox Grid.Row="0" Grid.Column="7" Text="{Binding Scale, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEditScale}" Watermark="Scale" />
+                                                    <CheckBox Grid.Row="1" Grid.Column="1" Content="Null" IsChecked="{Binding IsNullable, Mode=TwoWay}" IsEnabled="{Binding CanEditNullable}" VerticalAlignment="Center" />
+                                                    <CheckBox Grid.Row="1" Grid.Column="2" Content="PK" IsChecked="{Binding IsPrimaryKey, Mode=TwoWay}" VerticalAlignment="Center" />
+                                                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Horizontal" Spacing="6">
+                                                        <CheckBox Content="Identity" IsChecked="{Binding IsIdentity, Mode=TwoWay}" IsEnabled="{Binding CanEditIdentity}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <Button Grid.Row="0"
+                                                            Grid.RowSpan="2"
+                                                            Grid.Column="8"
+                                                            Width="32"
+                                                            Height="32"
+                                                            Padding="0"
+                                                            Background="Transparent"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip.Tip="Remove column"
+                                                            Command="{Binding DataContext.RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding .}">
+                                                        <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
+                                                    </Button>
+                                                    <TextBox Grid.Row="1"
+                                                             Grid.Column="4"
+                                                             Grid.ColumnSpan="4"
+                                                             Text="{Binding DefaultValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                             Watermark="Default expression" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Foreign keys" FontSize="13" Margin="5, 0" />
+                    </TabItem.Header>
+                    <Border Padding="5">
+                        <Grid RowDefinitions="Auto,*">
+                            <Button Grid.Row="0" Content="Add foreign key" Command="{Binding AddForeignKeyCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" >
+                                <ItemsControl ItemsSource="{Binding ForeignKeys}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#2B2B2B" Padding="5" Margin="0,0,0,5">
+                                                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="150,150,20,150,Auto,*,Auto" ColumnSpacing="5" RowSpacing="4" >
+                                                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="FK name" />
+                                                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding ReferencedSchemaName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Ref schema" />
+                                                <TextBlock Grid.Row="0" Grid.Column="2"
+                                                           Text="→"
+                                                           VerticalAlignment="Center"
+                                                           HorizontalAlignment="Center"
+                                                           Foreground="#BBBBBB" />
+                                                <ComboBox Grid.Row="0"
+                                                          Grid.Column="3"
+                                                          HorizontalAlignment="Stretch"
+                                                          ItemsSource="{Binding AvailableReferenceTables}"
+                                                          SelectedItem="{Binding SelectedReferencedTable, Mode=TwoWay}" />
+                                                <Button Grid.Row="0"
+                                                        Grid.Column="4"
+                                                        Content="Add column"
+                                                        Command="{Binding AddColumnMappingCommand}" />
+                                                <Button Grid.Row="0"
+                                                        Grid.Column="6"
+                                                        Grid.RowSpan="3"
+                                                        Width="32"
+                                                        Height="32"
+                                                        Padding="0"
+                                                        Background="Transparent"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        ToolTip.Tip="Remove foreign key"
+                                                        Command="{Binding DataContext.RemoveForeignKeyCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding .}">
+                                                    <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
+                                                </Button>
+
+                                                <ItemsControl Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="6" ItemsSource="{Binding ColumnMappings}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <StackPanel Orientation="Vertical" Spacing="4" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid ColumnDefinitions="150,20,150,Auto" ColumnSpacing="4">
+                                                                <ComboBox Grid.Column="0"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          ItemsSource="{Binding AvailableColumnNames}"
+                                                                          SelectedItem="{Binding LocalColumnName, Mode=TwoWay}" />
+                                                                <TextBlock Grid.Column="1"
+                                                                           Text="→"
+                                                                           VerticalAlignment="Center"
+                                                                           HorizontalAlignment="Center"
+                                                                           Foreground="#BBBBBB" />
+                                                                <ComboBox Grid.Column="2"
+                                                                          HorizontalAlignment="Stretch"
+                                                                          ItemsSource="{Binding AvailableReferencedColumnNames}"
+                                                                          SelectedItem="{Binding ReferencedColumnName, Mode=TwoWay}" />
+                                                                <Button Grid.Column="3"
+                                                                        Content="Remove column"
+                                                                        Command="{Binding DataContext.RemoveColumnMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                        CommandParameter="{Binding .}">
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="5">
+                                                    <TextBlock Text="On delete" VerticalAlignment="Center" Foreground="#BBBBBB" HorizontalAlignment="Right" Margin="10, 0, 0, 0" />
+                                                    <ComboBox Width="110" MinWidth="110" MaxWidth="110" HorizontalAlignment="Stretch" ItemsSource="{Binding ReferentialActions}" SelectedItem="{Binding OnDeleteAction, Mode=TwoWay}" />
+                                                    <TextBlock Text="On update" VerticalAlignment="Center" Foreground="#BBBBBB" HorizontalAlignment="Right" Margin="10, 0, 0, 0" />
+                                                    <ComboBox Width="110"
+                                                              MinWidth="110"
+                                                              MaxWidth="110"
+                                                              HorizontalAlignment="Stretch"
+                                                              ItemsSource="{Binding ReferentialActions}"
+                                                              SelectedItem="{Binding OnUpdateAction, Mode=TwoWay}"
+                                                              IsEnabled="{Binding SupportsOnUpdateAction}"
+                                                              ToolTip.Tip="Oracle does not support ON UPDATE foreign key actions." />
+                                                </StackPanel>
+                                            </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </TabItem>
+
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Indexes" FontSize="13" Margin="5, 0" />
+                    </TabItem.Header>
+                    <Border Padding="5">
+                        <Grid RowDefinitions="Auto,*">
+                            <Button Grid.Row="0" Content="Add index" Command="{Binding AddIndexCommand}" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding Indexes}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#2B2B2B" Padding="5" Margin="0,0,0,5">
+                                                <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="Auto,160,Auto,Auto,Auto" ColumnSpacing="6" Margin="0,0,0,6">
+                                                    <CheckBox Grid.Row="0" Grid.Column="0" Content="Unique" IsChecked="{Binding IsUnique, Mode=TwoWay}" VerticalAlignment="Center" />
+                                                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Index name" />
+                                                    <Button Grid.Row="0" Grid.Column="2"
+                                                            Content="Add column"
+                                                            Command="{Binding AddColumnCommand}" />
+                                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="8"
+                                                                IsVisible="{Binding SupportsClusteredOption}">
+                                                        <CheckBox Content="Clustered" IsChecked="{Binding IsClustered, Mode=TwoWay}" VerticalAlignment="Center" />
+                                                        <TextBox Width="80" Text="{Binding FillFactor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Fill factor" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Spacing="8"
+                                                                IsVisible="{Binding SupportsPostgresOptions}">
+                                                        <ComboBox Width="90" ItemsSource="{Binding IndexMethods}" SelectedItem="{Binding IndexMethod, Mode=TwoWay}" />
+                                                        <TextBox Width="160" Text="{Binding WherePredicate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Watermark="Where predicate" />
+                                                    </StackPanel>
+                                                    <ItemsControl Grid.Row="0" Grid.Column="3" Grid.RowSpan="3" ItemsSource="{Binding Columns}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Vertical" Spacing="4" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid ColumnDefinitions="120,Auto,70,Auto" ColumnSpacing="5">
+                                                                    <ComboBox Grid.Column="0"
+                                                                              Width="120"
+                                                                              ItemsSource="{Binding AvailableColumnNames}"
+                                                                              SelectedItem="{Binding ColumnName, Mode=TwoWay}" />
+                                                                    <CheckBox Grid.Column="1"
+                                                                              Content="Desc"
+                                                                              IsChecked="{Binding Descending, Mode=TwoWay}"
+                                                                              VerticalAlignment="Center" />
+                                                                    <TextBox Grid.Column="2"
+                                                                             Text="{Binding PrefixLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Watermark="Prefix"
+                                                                             IsVisible="{Binding DataContext.SupportsMySqlPrefixLength, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                                    <Button Grid.Column="3"
+                                                                            Content="Remove column"
+                                                                            Command="{Binding DataContext.RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                            CommandParameter="{Binding .}">
+                                                                    </Button>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <Button Grid.Row="0" Grid.Column="4" Grid.RowSpan="3"
+                                                            Width="32"
+                                                            Height="32"
+                                                            Padding="0"
+                                                            Background="Transparent"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip.Tip="Remove index"
+                                                            Command="{Binding DataContext.RemoveIndexCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding .}">
+                                                        <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </TabItem>
+            </TabControl>
+
+            <GridSplitter Grid.Column="1" Width="5" ResizeDirection="Columns" />
+
+            <Grid Grid.Column="2" RowDefinitions="Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4" Margin="10">
+                    <TextBlock Grid.Column="0" Text="Generated SQL" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            Background="Transparent"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="Copy generated SQL"
+                            Click="CopyGeneratedSql_Click">
+                        <TextBlock Text="&#xF018F;" Classes="MaterialIcon" HorizontalAlignment="Center" FontSize="15" />
+                    </Button>
+                    <Button Grid.Column="2"
+                            Width="28"
+                            Height="28"
+                            Padding="0"
+                            Background="Transparent"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="Save generated SQL"
+                            Click="SaveGeneratedSql_Click">
+                        <TextBlock Text="&#xF0193;" Classes="MaterialIcon" HorizontalAlignment="Center" FontSize="15" />
+                    </Button>
+                </Grid>
+                <avaloniaEdit:TextEditor Grid.Row="1"
+                                         x:Name="SqlPreview"
+                                         FontFamily="{StaticResource MonospaceFont}"
+                                         ShowLineNumbers="True"
+                                         SyntaxHighlighting="SQL"
+                                         IsReadOnly="True"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Background="#202424" />
+                <Border Grid.Row="2"
+                        IsVisible="{Binding HasValidationMessages}"
+                        BorderBrush="#5A4A2D"
+                        BorderThickness="1"
+                        Background="#332B1D"
+                        Padding="8"
+                        Margin="0,8,0,0">
+                    <ItemsControl ItemsSource="{Binding ValidationMessages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Foreground="LightSalmon" TextWrapping="Wrap">
+                                    <Run Text="• " />
+                                    <Run Text="{Binding .}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="12">
+            <Button Content="Cancel" Classes="dialog-button" Click="Cancel_Click" />
+            <Button Content="Apply" Classes="dialog-button primary" Command="{Binding ApplyCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" />
+        </StackPanel>
+    </Grid>
+</Window>

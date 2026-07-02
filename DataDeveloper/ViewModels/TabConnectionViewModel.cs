@@ -1,17 +1,22 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Models.TableDesigner;
 using DataDeveloper.Data.Services;
+using DataDeveloper.Data.Services.TableDesigner;
 using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
+using DataDeveloper.Services;
 using DataDeveloper.Views;
 using DynamicData;
 using ReactiveUI;
@@ -40,6 +45,7 @@ public class TabConnectionViewModel : BaseTabContent
 
         CloseTabQueryEditorCommand = ReactiveCommand.CreateFromTask<TabQueryEditorViewModel, bool>(tab => CloseTabQueryEditor(tab));
         AddQueryEditorCommand = ReactiveCommand.Create<string?>(AddQueryEditor);
+        CreateTableCommand = ReactiveCommand.CreateFromTask<StyledElement>(CreateTableAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(Refresh);
         AddQueryEditor();
         this.WhenAnyValue(vm => vm.SelectedEditor).Subscribe(_ =>
@@ -66,22 +72,153 @@ public class TabConnectionViewModel : BaseTabContent
         await LoadConnection();
     }
 
+    public async Task CreateTableAsync(StyledElement source)
+    {
+        var viewModel = new TableDesignerViewModel(
+            ConnectionSettings,
+            async script => await ExecuteBackgroundStatementWithResultAsync(script, refreshSchema: true),
+            _dialogService,
+            SchemaExplorer);
+
+        var window = new TableDesignerWindow(viewModel)
+        {
+            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner
+        };
+
+        await window.ShowDialog(source.GetParentWindow());
+    }
+
+    public async Task EditTableAsync(SchemaNode node, StyledElement source)
+    {
+        var columnsFolder = node.Children.FirstOrDefault(child => child.NodeType == NodeType.Columns);
+        if (columnsFolder is not null && columnsFolder.CanLoad)
+            await SchemaExplorer.LoadNodeAsync(columnsFolder);
+
+        var loadedColumns = (columnsFolder?.Children ?? Enumerable.Empty<SchemaNode>())
+            .Where(child => child.NodeType == NodeType.Column && child.Tag is ColumnModel)
+            .Select(child => (ColumnModel)child.Tag!)
+            .ToList();
+
+        var (schemaName, tableName) = SplitTableObjectName(node.Name);
+
+        TableDefinition originalDefinition;
+        try
+        {
+            originalDefinition = await TableDefinitionLoader.LoadAsync(ConnectionSettings, schemaName, tableName, loadedColumns);
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageAsync(ex.Message, "Edit table");
+            return;
+        }
+
+        var viewModel = TableDesignerViewModel.CreateForEdit(
+            ConnectionSettings,
+            originalDefinition,
+            async script => await ExecuteBackgroundStatementTransactionallyAsync(script, refreshSchema: true),
+            _dialogService,
+            SchemaExplorer);
+
+        var window = new TableDesignerWindow(viewModel)
+        {
+            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.CenterOwner
+        };
+
+        await window.ShowDialog(source.GetParentWindow());
+    }
+
+    private static (string SchemaName, string TableName) SplitTableObjectName(string objectName)
+    {
+        var parts = objectName.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return parts.Length > 1
+            ? (string.Join(".", parts.Take(parts.Length - 1)), parts[^1])
+            : (string.Empty, objectName);
+    }
+
     public async Task ExecuteBackgroundStatementAsync(string statement, bool refreshSchema = false)
+    {
+        await ExecuteBackgroundStatementWithResultAsync(statement, refreshSchema);
+    }
+
+    private async Task<bool> ExecuteBackgroundStatementWithResultAsync(string statement, bool refreshSchema = false)
     {
         try
         {
+            var statements = _sqlAnalyzer.SplitStatements(statement);
+            if (statements.Count == 0)
+                return true;
+
             await using var connection = ConnectionSettings.GetDatabaseProvider().GetConnection();
             await connection.OpenAsync();
-            await using var command = connection.CreateCommand();
-            command.CommandText = statement;
-            await command.ExecuteNonQueryAsync();
+
+            foreach (var executableStatement in statements)
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = executableStatement;
+                await command.ExecuteNonQueryAsync();
+            }
 
             if (refreshSchema || _sqlAnalyzer.RequiresSchemaRefresh(statement))
                 await SchemaExplorer.RefreshSchemaObjectAsync(statement);
+
+            return true;
         }
         catch (Exception ex)
         {
             await _dialogService.ShowMessageAsync(ex.Message, "Execution error");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Applies a multi-statement script inside an explicit transaction, used only for the
+    /// edit-table apply path (ALTER scripts can include a drop, so a partial failure should
+    /// not leave the earlier statements committed). The create-table apply path
+    /// (<see cref="ExecuteBackgroundStatementWithResultAsync"/>) is left untouched to avoid
+    /// regressing it. Note MySQL and Oracle DDL statements auto-commit regardless of this
+    /// wrapper — that is a provider limitation, not a bug here.
+    /// </summary>
+    private async Task<bool> ExecuteBackgroundStatementTransactionallyAsync(string statement, bool refreshSchema = false)
+    {
+        try
+        {
+            var statements = _sqlAnalyzer.SplitStatements(statement);
+            if (statements.Count == 0)
+                return true;
+
+            await using var connection = ConnectionSettings.GetDatabaseProvider().GetConnection();
+            await connection.OpenAsync();
+            var transaction = await connection.BeginTransactionAsync();
+            await using (transaction.ConfigureAwait(false))
+            {
+                try
+                {
+                    foreach (var executableStatement in statements)
+                    {
+                        await using var command = connection.CreateCommand();
+                        command.CommandText = executableStatement;
+                        command.Transaction = transaction;
+                        await command.ExecuteNonQueryAsync();
+                    }
+
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+            if (refreshSchema || _sqlAnalyzer.RequiresSchemaRefresh(statement))
+                await SchemaExplorer.RefreshSchemaObjectAsync(statement);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageAsync(ex.Message, "Execution error");
+            return false;
         }
     }
 
@@ -267,6 +404,7 @@ public class TabConnectionViewModel : BaseTabContent
     [Reactive] public int SelectedEditor { get; set; }
     [Reactive] public bool IsSchemaExplorerMinimized { get; set; }
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> CreateTableCommand { get; }
     public ReactiveCommand<TabQueryEditorViewModel, bool> CloseTabQueryEditorCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ObservableCollection<SchemaNode> RootConnections { get; } = new();

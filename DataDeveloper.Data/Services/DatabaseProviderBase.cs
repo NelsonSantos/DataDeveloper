@@ -22,6 +22,10 @@ public abstract class DatabaseProviderBase<TConnectionSettings> : IDatabaseProvi
     public abstract string GetProcedureStatement();
     public abstract string GetFunctionStatement();
     public abstract string GetRoutineParameterStatement();
+    public abstract string GetColumnDefaultValueStatement();
+    public abstract string GetPrimaryKeyStatement();
+    public abstract string GetForeignKeyStatement();
+    public abstract string GetIndexStatement();
 
     public TestConnectionResult TestConnection()
     {

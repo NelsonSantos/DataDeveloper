@@ -229,6 +229,25 @@ public partial class TabConnectionView : UserControl
             items.Add(new MenuItem { Header = "SQL Scripts", ItemsSource = sqlScriptItems });
         }
 
+        if (node.NodeType == NodeType.Tables)
+        {
+            items.Add(CreateMenuItem("New table...", async () =>
+            {
+                await viewModel.CreateTableAsync(this);
+            }));
+        }
+
+        if (node.NodeType == NodeType.Table)
+        {
+            if (items.Count > 0)
+                items.Add(new Separator());
+
+            items.Add(CreateMenuItem("Edit table...", async () =>
+            {
+                await viewModel.EditTableAsync(node, this);
+            }));
+        }
+
         if (node.NodeType is NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function)
         {
             if (items.Count > 0)

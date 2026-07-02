@@ -137,6 +137,85 @@ public class SqlServerDatabaseProvider : DatabaseProviderBase<SqlServerConnectio
                """;
     }
 
+    public override string GetColumnDefaultValueStatement()
+    {
+        return """
+               select
+                   c.name as ColumnName,
+                   dc.definition as DefaultValueExpression,
+                   dc.name as DefaultConstraintName
+               from sys.columns c
+               left join sys.default_constraints dc
+                   on dc.parent_object_id = c.object_id and dc.parent_column_id = c.column_id
+               where c.object_id = OBJECT_ID(@TableName)
+               order by c.column_id;
+               """;
+    }
+
+    public override string GetPrimaryKeyStatement()
+    {
+        return """
+               select
+                   kc.name as ConstraintName,
+                   c.name as ColumnName,
+                   ic.key_ordinal as OrdinalPosition
+               from sys.key_constraints kc
+               join sys.indexes i on i.object_id = kc.parent_object_id and i.index_id = kc.unique_index_id
+               join sys.index_columns ic on ic.object_id = i.object_id and ic.index_id = i.index_id and ic.key_ordinal > 0
+               join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id
+               where kc.parent_object_id = OBJECT_ID(@TableName) and kc.type = 'PK'
+               order by ic.key_ordinal;
+               """;
+    }
+
+    public override string GetForeignKeyStatement()
+    {
+        return """
+               select
+                   fk.name as ConstraintName,
+                   pc.name as ColumnName,
+                   fkc.constraint_column_id as OrdinalPosition,
+                   rs.name as ReferencedSchemaName,
+                   rt.name as ReferencedTableName,
+                   rc.name as ReferencedColumnName,
+                   case fk.delete_referential_action
+                       when 1 then 'cascade' when 2 then 'set null' when 3 then 'set default' else '' end as OnDeleteAction,
+                   case fk.update_referential_action
+                       when 1 then 'cascade' when 2 then 'set null' when 3 then 'set default' else '' end as OnUpdateAction
+               from sys.foreign_keys fk
+               join sys.foreign_key_columns fkc on fkc.constraint_object_id = fk.object_id
+               join sys.columns pc on pc.object_id = fkc.parent_object_id and pc.column_id = fkc.parent_column_id
+               join sys.columns rc on rc.object_id = fkc.referenced_object_id and rc.column_id = fkc.referenced_column_id
+               join sys.tables rt on rt.object_id = fk.referenced_object_id
+               join sys.schemas rs on rs.schema_id = rt.schema_id
+               where fk.parent_object_id = OBJECT_ID(@TableName)
+               order by fk.name, fkc.constraint_column_id;
+               """;
+    }
+
+    public override string GetIndexStatement()
+    {
+        return """
+               select
+                   i.name as IndexName,
+                   i.is_unique as IsUnique,
+                   c.name as ColumnName,
+                   ic.is_descending_key as IsDescending,
+                   ic.key_ordinal as OrdinalPosition,
+                   cast(case when i.type = 1 then 1 else 0 end as bit) as IsClustered,
+                   nullif(i.fill_factor, 0) as [FillFactor]
+               from sys.indexes i
+               join sys.index_columns ic on ic.object_id = i.object_id and ic.index_id = i.index_id and ic.key_ordinal > 0
+               join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id
+               where i.object_id = OBJECT_ID(@TableName)
+                 and i.is_primary_key = 0
+                 and i.is_unique_constraint = 0
+                 and i.is_hypothetical = 0
+                 and i.type in (1, 2)
+               order by i.name, ic.key_ordinal;
+               """;
+    }
+
     private string BuildConnectionString(string? databaseName)
     {
         var builder = new SqlConnectionStringBuilder

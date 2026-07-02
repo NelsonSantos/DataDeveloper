@@ -63,6 +63,18 @@
                         <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                 </Button>
+                <Button
+                    Grid.Column="1"
+                    HorizontalAlignment="Left"
+                    Margin="4"
+                    Command="{Binding CreateTableCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    Background="Transparent">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="&#xF0A75;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                        <TextBlock FontSize="13" Text="New table" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Button>
                 <Button 
                     x:Name="NewQueryButton"
                     Grid.Column="2"  
@@ -105,11 +117,11 @@
                             <TextBlock 
                                 Grid.Column="0" 
                                 Classes="MaterialIcon" 
-                                Text="&#xF0306;" 
+                                Text="&#xF030B;"
                                 IsVisible="{Binding Tag, Converter={StaticResource ColumnModelIsPrimaryKey}}"
                                 VerticalAlignment="Bottom"
                                 Foreground="Goldenrod"
-                                FontSize="10"
+                                FontSize="13"
                                 Margin="6,6,0,0"
                             />
                             <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,1,0,0" />
