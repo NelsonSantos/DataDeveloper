@@ -32,6 +32,7 @@
 ## Git safety
 - When asked to delete a branch, delete the local branch only by default.
 - Do not delete remote branches on GitHub unless the user explicitly asks to remove the remote branch too.
+- Every change must be made on its own branch named `feature/<feature-name>`. Do not commit or push directly to `main`.
 
 ## Parser architecture
 - `DataDeveloper.Antlr` is the single owner of ANTLR grammars and checked-in generated parser/lexer code.
