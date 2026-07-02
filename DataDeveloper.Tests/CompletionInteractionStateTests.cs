@@ -95,4 +95,26 @@ public class CompletionInteractionStateTests
         Assert.False(shouldInsert);
         Assert.False(reopened);
     }
+
+    [Fact]
+    public void HandleTextEntered_Newline_NeverReopensEvenWhenArmed()
+    {
+        var state = new CompletionInteractionState();
+        state.RememberAutoCompletion();
+        state.ShouldRequestInsertion(" ", hasCompletionWindow: true);
+
+        var reopened = state.HandleTextEntered("\n");
+
+        Assert.False(reopened);
+    }
+
+    [Fact]
+    public void HandleTextEntered_NewlineWithoutArmedReopen_ReturnsFalse()
+    {
+        var state = new CompletionInteractionState();
+
+        var reopened = state.HandleTextEntered("\n");
+
+        Assert.False(reopened);
+    }
 }

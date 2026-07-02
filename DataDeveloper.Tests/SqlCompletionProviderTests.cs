@@ -42,6 +42,38 @@ public class SqlCompletionProviderTests
     }
 
     [Fact]
+    public void ShouldTriggerCompletion_ReturnsFalse_ForNewline()
+    {
+        Assert.False(SqlCompletionProvider.ShouldTriggerCompletion("\n"));
+    }
+
+    [Fact]
+    public void ShouldTriggerCompletion_ReturnsFalse_ForCarriageReturn()
+    {
+        Assert.False(SqlCompletionProvider.ShouldTriggerCompletion("\r"));
+    }
+
+    [Fact]
+    public void AutoRequest_AfterSelectNewline_ReturnsNull()
+    {
+        var sql = "select \n";
+
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, "\n");
+
+        Assert.Null(request);
+    }
+
+    [Fact]
+    public void AutoRequest_AfterFromNewline_ReturnsNull()
+    {
+        var sql = "select * from \n";
+
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, "\n");
+
+        Assert.Null(request);
+    }
+
+    [Fact]
     public void AutoRequest_AfterFromSpace_ReturnsObjectsTrigger()
     {
         var sql = "select * from ";
