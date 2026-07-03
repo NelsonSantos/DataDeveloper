@@ -172,25 +172,26 @@ Exemplo:
 v26.0408.1
 ```
 
-### Gerar as notas da versão automaticamente
+### Notas da versão: rascunho vivo mantido pelo CI
+
+O workflow `release-notes.yml` roda a cada push na `main` e mantém `release-notes/UNRELEASED.md`
+sempre atualizado, recalculando do zero (via `generate-release-notes.sh`) o resumo dos PRs
+mergeados desde a última tag `v*`. Esse commit é feito pelo bot (`github-actions[bot]`), sem
+branch/PR — então na hora de cortar a release o arquivo já está pronto na `main`.
+
+Antes de rodar `create-release.sh`, dê uma olhada em `release-notes/UNRELEASED.md` (`cat` ou no
+GitHub) para confirmar que o resumo está bom. Se algum item ficar raso ou errado, edite e commite
+a correção direto (mesma exceção que já vale para os drafts automáticos).
+
+Se por algum motivo `UNRELEASED.md` não existir (ex.: antes dessa automação rodar pela primeira
+vez), gere manualmente:
 
 ```bash
 ./scripts/generate-release-notes.sh 26.0408.1
 ```
 
-Esse script:
-
-- descobre a última tag `v*` existente
-- lista os PRs mergeados na `main` desde essa tag
-- extrai a seção `## Summary` do corpo de cada PR
-- escreve `release-notes/<version>.md` (não commita automaticamente)
-
-Revise o arquivo gerado e ajuste se algum resumo ficar raso, depois commite:
-
-```bash
-git add release-notes/26.0408.1.md
-git commit -m "docs: add release notes for 26.0408.1"
-```
+Esse script descobre a última tag `v*`, lista os PRs mergeados na `main` desde essa tag, extrai a
+seção `## Summary` do corpo de cada PR e escreve o arquivo indicado (não commita automaticamente).
 
 ### Fluxo principal para criar a release
 
@@ -202,13 +203,19 @@ Esse script:
 
 - exige branch atual `main`
 - exige working tree limpo
-- se `release-notes/<version>.md` não existir ainda, chama `generate-release-notes.sh` automaticamente e para, pedindo para revisar/commitar o arquivo antes de rodar de novo
+- usa `release-notes/UNRELEASED.md` como notas, se existir; senão gera `release-notes/<version>.md`
+  automaticamente e para, pedindo para revisar/commitar antes de rodar de novo
 - cria a tag anotada `v<version>`
 - faz push da tag para `origin`
-- aguarda o workflow `release.yml` (que já publica a GitHub Release automaticamente — não existe modo "só build" nesse caminho)
-- substitui as notas automáticas pelo conteúdo de `release-notes/<version>.md`
+- aguarda o workflow `release.yml` (que já publica a GitHub Release automaticamente — não existe
+  modo "só build" nesse caminho)
+- substitui as notas automáticas pelo conteúdo do arquivo de notas
 
-Se já tiver um arquivo de notas com outro nome/local, pode passar explicitamente:
+Depois que a release é publicada, o próprio `release.yml` arquiva `UNRELEASED.md` como
+`release-notes/<version>.md` e reseta o rascunho vivo para o próximo ciclo (também via commit do
+bot).
+
+Se quiser usar um arquivo de notas específico em vez do padrão:
 
 ```bash
 ./scripts/create-release.sh 26.0408.1 release-notes/26.0408.1.md
