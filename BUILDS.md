@@ -172,20 +172,47 @@ Exemplo:
 v26.0408.1
 ```
 
-Fluxo principal para criar a release:
+### Gerar as notas da versão automaticamente
 
 ```bash
-./scripts/create-release.sh 26.0408.1 release-notes/26.0408.1.md
+./scripts/generate-release-notes.sh 26.0408.1
+```
+
+Esse script:
+
+- descobre a última tag `v*` existente
+- lista os PRs mergeados na `main` desde essa tag
+- extrai a seção `## Summary` do corpo de cada PR
+- escreve `release-notes/<version>.md` (não commita automaticamente)
+
+Revise o arquivo gerado e ajuste se algum resumo ficar raso, depois commite:
+
+```bash
+git add release-notes/26.0408.1.md
+git commit -m "docs: add release notes for 26.0408.1"
+```
+
+### Fluxo principal para criar a release
+
+```bash
+./scripts/create-release.sh 26.0408.1
 ```
 
 Esse script:
 
 - exige branch atual `main`
 - exige working tree limpo
+- se `release-notes/<version>.md` não existir ainda, chama `generate-release-notes.sh` automaticamente e para, pedindo para revisar/commitar o arquivo antes de rodar de novo
 - cria a tag anotada `v<version>`
 - faz push da tag para `origin`
-- aguarda o workflow `release.yml`
+- aguarda o workflow `release.yml` (que já publica a GitHub Release automaticamente — não existe modo "só build" nesse caminho)
 - substitui as notas automáticas pelo conteúdo de `release-notes/<version>.md`
+
+Se já tiver um arquivo de notas com outro nome/local, pode passar explicitamente:
+
+```bash
+./scripts/create-release.sh 26.0408.1 release-notes/26.0408.1.md
+```
 
 Disparo manual do workflow de release no GitHub:
 
