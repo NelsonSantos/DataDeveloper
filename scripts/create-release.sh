@@ -70,6 +70,13 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
+# NOTES_FILE (e.g. release-notes/UNRELEASED.md) may still carry the rolling
+# draft's placeholder heading; publish a copy with the heading pinned to this
+# version instead of mutating the tracked file.
+PUBLISHED_NOTES_FILE="$(mktemp)"
+trap 'rm -f "$PUBLISHED_NOTES_FILE"' EXIT
+sed "1s/.*/# Release Notes — ${VERSION}/" "$NOTES_FILE" > "$PUBLISHED_NOTES_FILE"
+
 CURRENT_BRANCH="$(git branch --show-current)"
 if [[ "$CURRENT_BRANCH" != "main" ]]; then
   echo "Current branch is '$CURRENT_BRANCH'. Switch to 'main' before creating a release." >&2
@@ -103,7 +110,7 @@ RUN_ID=""
 for ((attempt=1; attempt<=TRIGGER_GRACE_ATTEMPTS; attempt++)); do
   if gh release view "$TAG" >/dev/null 2>&1; then
     echo "Release found. Updating notes from $NOTES_FILE"
-    gh release edit "$TAG" --title "$TAG" --notes-file "$NOTES_FILE"
+    gh release edit "$TAG" --title "$TAG" --notes-file "$PUBLISHED_NOTES_FILE"
     echo "Release $TAG updated successfully."
     exit 0
   fi
@@ -126,7 +133,7 @@ echo "Waiting for GitHub Release $TAG to be created by Actions"
 for ((attempt=1; attempt<=MAX_ATTEMPTS; attempt++)); do
   if gh release view "$TAG" >/dev/null 2>&1; then
     echo "Release found. Updating notes from $NOTES_FILE"
-    gh release edit "$TAG" --title "$TAG" --notes-file "$NOTES_FILE"
+    gh release edit "$TAG" --title "$TAG" --notes-file "$PUBLISHED_NOTES_FILE"
     echo "Release $TAG updated successfully."
     exit 0
   fi
@@ -136,5 +143,5 @@ done
 
 echo "Timed out waiting for release $TAG to appear." >&2
 echo "The tag was pushed. If the workflow is still running, update the notes later with:" >&2
-echo "  gh release edit \"$TAG\" --title \"$TAG\" --notes-file \"$NOTES_FILE\"" >&2
+echo "  gh release edit \"$TAG\" --title \"$TAG\" --notes-file \"$NOTES_FILE\"" >&2  # heading will still say the draft placeholder; fix manually if needed
 exit 1
