@@ -5,16 +5,20 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/create-release.sh <version> <notes-file>
+  ./scripts/create-release.sh <version> [notes-file]
 
 Example:
+  ./scripts/create-release.sh 26.0330.1
   ./scripts/create-release.sh 26.0330.1 release-notes/26.0330.1.md
 
 What it does:
-  1. Creates an annotated git tag: v<version>
-  2. Pushes the tag to origin
-  3. Waits for the GitHub Release to be created by Actions
-  4. Replaces the auto-generated release notes with the contents of <notes-file>
+  1. If <notes-file> is omitted and release-notes/<version>.md does not exist yet,
+     generates it via scripts/generate-release-notes.sh (summarizing the pull
+     requests merged since the last release tag).
+  2. Creates an annotated git tag: v<version>
+  3. Pushes the tag to origin
+  4. Waits for the GitHub Release to be created by Actions
+  5. Replaces the auto-generated release notes with the contents of the notes file
 
 Requirements:
   - git
@@ -22,20 +26,31 @@ Requirements:
 EOF
 }
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -lt 1 || $# -gt 2 ]]; then
   usage
   exit 1
 fi
 
 VERSION="$1"
-NOTES_FILE="$2"
 TAG="v${VERSION}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-120}"
 SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
 TRIGGER_GRACE_ATTEMPTS="${TRIGGER_GRACE_ATTEMPTS:-4}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+NOTES_FILE="${2:-release-notes/${VERSION}.md}"
 
 if [[ ! -f "$NOTES_FILE" ]]; then
-  echo "Notes file not found: $NOTES_FILE" >&2
+  if [[ $# -eq 2 ]]; then
+    echo "Notes file not found: $NOTES_FILE" >&2
+    exit 1
+  fi
+
+  echo "Notes file not found: $NOTES_FILE. Generating it automatically." >&2
+  "$SCRIPT_DIR/generate-release-notes.sh" "$VERSION" "$NOTES_FILE"
+  echo "" >&2
+  echo "Generated $NOTES_FILE. Review it, then commit it before continuing:" >&2
+  echo "  git add $NOTES_FILE && git commit -m \"docs: add release notes for $VERSION\"" >&2
   exit 1
 fi
 
