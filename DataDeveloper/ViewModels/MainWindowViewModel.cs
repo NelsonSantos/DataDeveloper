@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -121,6 +122,9 @@ public class MainWindowViewModel : ViewModelBase
 
     private async Task<bool> CloseTabConnection(TabConnectionViewModel connection)
     {
+        connection.SuspendAutosave();
+        connection.PersistSessionSnapshot();
+
         var count = connection.QueryEditors.Count;
         var countClosed = 0;
         for (var indexQueryEditor = count - 1; indexQueryEditor >= 0; indexQueryEditor--)
@@ -128,13 +132,15 @@ public class MainWindowViewModel : ViewModelBase
             connection.SelectedEditor = indexQueryEditor;
             await Task.Delay(100);
             var queryEditor = connection.QueryEditors[indexQueryEditor];
-            if (!(await connection.CloseTabQueryEditorCommand.Execute(queryEditor).ToTask()))
+            if (!(await connection.CloseTabQueryEditor(queryEditor, showDialog: false, persistSession: true)))
                 break;
             countClosed++;
         }
 
         if (countClosed == count)
             Connections.Remove(connection);
+        else
+            connection.ResumeAutosave();
 
         this.RaisePropertyChanged(nameof(HasConnections));
         this.RaisePropertyChanged(nameof(HasEditor));
@@ -391,9 +397,19 @@ public class MainWindowViewModel : ViewModelBase
 
             if (connectionSettings is not null)
             {
-                var tab = new TabConnectionViewModel(connectionSettings, true, _serviceProvider);
-                Connections.Add(tab);
-                SelectedTabConnectionIndex = Connections.Count - 1;
+                var existingIndex = FindConnectionIndex(Connections, connectionSettings.Id);
+
+                if (existingIndex >= 0)
+                {
+                    SelectedTabConnectionIndex = existingIndex;
+                }
+                else
+                {
+                    var tab = new TabConnectionViewModel(connectionSettings, true, _serviceProvider);
+                    Connections.Add(tab);
+                    SelectedTabConnectionIndex = Connections.Count - 1;
+                }
+
                 this.RaisePropertyChanged(nameof(HasConnections));
                 this.RaisePropertyChanged(nameof(HasEditor));
             }
@@ -402,6 +418,17 @@ public class MainWindowViewModel : ViewModelBase
         {
             Console.WriteLine(e);
         }
+    }
+
+    public static int FindConnectionIndex(IReadOnlyList<TabConnectionViewModel> connections, Guid connectionId)
+    {
+        for (var i = 0; i < connections.Count; i++)
+        {
+            if (connections[i].ConnectionSettings.Id == connectionId)
+                return i;
+        }
+
+        return -1;
     }
     
     private void ShowCursorDataEvent(ShowCursorDataEvent message)
