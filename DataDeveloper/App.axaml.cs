@@ -76,6 +76,7 @@ public partial class App : Application
         services.AddTransient<IConnectionImportService, ConnectionImportService>();
         services.AddTransient<IExportConnectionsOptionsDialogService, ExportConnectionsOptionsDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
+        services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
         services.AddTransient<StatementSplitter>();
     }

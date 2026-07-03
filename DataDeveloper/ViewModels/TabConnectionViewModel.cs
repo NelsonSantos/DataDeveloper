@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia;
 using DataDeveloper.Data;
@@ -31,23 +35,29 @@ public class TabConnectionViewModel : BaseTabContent
     private readonly IDialogService _dialogService;
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly IProviderSqlAnalyzer _sqlAnalyzer;
-    
-    public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider) 
+    private readonly ISessionTabStore _sessionTabStore;
+    private readonly Subject<Unit> _sessionChangeTrigger = new();
+    private readonly Dictionary<Guid, IDisposable> _editorAutosaveSubscriptions = new();
+    private bool _autosaveSuspended;
+
+    public TabConnectionViewModel(IConnectionSettings connectionSettings, bool canClose, IServiceProvider serviceProvider)
         : base(TabType.Connection, connectionSettings.Name, canClose, serviceProvider)
     {
-        ConnectionSettings = connectionSettings;    
+        ConnectionSettings = connectionSettings;
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
         _sqlAnalyzer = ConnectionSettings.GetSqlAnalyzer();
         _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
-        
+        _sessionTabStore = ServiceProvider.GetRequiredService<ISessionTabStore>();
+
         this.Initialization = LoadConnection();
 
         CloseTabQueryEditorCommand = ReactiveCommand.CreateFromTask<TabQueryEditorViewModel, bool>(tab => CloseTabQueryEditor(tab));
         AddQueryEditorCommand = ReactiveCommand.Create<string?>(AddQueryEditor);
         CreateTableCommand = ReactiveCommand.CreateFromTask<StyledElement>(CreateTableAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(Refresh);
-        AddQueryEditor();
+        RestoreSessionOrAddDefaultEditor();
+        SetupAutosave();
         this.WhenAnyValue(vm => vm.SelectedEditor).Subscribe(_ =>
         {
             if (this.SelectedEditor < 0) return;
@@ -268,7 +278,7 @@ public class TabConnectionViewModel : BaseTabContent
         return true;
     }
 
-    public async Task<bool> CloseTabQueryEditor(TabQueryEditorViewModel tabQueryEditor, bool showDialog = true)
+    public async Task<bool> CloseTabQueryEditor(TabQueryEditorViewModel tabQueryEditor, bool showDialog = true, bool persistSession = false)
     {
         var remove = true;
 
@@ -298,8 +308,8 @@ public class TabConnectionViewModel : BaseTabContent
                     break;
             }
         }
-        
-        if (remove && tabQueryEditor.TextWasChanged)
+
+        if (remove && tabQueryEditor.TextWasChanged && !persistSession)
         {
             SelectedEditor = QueryEditors.IndexOf(tabQueryEditor);
             await Task.Delay(100);
@@ -322,11 +332,123 @@ public class TabConnectionViewModel : BaseTabContent
                     break;
             }
         }
-        
+
         if (remove)
             QueryEditors.Remove(tabQueryEditor);
-        
+
         return remove;
+    }
+
+    public void PersistSessionSnapshot()
+    {
+        var editors = QueryEditors
+            .Where(HasMeaningfulContent)
+            .Select(editor => new EditorTabState
+            {
+                Name = editor.Name,
+                File = editor.File,
+                SqlStatement = editor.SqlStatement,
+                IsDirty = editor.TextWasChanged
+            })
+            .ToList();
+
+        if (editors.Count == 0)
+        {
+            _sessionTabStore.Remove(ConnectionSettings.Id);
+            return;
+        }
+
+        _sessionTabStore.Save(ConnectionSettings.Id, editors);
+    }
+
+    private static bool HasMeaningfulContent(TabQueryEditorViewModel editor)
+    {
+        return !string.IsNullOrWhiteSpace(editor.SqlStatement) || !string.IsNullOrEmpty(editor.File);
+    }
+
+    public void SuspendAutosave() => _autosaveSuspended = true;
+    public void ResumeAutosave() => _autosaveSuspended = false;
+
+    private void SetupAutosave()
+    {
+        _sessionChangeTrigger
+            .Throttle(TimeSpan.FromSeconds(1.5))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ =>
+            {
+                if (!_autosaveSuspended)
+                    PersistSessionSnapshot();
+            });
+
+        foreach (var editor in QueryEditors)
+            TrackEditorForAutosave(editor);
+
+        QueryEditors.CollectionChanged += OnQueryEditorsChanged;
+    }
+
+    private void OnQueryEditorsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems is not null)
+            foreach (TabQueryEditorViewModel editor in e.NewItems)
+                TrackEditorForAutosave(editor);
+
+        if (e.OldItems is not null)
+            foreach (TabQueryEditorViewModel editor in e.OldItems)
+                UntrackEditorForAutosave(editor);
+
+        _sessionChangeTrigger.OnNext(Unit.Default);
+    }
+
+    private void TrackEditorForAutosave(TabQueryEditorViewModel editor)
+    {
+        var subscription = editor.WhenAnyValue(e => e.SqlStatement)
+            .Skip(1)
+            .Subscribe(_ => _sessionChangeTrigger.OnNext(Unit.Default));
+
+        _editorAutosaveSubscriptions[editor.Id] = subscription;
+    }
+
+    private void UntrackEditorForAutosave(TabQueryEditorViewModel editor)
+    {
+        if (_editorAutosaveSubscriptions.Remove(editor.Id, out var subscription))
+            subscription.Dispose();
+    }
+
+    private void RestoreSessionOrAddDefaultEditor()
+    {
+        var sessionState = _sessionTabStore.Get(ConnectionSettings.Id);
+        if (sessionState is null || sessionState.Editors.Count == 0)
+        {
+            AddQueryEditor();
+            return;
+        }
+
+        foreach (var editorState in sessionState.Editors)
+            RestoreQueryEditor(editorState);
+
+        this.SelectedEditor = 0;
+    }
+
+    private void RestoreQueryEditor(EditorTabState state)
+    {
+        if (state.Name.StartsWith("Query ", StringComparison.Ordinal) &&
+            int.TryParse(state.Name.AsSpan("Query ".Length), out var queryNumber))
+            _countQueryEditors = Math.Max(_countQueryEditors, queryNumber);
+
+        var filePath = state.File is not null && File.Exists(state.File) ? state.File : null;
+
+        var queryEditor = new TabQueryEditorViewModel(
+            ConnectionSettings,
+            state.Name,
+            filePath,
+            canClose: true,
+            this.ServiceProvider)
+        {
+            SqlStatement = state.SqlStatement,
+            TextWasChanged = state.IsDirty
+        };
+
+        this.QueryEditors.Add(queryEditor);
     }
 
     private void AddQueryEditor(string? file = null)
