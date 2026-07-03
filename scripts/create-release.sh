@@ -12,13 +12,17 @@ Example:
   ./scripts/create-release.sh 26.0330.1 release-notes/26.0330.1.md
 
 What it does:
-  1. If <notes-file> is omitted and release-notes/<version>.md does not exist yet,
-     generates it via scripts/generate-release-notes.sh (summarizing the pull
-     requests merged since the last release tag).
+  1. If <notes-file> is omitted, uses release-notes/UNRELEASED.md when present
+     (kept up to date automatically by CI on every push to main). Otherwise,
+     generates release-notes/<version>.md via scripts/generate-release-notes.sh
+     (summarizing the pull requests merged since the last release tag).
   2. Creates an annotated git tag: v<version>
   3. Pushes the tag to origin
   4. Waits for the GitHub Release to be created by Actions
   5. Replaces the auto-generated release notes with the contents of the notes file
+
+  After the release is published, CI archives release-notes/UNRELEASED.md as
+  release-notes/<version>.md and resets it for the next cycle.
 
 Requirements:
   - git
@@ -38,7 +42,14 @@ SLEEP_SECONDS="${SLEEP_SECONDS:-5}"
 TRIGGER_GRACE_ATTEMPTS="${TRIGGER_GRACE_ATTEMPTS:-4}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-NOTES_FILE="${2:-release-notes/${VERSION}.md}"
+NOTES_FILE="${2:-}"
+if [[ -z "$NOTES_FILE" ]]; then
+  if [[ -f "release-notes/UNRELEASED.md" ]]; then
+    NOTES_FILE="release-notes/UNRELEASED.md"
+  else
+    NOTES_FILE="release-notes/${VERSION}.md"
+  fi
+fi
 
 if [[ ! -f "$NOTES_FILE" ]]; then
   if [[ $# -eq 2 ]]; then

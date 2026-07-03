@@ -161,3 +161,38 @@ jobs:
             release-artifacts/**/*.zip
             release-artifacts/**/*.exe
             release-artifacts/**/*.AppImage
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Archive release notes and reset the unreleased draft
+        shell: bash
+        run: |
+          VERSION="${{ needs.resolve-version.outputs.version }}"
+          UNRELEASED_FILE="release-notes/UNRELEASED.md"
+          VERSION_FILE="release-notes/${VERSION}.md"
+
+          if [[ ! -f "$UNRELEASED_FILE" ]]; then
+            echo "No $UNRELEASED_FILE found; nothing to archive."
+            exit 0
+          fi
+
+          if [[ -f "$VERSION_FILE" ]]; then
+            echo "$VERSION_FILE already exists; leaving it as-is and just resetting $UNRELEASED_FILE."
+          else
+            cp "$UNRELEASED_FILE" "$VERSION_FILE"
+            sed -i "1s/.*/# Release Notes — ${VERSION}/" "$VERSION_FILE"
+          fi
+
+          rm -f "$UNRELEASED_FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A release-notes/
+          if git diff --cached --quiet; then
+            echo "No release-notes changes to commit."
+          else
+            git commit -m "docs: archive release notes for ${VERSION} [skip ci]"
+            git push origin main
+          fi

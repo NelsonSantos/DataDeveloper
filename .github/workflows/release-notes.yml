@@ -138,11 +138,17 @@ jobs:
             git log --format='- %h %s' "${{ github.event.before }}..${{ github.sha }}" >> "$FILE"
           fi
 
+      - name: Update rolling unreleased notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/generate-release-notes.sh "Unreleased" release-notes/UNRELEASED.md
+
       - name: Commit release notes draft
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "release-notes/${{ steps.notes.outputs.file_name }}"
+          git add "release-notes/${{ steps.notes.outputs.file_name }}" release-notes/UNRELEASED.md
           git commit -m "docs: add release notes draft for ${{ github.sha }} [skip ci]"
           git push
