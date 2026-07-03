@@ -5,6 +5,10 @@ internal sealed class CompletionInteractionState
     private bool _hasActiveAutoCompletion;
     private bool _reopenCompletionOnWhitespace;
 
+    // Only the literal space bar arms/reopens completion: char.IsWhiteSpace also
+    // matches '\n'/'\r'/'\t', which made pressing Enter (or auto-indent) reopen completion.
+    private static bool IsTriggerSpace(char ch) => ch == ' ';
+
     public void RememberAutoCompletion()
     {
         _hasActiveAutoCompletion = true;
@@ -12,7 +16,7 @@ internal sealed class CompletionInteractionState
 
     public bool HandleTextEntered(string? text)
     {
-        if (string.IsNullOrEmpty(text) || !char.IsWhiteSpace(text[0]))
+        if (string.IsNullOrEmpty(text) || !IsTriggerSpace(text[0]))
         {
             _reopenCompletionOnWhitespace = false;
             return false;
@@ -30,7 +34,7 @@ internal sealed class CompletionInteractionState
         if (!hasCompletionWindow || string.IsNullOrEmpty(text))
             return false;
 
-        if (char.IsWhiteSpace(text[0]))
+        if (IsTriggerSpace(text[0]))
         {
             _reopenCompletionOnWhitespace = _hasActiveAutoCompletion;
             return false;

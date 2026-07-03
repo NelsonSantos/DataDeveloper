@@ -41,12 +41,16 @@ public static class SqlCompletionProvider
 
     private static readonly ConcurrentDictionary<Guid, SchemaCompletionCache> SchemaCache = new();
 
+    // Only the literal space bar counts as trigger whitespace: char.IsWhiteSpace also
+    // matches '\n'/'\r'/'\t', which made pressing Enter (or auto-indent) reopen completion.
+    private static bool IsTriggerSpace(char ch) => ch == ' ';
+
     public static bool ShouldTriggerCompletion(string? text)
     {
         if (string.IsNullOrEmpty(text))
             return false;
 
-        return text.All(ch => char.IsLetterOrDigit(ch) || char.IsWhiteSpace(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(');
+        return text.All(ch => char.IsLetterOrDigit(ch) || IsTriggerSpace(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(');
     }
 
     public static CompletionRequest? GetAutoCompletionRequest(string editorText, int caretOffset, string? insertedText)
@@ -79,7 +83,7 @@ public static class SqlCompletionProvider
         if (insertedText == "(" && context.IsInsideInsertColumnList)
             return new CompletionRequest(context with { Trigger = CompletionTrigger.Columns });
 
-        if (insertedText.All(char.IsWhiteSpace))
+        if (insertedText.All(IsTriggerSpace))
         {
             return context.Trigger switch
             {
