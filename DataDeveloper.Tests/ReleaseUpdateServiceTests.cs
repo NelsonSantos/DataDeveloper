@@ -230,6 +230,12 @@ public sealed class ReleaseUpdateServiceTests
 
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null)
             => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null)
+            => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null)
+            => Task.FromResult<string?>(null);
     }
 
     private sealed class StubHttpMessageHandler(string responseContent) : HttpMessageHandler

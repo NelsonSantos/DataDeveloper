@@ -158,4 +158,50 @@ public class DialogService : IDialogService
 
         return file?.TryGetLocalPath();
     }
+
+    public async Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title ?? "Export connections...",
+            SuggestedFileName = suggestedName ?? "connections.json",
+            DefaultExtension = "json",
+            ShowOverwritePrompt = true,
+            FileTypeChoices = new List<FilePickerFileType>
+            {
+                new("JSON file")
+                {
+                    Patterns = new[] { "*.json" },
+                    AppleUniformTypeIdentifiers = new[] { "public.json" },
+                    MimeTypes = new[] { "application/json" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        return file?.TryGetLocalPath();
+    }
+
+    public async Task<string?> ShowOpenJsonFileDialogAsync(string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title ?? "Import connections...",
+            AllowMultiple = false,
+            FileTypeFilter = new List<FilePickerFileType>
+            {
+                new("JSON file")
+                {
+                    Patterns = new[] { "*.json" },
+                    AppleUniformTypeIdentifiers = new[] { "public.json" },
+                    MimeTypes = new[] { "application/json" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        return files.FirstOrDefault()?.TryGetLocalPath();
+    }
 }

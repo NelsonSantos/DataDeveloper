@@ -124,6 +124,41 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void Save_AndLoadAll_RoundTripsGroupId()
+    {
+        var repository = CreateRepository(secretStore: new InMemorySecretStore());
+        var groupId = Guid.NewGuid();
+        var grouped = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            GroupId = groupId,
+            Name = "Grouped",
+            DatabaseType = DatabaseType.SqlServer,
+            Server = "sql.local",
+            Database = "master",
+            User = "sa",
+            Password = "secret"
+        };
+        var ungrouped = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Ungrouped",
+            DatabaseType = DatabaseType.SqlServer,
+            Server = "sql.local",
+            Database = "master",
+            User = "sa",
+            Password = "secret"
+        };
+
+        repository.SaveAll([grouped, ungrouped]);
+
+        var loaded = repository.LoadAll();
+
+        Assert.Equal(groupId, loaded.Single(item => item.Id == grouped.Id).GroupId);
+        Assert.Null(loaded.Single(item => item.Id == ungrouped.Id).GroupId);
+    }
+
+    [Fact]
     public void LoadAll_UsesDefaultStatementTimeout_WhenValueIsMissingOrInvalid()
     {
         var repository = CreateRepository(secretStore: new InMemorySecretStore());

@@ -64,16 +64,36 @@ public sealed class DmlTransactionModeOption
 public class ConnectionSelectorViewModel : ViewModelBase
 {
     private static readonly int[] SupportedStatementTimeouts = [15, 30, 60, 120, 240, 480];
+    private static readonly ConnectionGroup UngroupedOption = new() { Id = Guid.Empty, Name = "(Ungrouped)" };
     private readonly IConnectionSettingsRepository _connectionSettingsRepository;
+    private readonly IConnectionGroupRepository _connectionGroupRepository;
+    private readonly IConnectionGroupDialogService _connectionGroupDialogService;
+    private readonly IConnectionExportService _connectionExportService;
+    private readonly IConnectionImportService _connectionImportService;
+    private readonly IExportConnectionsOptionsDialogService _exportConnectionsOptionsDialogService;
     private readonly DatabaseProviderFactoryService _databaseProviderFactoryService;
     private readonly ISecretStore _secretStore;
     private readonly IDialogService _dialogService;
     private readonly ObservableCollection<ConnectionSettings> _allConnections = new();
     private readonly ObservableCollection<string> _availableDatabaseNames = new();
 
-    public ConnectionSelectorViewModel(IConnectionSettingsRepository connectionSettingsRepository, DatabaseProviderFactoryService databaseProviderFactoryService, ISecretStore secretStore, IDialogService dialogService)
+    public ConnectionSelectorViewModel(
+        IConnectionSettingsRepository connectionSettingsRepository,
+        IConnectionGroupRepository connectionGroupRepository,
+        IConnectionGroupDialogService connectionGroupDialogService,
+        IConnectionExportService connectionExportService,
+        IConnectionImportService connectionImportService,
+        IExportConnectionsOptionsDialogService exportConnectionsOptionsDialogService,
+        DatabaseProviderFactoryService databaseProviderFactoryService,
+        ISecretStore secretStore,
+        IDialogService dialogService)
     {
         _connectionSettingsRepository = connectionSettingsRepository;
+        _connectionGroupRepository = connectionGroupRepository;
+        _connectionGroupDialogService = connectionGroupDialogService;
+        _connectionExportService = connectionExportService;
+        _connectionImportService = connectionImportService;
+        _exportConnectionsOptionsDialogService = exportConnectionsOptionsDialogService;
         _databaseProviderFactoryService = databaseProviderFactoryService;
         _secretStore = secretStore;
         _dialogService = dialogService;
@@ -98,6 +118,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         ];
         StatementTimeoutOptions = new ObservableCollection<int>(SupportedStatementTimeouts);
         AvailableDatabaseNames = new ReadOnlyObservableCollection<string>(_availableDatabaseNames);
+        LoadGroups();
         LoadConnections();
         SelectedConnectionFilter = AvailableConnectionFilters[0];
         
@@ -124,11 +145,18 @@ public class ConnectionSelectorViewModel : ViewModelBase
                 if (connectionModel is not null)
                     await Task.Run(() => _connectionSettingsRepository.LoadPassword(connectionModel));
                 SelectedConnection = connectionModel;
+                this.RaisePropertyChanged(nameof(PasswordWatermark));
             }
         );
 
-        DeleteCommand = ReactiveCommand.CreateFromTask<StyledElement>(DeleteAsync);
-        
+        BulkDeleteCommand = ReactiveCommand.CreateFromTask(BulkDeleteAsync,
+            this.WhenAnyValue(x => x.HasBulkSelection)
+        );
+        BulkExportCommand = ReactiveCommand.CreateFromTask<StyledElement>(BulkExportAsync,
+            this.WhenAnyValue(x => x.HasBulkSelection)
+        );
+        ImportCommand = ReactiveCommand.CreateFromTask(ImportAsync);
+
         TestCommand = ReactiveCommand.CreateFromTask<StyledElement>(TestConnection,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
@@ -138,6 +166,7 @@ public class ConnectionSelectorViewModel : ViewModelBase
         );
 
         CancelCommand = ReactiveCommand.Create<StyledElement>(CancelAsync);
+        ManageGroupsCommand = ReactiveCommand.CreateFromTask<StyledElement>(ManageGroupsAsync);
         DuplicateConnectionCommand = ReactiveCommand.CreateFromTask(DuplicateConnectionAsync,
             this.WhenAnyValue(x => x.SelectedConnection).Select(conn => conn is not null)
         );
@@ -220,34 +249,95 @@ public class ConnectionSelectorViewModel : ViewModelBase
         window?.Close();
     }
 
-    private async Task DeleteAsync(StyledElement element)
+    public bool HasBulkSelection => _allConnections.Any(connection => connection.IsBulkSelected);
+
+    public void RefreshBulkSelectionState()
     {
-        var connectionModel = element.DataContext as ConnectionSettings;
-        
-        IsEditing = true; 
-        SelectedConnection = connectionModel;
+        this.RaisePropertyChanged(nameof(HasBulkSelection));
+    }
+
+    private async Task BulkDeleteAsync()
+    {
+        var selectedConnections = _allConnections.Where(connection => connection.IsBulkSelected).ToList();
+        if (selectedConnections.Count == 0)
+            return;
 
         var result = await _dialogService.ShowDialogAsync(
-            "Are you sure to delete this connection?",
+            $"Delete {selectedConnections.Count} selected connection(s)?",
             "Connection...",
             DialogButtons.YesNo,
             DialogIcon.Question);
 
-        if (result == DialogResult.Yes)
-        {
-            if (connectionModel is not null)
-            {
-                await Task.Run(() => _connectionSettingsRepository.Delete(connectionModel));
-                _allConnections.Remove(connectionModel);
-                RefreshFilteredConnections();
-            }
+        if (result != DialogResult.Yes)
+            return;
 
-            SelectedConnection = Connections.FirstOrDefault();
-            IsEditing = false;
+        foreach (var connection in selectedConnections)
+        {
+            await Task.Run(() => _connectionSettingsRepository.Delete(connection));
+            _allConnections.Remove(connection);
         }
+
+        RefreshFilteredConnections();
+        RefreshBulkSelectionState();
+        SelectedConnection = Connections.FirstOrDefault();
+        IsEditing = false;
+    }
+
+    private async Task BulkExportAsync(StyledElement element)
+    {
+        var selectedConnections = _allConnections.Where(connection => connection.IsBulkSelected).ToList();
+        if (selectedConnections.Count == 0)
+            return;
+
+        var window = element.GetParentWindow();
+        if (window is null)
+            return;
+
+        var options = await _exportConnectionsOptionsDialogService.ShowDialogAsync(window);
+        if (options is null)
+            return;
+
+        var filePath = await _dialogService.ShowSaveJsonFileDialogAsync("connections.json", "Export connections...");
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        await _connectionExportService.ExportAsync(selectedConnections, filePath, options.IncludePasswords);
+
+        foreach (var connection in selectedConnections)
+            connection.IsBulkSelected = false;
+
+        RefreshBulkSelectionState();
+    }
+
+    private async Task ImportAsync()
+    {
+        var filePath = await _dialogService.ShowOpenJsonFileDialogAsync("Import connections...");
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        int importedCount;
+        try
+        {
+            // Save() blocks on the secret store when a connection carries a password
+            // (see SaveConnectionAsync); run off the UI thread to avoid hanging it.
+            importedCount = await Task.Run(() => _connectionImportService.ImportAsync(filePath));
+        }
+        catch (InvalidOperationException ex)
+        {
+            await _dialogService.ShowDialogAsync(ex.Message, "Import connections...", DialogButtons.Ok, DialogIcon.Error);
+            return;
+        }
+
+        LoadGroups();
+        LoadConnections();
+
+        await _dialogService.ShowMessageAsync($"Imported {importedCount} connection(s).", "Import connections...");
     }
 
     public ObservableCollection<ConnectionSettings> Connections { get; private set; } = new();
+    public ObservableCollection<ConnectionGroup> Groups { get; } = new();
+    public ObservableCollection<ConnectionGroup> GroupOptions { get; } = new();
+    public ObservableCollection<object> RootNodes { get; } = new();
     public ReadOnlyObservableCollection<string> AvailableDatabaseNames { get; }
     public IReadOnlyList<ConnectionTypeFilterOption> AvailableConnectionFilters { get; }
     public IReadOnlyList<SqlServerAuthenticationOption> SqlServerAuthenticationModes { get; }
@@ -276,6 +366,47 @@ public class ConnectionSelectorViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(SelectedSqlServerAuthenticationOption));
             this.RaisePropertyChanged(nameof(SelectedStatementTimeoutSeconds));
             this.RaisePropertyChanged(nameof(SelectedDmlTransactionModeOption));
+            this.RaisePropertyChanged(nameof(SelectedConnectionGroup));
+            this.RaisePropertyChanged(nameof(PasswordWatermark));
+        }
+    }
+
+    public string PasswordWatermark =>
+        SelectedConnection is { CredentialId: not null, IsPasswordLoaded: false }
+            ? "(saved - click Edit to view or change)"
+            : string.Empty;
+
+    private object? _selectedTreeItem;
+    public object? SelectedTreeItem
+    {
+        get => _selectedTreeItem;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTreeItem, value);
+            SelectedConnection = value as ConnectionSettings;
+            // Picking a different row in the tree always lands in view-only mode;
+            // editing must be entered explicitly via the Edit button for that row.
+            IsEditing = false;
+        }
+    }
+
+    public ConnectionGroup? SelectedConnectionGroup
+    {
+        get => SelectedConnection is null
+            ? null
+            : GroupOptions.FirstOrDefault(group => group.Id == (SelectedConnection.GroupId ?? Guid.Empty));
+        set
+        {
+            if (SelectedConnection is null || value is null)
+                return;
+
+            var newGroupId = value.Id == Guid.Empty ? (Guid?)null : value.Id;
+            if (SelectedConnection.GroupId == newGroupId)
+                return;
+
+            // Only reflected in RootNodes once Apply/OK persists it, so the tree doesn't
+            // move the connection (and lose the open detail panel) while still editing.
+            SelectedConnection.GroupId = newGroupId;
         }
     }
 
@@ -286,6 +417,9 @@ public class ConnectionSelectorViewModel : ViewModelBase
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedConnectionFilter, value);
+            // Changing the filter always clears the current selection (and its tree
+            // highlight) rather than guessing a replacement, even back to "(All)".
+            SelectedTreeItem = null;
             RefreshFilteredConnections();
             this.RaisePropertyChanged(nameof(CanAddConnection));
             this.RaisePropertyChanged(nameof(ShowFilterSelectionHint));
@@ -296,8 +430,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public bool IsEditing
     {
         get => _isEditing;
-        set => this.RaiseAndSetIfChanged(ref _isEditing, value);
-    }    
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isEditing, value);
+            this.RaisePropertyChanged(nameof(PasswordWatermark));
+        }
+    }
 
     public bool IsMySqlConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.MySql;
     public bool IsOracleConnectionSelected => SelectedConnection?.DatabaseType == DatabaseType.Oracle;
@@ -378,7 +516,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> ApplyCommand { get; }
     public ReactiveCommand<StyledElement, Unit> TestCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
-    public ReactiveCommand<StyledElement, Unit> DeleteCommand { get; }
+    public ReactiveCommand<Unit, Unit> BulkDeleteCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> BulkExportCommand { get; }
+    public ReactiveCommand<Unit, Unit> ImportCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> ManageGroupsCommand { get; }
     public ReactiveCommand<Unit, Unit> DuplicateConnectionCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectSqLiteFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CreateSqLiteFileCommand { get; }
@@ -445,6 +586,81 @@ public class ConnectionSelectorViewModel : ViewModelBase
         RefreshFilteredConnections();
     }
 
+    private void LoadGroups()
+    {
+        var groups = _connectionGroupRepository.LoadAll();
+        Groups.Clear();
+        Groups.AddRange(groups.OrderBy(group => group.Name, StringComparer.OrdinalIgnoreCase));
+
+        // Persist expand/collapse immediately so it survives reopening the dialog;
+        // Skip(1) drops the replay-on-subscribe of the value just loaded.
+        foreach (var group in Groups)
+        {
+            group.WhenAnyValue(x => x.IsExpanded)
+                .Skip(1)
+                .Subscribe(_ => _connectionGroupRepository.Save(group));
+        }
+
+        RefreshGroupOptions();
+    }
+
+    private void RefreshGroupOptions()
+    {
+        GroupOptions.Clear();
+        GroupOptions.Add(UngroupedOption);
+        GroupOptions.AddRange(Groups);
+    }
+
+    private async Task ManageGroupsAsync(StyledElement element)
+    {
+        var window = element.GetParentWindow();
+        if (window is null)
+            return;
+
+        await _connectionGroupDialogService.ShowDialogAsync(window);
+
+        ReloadGroupsAndSync();
+    }
+
+    private void ReloadGroupsAndSync()
+    {
+        LoadGroups();
+
+        var validGroupIds = Groups.Select(group => group.Id).ToHashSet();
+        foreach (var connection in _allConnections)
+        {
+            if (connection.GroupId is Guid groupId && !validGroupIds.Contains(groupId))
+                connection.GroupId = null;
+        }
+
+        RefreshFilteredConnections();
+        this.RaisePropertyChanged(nameof(SelectedConnectionGroup));
+    }
+
+    private void RefreshTreeNodes()
+    {
+        var groupedConnections = Connections
+            .Where(connection => connection.GroupId is not null)
+            .ToLookup(connection => connection.GroupId!.Value);
+
+        // Groups always sort before ungrouped connections, so a group never gets lost
+        // in the middle of an alphabetical list of loose connections.
+        var groupNodes = Groups
+            .Where(group => groupedConnections.Contains(group.Id))
+            .OrderBy(group => group.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new ConnectionGroupNode(
+                group,
+                groupedConnections[group.Id].OrderBy(connection => connection.Name, StringComparer.OrdinalIgnoreCase)));
+
+        var ungroupedConnections = Connections
+            .Where(connection => connection.GroupId is null)
+            .OrderBy(connection => connection.Name, StringComparer.OrdinalIgnoreCase);
+
+        RootNodes.Clear();
+        RootNodes.AddRange(groupNodes.Cast<object>());
+        RootNodes.AddRange(ungroupedConnections.Cast<object>());
+    }
+
     private void SortAllConnections()
     {
         var sortedConnections = _allConnections.OrderBy(connection => connection.Name).ToList();
@@ -462,11 +678,12 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         Connections.Clear();
         Connections.AddRange(filteredConnections);
+        RefreshTreeNodes();
 
         if (selectedConnectionId is null)
         {
-            if (SelectedConnection is null || !Connections.Contains(SelectedConnection))
-                SelectedConnection = Connections.FirstOrDefault();
+            // Nothing was selected before this refresh (e.g. the dialog just opened);
+            // don't surprise the user by auto-picking a connection.
             return;
         }
 

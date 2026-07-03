@@ -2,14 +2,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="https://github.com/avaloniaui"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
         xmlns:views="clr-namespace:DataDeveloper.Views"
-        x:Class="DataDeveloper.Views.ConnectionSelectorDialog"
+        x:Class="DataDeveloper.Views.ExportConnectionsOptionsDialog"
         mc:Ignorable="d"
-        Title="Select Connection"
-        Width="950" Height="550"
-        WindowStartupLocation="CenterOwner" CanResize="False" >
-        
-        <views:ConnectionSelectorDialogView />
-        
+        Title="Export Connections"
+        Width="420" Height="240"
+        WindowStartupLocation="CenterOwner" CanResize="False">
+
+        <views:ExportConnectionsOptionsDialogView />
+
 </Window>

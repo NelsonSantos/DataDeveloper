@@ -733,6 +733,8 @@ public class TableDesignerViewModelTests
         public Task<string?> ShowOpenFileAsync(string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
     }
 
     private sealed class NoOpDialogService : IDialogService
@@ -778,6 +780,16 @@ public class TableDesignerViewModelTests
         }
 
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null)
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null)
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null)
         {
             return Task.FromResult<string?>(null);
         }

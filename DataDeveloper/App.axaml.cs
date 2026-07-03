@@ -69,7 +69,12 @@ public partial class App : Application
         services.AddSingleton<AppDataFileService>();
         services.AddSingleton<ISecretStore, PlatformSecretStore>();
         services.AddSingleton<IConnectionSettingsRepository, SqliteConnectionSettingsRepository>();
+        services.AddSingleton<IConnectionGroupRepository, SqliteConnectionGroupRepository>();
         services.AddTransient<IConnectionDialogService, ConnectionDialogService>();
+        services.AddTransient<IConnectionGroupDialogService, ConnectionGroupDialogService>();
+        services.AddTransient<IConnectionExportService, ConnectionExportService>();
+        services.AddTransient<IConnectionImportService, ConnectionImportService>();
+        services.AddTransient<IExportConnectionsOptionsDialogService, ExportConnectionsOptionsDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<DatabaseProviderFactoryService>();
         services.AddTransient<StatementSplitter>();
@@ -82,6 +87,8 @@ public partial class App : Application
         resolver.Register<TabDataGridViewModel, TabDataGridView>();
         resolver.Register<TabMessageViewModel, TabMessageView>();
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
+        resolver.Register<ManageConnectionGroupsViewModel, ManageConnectionGroupsDialog>();
+        resolver.Register<ExportConnectionsOptionsViewModel, ExportConnectionsOptionsDialog>();
     }
 
     private async void OnAboutMenuClick(object? sender, EventArgs e)

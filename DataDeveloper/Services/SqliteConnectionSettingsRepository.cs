@@ -45,6 +45,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               select
                                   id,
                                   credential_id,
+                                  group_id,
                                   name,
                                   database_type,
                                   sql_server_authentication_mode,
@@ -70,6 +71,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
 
             connectionSettings.Id = Guid.Parse(reader.GetString(reader.GetOrdinal("id")));
             connectionSettings.CredentialId = TryGetGuid(reader, "credential_id");
+            connectionSettings.GroupId = TryGetGuid(reader, "group_id");
             connectionSettings.Name = reader.GetString(reader.GetOrdinal("name"));
             connectionSettings.User = reader.GetString(reader.GetOrdinal("user_name"));
             connectionSettings.Password = string.Empty;
@@ -182,6 +184,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   (
                                       id,
                                       credential_id,
+                                      group_id,
                                       name,
                                       database_type,
                                       sql_server_authentication_mode,
@@ -201,6 +204,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                                   (
                                       $id,
                                       $credentialId,
+                                      $groupId,
                                       $name,
                                       $databaseType,
                                       $sqlServerAuthenticationMode,
@@ -221,6 +225,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
             var now = DateTime.UtcNow.ToString("O");
             command.Parameters.AddWithValue("$id", item.Id == Guid.Empty ? Guid.NewGuid().ToString() : item.Id.ToString());
             command.Parameters.AddWithValue("$credentialId", item.CredentialId?.ToString() ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("$groupId", item.GroupId?.ToString() ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("$name", item.Name);
             command.Parameters.AddWithValue("$databaseType", (int)item.DatabaseType);
             command.Parameters.AddWithValue("$sqlServerAuthenticationMode", GetSqlServerAuthenticationMode(item));
@@ -276,6 +281,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               (
                                   id,
                                   credential_id,
+                                  group_id,
                                   name,
                                   database_type,
                                   sql_server_authentication_mode,
@@ -295,6 +301,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               (
                                   $id,
                                   $credentialId,
+                                  $groupId,
                                   $name,
                                   $databaseType,
                                   $sqlServerAuthenticationMode,
@@ -312,6 +319,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               )
                               on conflict(id) do update set
                                   credential_id = excluded.credential_id,
+                                  group_id = excluded.group_id,
                                   name = excluded.name,
                                   database_type = excluded.database_type,
                                   sql_server_authentication_mode = excluded.sql_server_authentication_mode,
@@ -332,6 +340,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         var now = DateTime.UtcNow.ToString("O");
         command.Parameters.AddWithValue("$id", id.ToString());
         command.Parameters.AddWithValue("$credentialId", connectionSettings.CredentialId?.ToString() ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("$groupId", connectionSettings.GroupId?.ToString() ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("$name", connectionSettings.Name);
         command.Parameters.AddWithValue("$databaseType", (int)connectionSettings.DatabaseType);
         command.Parameters.AddWithValue("$sqlServerAuthenticationMode", GetSqlServerAuthenticationMode(connectionSettings));
@@ -381,6 +390,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
                               (
                                   id text not null primary key,
                                   credential_id text null,
+                                  group_id text null,
                                   name text not null,
                                   database_type integer not null,
                                   sql_server_authentication_mode integer not null default 0,
@@ -401,6 +411,7 @@ public class SqliteConnectionSettingsRepository : IConnectionSettingsRepository
         EnsureColumnExists(connection, "sql_server_authentication_mode", "integer not null default 0");
         EnsureColumnExists(connection, "statement_timeout_seconds", "integer not null default 60");
         EnsureColumnExists(connection, "dml_transaction_mode", "integer null");
+        EnsureColumnExists(connection, "group_id", "text null");
 
         _isInitialized = true;
     }
