@@ -32,7 +32,7 @@ public class SqliteConnectionGroupRepository : IConnectionGroupRepository
 
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
-        command.CommandText = "select id, name from connection_group order by name;";
+        command.CommandText = "select id, name, is_expanded from connection_group order by name;";
 
         using var reader = command.ExecuteReader();
         var groups = new List<ConnectionGroup>();
@@ -41,7 +41,8 @@ public class SqliteConnectionGroupRepository : IConnectionGroupRepository
             groups.Add(new ConnectionGroup
             {
                 Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.GetString(1)
+                Name = reader.GetString(1),
+                IsExpanded = reader.GetBoolean(2)
             });
         }
 
@@ -57,15 +58,16 @@ public class SqliteConnectionGroupRepository : IConnectionGroupRepository
         using var connection = OpenConnection();
         using var command = connection.CreateCommand();
         command.CommandText = """
-                              insert into connection_group (id, name)
-                              values ($id, $name)
-                              on conflict(id) do update set name = excluded.name;
+                              insert into connection_group (id, name, is_expanded)
+                              values ($id, $name, $isExpanded)
+                              on conflict(id) do update set name = excluded.name, is_expanded = excluded.is_expanded;
                               """;
 
         var id = group.Id == Guid.Empty ? Guid.NewGuid() : group.Id;
         group.Id = id;
         command.Parameters.AddWithValue("$id", id.ToString());
         command.Parameters.AddWithValue("$name", group.Name);
+        command.Parameters.AddWithValue("$isExpanded", group.IsExpanded ? 1 : 0);
         command.ExecuteNonQuery();
     }
 
@@ -113,12 +115,31 @@ public class SqliteConnectionGroupRepository : IConnectionGroupRepository
                               create table if not exists connection_group
                               (
                                   id text not null primary key,
-                                  name text not null
+                                  name text not null,
+                                  is_expanded integer not null default 1
                               );
                               """;
         command.ExecuteNonQuery();
+        EnsureColumnExists(connection, "is_expanded", "integer not null default 1");
 
         _isInitialized = true;
+    }
+
+    private static void EnsureColumnExists(SqliteConnection connection, string columnName, string columnDefinition)
+    {
+        using var pragmaCommand = connection.CreateCommand();
+        pragmaCommand.CommandText = "pragma table_info(connection_group);";
+        using var reader = pragmaCommand.ExecuteReader();
+
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(reader.GetOrdinal("name")), columnName, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
+        using var alterCommand = connection.CreateCommand();
+        alterCommand.CommandText = $"alter table connection_group add column {columnName} {columnDefinition};";
+        alterCommand.ExecuteNonQuery();
     }
 
     private static bool TableExists(SqliteConnection connection, SqliteTransaction transaction, string tableName)

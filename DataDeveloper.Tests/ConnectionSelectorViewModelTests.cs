@@ -44,6 +44,8 @@ public class ConnectionSelectorViewModelTests
         public void Save(ConnectionSettings connectionSettings)
         {
             LastSavedConnection = connectionSettings;
+            _connections.RemoveAll(c => c.Id == connectionSettings.Id);
+            _connections.Add(connectionSettings);
         }
 
         public void Delete(ConnectionSettings connectionSettings)
@@ -85,10 +87,46 @@ public class ConnectionSelectorViewModelTests
         public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.CompletedTask;
     }
 
+    private sealed class FakeConnectionExportService : IConnectionExportService
+    {
+        public IReadOnlyList<ConnectionSettings>? LastExportedConnections { get; private set; }
+        public bool? LastIncludePasswords { get; private set; }
+
+        public Task ExportAsync(IReadOnlyList<ConnectionSettings> connections, string filePath, bool includePasswords)
+        {
+            LastExportedConnections = connections;
+            LastIncludePasswords = includePasswords;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeConnectionImportService : IConnectionImportService
+    {
+        public int ImportedCount { get; set; }
+        public Exception? ThrowException { get; set; }
+
+        public Task<int> ImportAsync(string filePath)
+        {
+            if (ThrowException is not null)
+                throw ThrowException;
+
+            return Task.FromResult(ImportedCount);
+        }
+    }
+
+    private sealed class FakeExportConnectionsOptionsDialogService : IExportConnectionsOptionsDialogService
+    {
+        public ExportConnectionsOptionsResult? Result { get; set; }
+
+        public Task<ExportConnectionsOptionsResult?> ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.FromResult(Result);
+    }
+
     private sealed class FakeDialogService : IDialogService
     {
         public string? OpenDatabaseFileResult { get; set; }
         public string? CreateDatabaseFileResult { get; set; }
+        public string? SaveJsonFileResult { get; set; }
+        public string? OpenJsonFileResult { get; set; }
 
         public Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info)
         {
@@ -117,6 +155,10 @@ public class ConnectionSelectorViewModelTests
         public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult(OpenDatabaseFileResult);
 
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult(CreateDatabaseFileResult);
+
+        public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult(SaveJsonFileResult);
+
+        public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult(OpenJsonFileResult);
     }
 
     private sealed class FakeDatabaseProvider : IDatabaseProvider
@@ -177,6 +219,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([original]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -224,6 +269,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository(),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -245,6 +293,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository(),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -275,6 +326,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -311,6 +365,9 @@ public class ConnectionSelectorViewModelTests
             repository,
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -345,6 +402,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new FakeDatabaseProviderFactoryService(provider),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -373,6 +433,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
@@ -404,6 +467,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             dialogService)
@@ -435,6 +501,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             dialogService)
@@ -455,6 +524,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository(),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -462,6 +534,57 @@ public class ConnectionSelectorViewModelTests
         Assert.Equal("(All)", viewModel.SelectedConnectionFilter?.DisplayName);
         Assert.False(viewModel.CanAddConnection);
         Assert.True(viewModel.ShowFilterSelectionHint);
+    }
+
+    [Fact]
+    public void Constructor_DoesNotAutoSelectAnyConnection_WhenConnectionsExist()
+    {
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.Null(viewModel.SelectedConnection);
+    }
+
+    [Fact]
+    public void SelectedTreeItem_Set_ResetsIsEditingToFalse()
+    {
+        var first = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "First", DatabaseType = DatabaseType.SqlServer };
+        var second = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Second", DatabaseType = DatabaseType.SqlServer };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([first, second]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedTreeItem = first,
+            IsEditing = true
+        };
+
+        viewModel.SelectedTreeItem = second;
+
+        Assert.False(viewModel.IsEditing);
+        Assert.Same(second, viewModel.SelectedConnection);
     }
 
     [Fact]
@@ -484,6 +607,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([sqlServerConnection, mySqlConnection]),
             new FakeConnectionGroupRepository(),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -499,9 +625,77 @@ public class ConnectionSelectorViewModelTests
     }
 
     [Fact]
-    public void RootNodes_MixesGroupsAndUngroupedConnections_SortedAlphabeticallyByName()
+    public void ChangingFilter_ClearsSelection_EvenBackToAll()
     {
-        var productionGroup = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Beta group" };
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+        var allFilter = new FakeConnectionSettingsRepository([connection]);
+
+        var viewModel = new ConnectionSelectorViewModel(
+            allFilter,
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService())
+        {
+            SelectedTreeItem = connection
+        };
+        Assert.Same(connection, viewModel.SelectedConnection);
+
+        var sqlServerFilter = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType == DatabaseType.SqlServer);
+        viewModel.SelectedConnectionFilter = sqlServerFilter;
+        Assert.Null(viewModel.SelectedConnection);
+
+        viewModel.SelectedTreeItem = connection;
+        Assert.Same(connection, viewModel.SelectedConnection);
+
+        var allOption = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType is null);
+        viewModel.SelectedConnectionFilter = allOption;
+
+        Assert.Null(viewModel.SelectedConnection);
+    }
+
+    [AvaloniaFact]
+    public async Task BulkExportCommand_ClearsCheckboxSelection_AfterExport()
+    {
+        var connection = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Sql Server", DatabaseType = DatabaseType.SqlServer, IsBulkSelected = true };
+        var optionsDialogService = new FakeExportConnectionsOptionsDialogService
+        {
+            Result = new ExportConnectionsOptionsResult(IncludePasswords: false)
+        };
+        var dialogService = new FakeDialogService { SaveJsonFileResult = "/tmp/connections.json" };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            optionsDialogService,
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            dialogService);
+        viewModel.RefreshBulkSelectionState();
+        Assert.True(viewModel.HasBulkSelection);
+
+        await viewModel.BulkExportCommand.Execute(new Avalonia.Controls.Window()).ToTask();
+
+        Assert.False(connection.IsBulkSelected);
+        Assert.False(viewModel.HasBulkSelection);
+    }
+
+    [Fact]
+    public void RootNodes_ShowsGroupsFirst_ThenUngroupedConnections_EachSortedAlphabetically()
+    {
+        var productionGroup = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Zeta group" };
         var groupedConnection = new SqlServerConnectionSettings
         {
             Id = Guid.NewGuid(),
@@ -518,7 +712,7 @@ public class ConnectionSelectorViewModelTests
         var ungroupedLast = new SqlServerConnectionSettings
         {
             Id = Guid.NewGuid(),
-            Name = "Zeta connection",
+            Name = "Beta connection",
             DatabaseType = DatabaseType.SqlServer
         };
 
@@ -526,22 +720,60 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([groupedConnection, ungroupedFirst, ungroupedLast]),
             new FakeConnectionGroupRepository([productionGroup]),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
 
         Assert.Equal(3, viewModel.RootNodes.Count);
-        Assert.Equal("Alpha connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[0]).Name);
-        Assert.Equal("Beta group", Assert.IsType<ConnectionGroupNode>(viewModel.RootNodes[1]).Name);
-        Assert.Equal("Zeta connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[2]).Name);
+        Assert.Equal("Zeta group", Assert.IsType<ConnectionGroupNode>(viewModel.RootNodes[0]).Name);
+        Assert.Equal("Alpha connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[1]).Name);
+        Assert.Equal("Beta connection", Assert.IsAssignableFrom<ConnectionSettings>(viewModel.RootNodes[2]).Name);
 
-        var groupNode = (ConnectionGroupNode)viewModel.RootNodes[1];
+        var groupNode = (ConnectionGroupNode)viewModel.RootNodes[0];
         var childConnection = Assert.Single(groupNode.Children);
         Assert.Equal(groupedConnection.Id, childConnection.Id);
     }
 
     [Fact]
-    public void SelectedConnectionGroup_Set_MovesConnectionIntoGroupNode()
+    public void CollapsingGroup_PersistsImmediately_AndSurvivesTreeRefresh()
+    {
+        var group = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Production" };
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            GroupId = group.Id,
+            Name = "Prod",
+            DatabaseType = DatabaseType.SqlServer
+        };
+        var groupRepository = new FakeConnectionGroupRepository([group]);
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            groupRepository,
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        var groupNode = Assert.IsType<ConnectionGroupNode>(Assert.Single(viewModel.RootNodes));
+        groupNode.Group.IsExpanded = false;
+
+        Assert.False(groupRepository.LoadAll().Single().IsExpanded);
+
+        viewModel.SelectedConnectionFilter = viewModel.AvailableConnectionFilters.Single(option => option.DatabaseType == DatabaseType.SqlServer);
+
+        var groupNodeAfterRefresh = Assert.IsType<ConnectionGroupNode>(Assert.Single(viewModel.RootNodes));
+        Assert.False(groupNodeAfterRefresh.Group.IsExpanded);
+    }
+
+    [AvaloniaFact]
+    public async Task SelectedConnectionGroup_Set_DoesNotMoveConnection_UntilApplied()
     {
         var group = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Production" };
         var connection = new SqlServerConnectionSettings
@@ -555,18 +787,24 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             new FakeConnectionGroupRepository([group]),
             new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService())
         {
-            SelectedConnection = connection
+            SelectedConnection = connection,
+            IsEditing = true
         };
-
-        Assert.IsAssignableFrom<ConnectionSettings>(Assert.Single(viewModel.RootNodes));
 
         viewModel.SelectedConnectionGroup = viewModel.GroupOptions.Single(option => option.Id == group.Id);
 
         Assert.Equal(group.Id, connection.GroupId);
+        Assert.IsAssignableFrom<ConnectionSettings>(Assert.Single(viewModel.RootNodes));
+
+        await viewModel.ApplyCommand.Execute(new Avalonia.Controls.Window()).ToTask();
+
         var groupNode = Assert.IsType<ConnectionGroupNode>(Assert.Single(viewModel.RootNodes));
         Assert.Same(connection, Assert.Single(groupNode.Children));
     }
@@ -590,6 +828,9 @@ public class ConnectionSelectorViewModelTests
             new FakeConnectionSettingsRepository([connection]),
             groupRepository,
             new DeletingConnectionGroupDialogService(groupRepository, group.Id),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
             new DatabaseProviderFactoryService(),
             new InMemorySecretStore(),
             new FakeDialogService());
@@ -600,6 +841,194 @@ public class ConnectionSelectorViewModelTests
 
         Assert.Null(connection.GroupId);
         Assert.IsAssignableFrom<ConnectionSettings>(Assert.Single(viewModel.RootNodes));
+    }
+
+    [Fact]
+    public void HasBulkSelection_ReflectsCheckedConnections_AfterRefresh()
+    {
+        var connection = new SqlServerConnectionSettings
+        {
+            Id = Guid.NewGuid(),
+            Name = "Sql Server",
+            DatabaseType = DatabaseType.SqlServer
+        };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+
+        Assert.False(viewModel.HasBulkSelection);
+
+        connection.IsBulkSelected = true;
+        viewModel.RefreshBulkSelectionState();
+
+        Assert.True(viewModel.HasBulkSelection);
+    }
+
+    [Fact]
+    public async Task BulkDeleteCommand_RemovesOnlySelectedConnections_AfterConfirmation()
+    {
+        var toDelete = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Delete me", DatabaseType = DatabaseType.SqlServer, IsBulkSelected = true };
+        var toKeep = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Keep me", DatabaseType = DatabaseType.SqlServer };
+        var repository = new FakeConnectionSettingsRepository([toDelete, toKeep]);
+
+        var viewModel = new ConnectionSelectorViewModel(
+            repository,
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            new FakeConnectionExportService(),
+            new FakeConnectionImportService(),
+            new FakeExportConnectionsOptionsDialogService(),
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+        viewModel.RefreshBulkSelectionState();
+
+        await viewModel.BulkDeleteCommand.Execute().ToTask();
+
+        Assert.Equal(1, repository.DeleteCallCount);
+        Assert.DoesNotContain(viewModel.Connections, c => c.Id == toDelete.Id);
+        Assert.Contains(viewModel.Connections, c => c.Id == toKeep.Id);
+    }
+
+    [AvaloniaFact]
+    public async Task BulkExportCommand_PassesSelectedConnectionsAndPasswordChoice_ToExportService()
+    {
+        var connection = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Sql Server", DatabaseType = DatabaseType.SqlServer, IsBulkSelected = true };
+        var exportService = new FakeConnectionExportService();
+        var optionsDialogService = new FakeExportConnectionsOptionsDialogService
+        {
+            Result = new ExportConnectionsOptionsResult(IncludePasswords: true)
+        };
+        var dialogService = new FakeDialogService { SaveJsonFileResult = "/tmp/connections.json" };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            exportService,
+            new FakeConnectionImportService(),
+            optionsDialogService,
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            dialogService);
+        viewModel.RefreshBulkSelectionState();
+
+        await viewModel.BulkExportCommand.Execute(new Avalonia.Controls.Window()).ToTask();
+
+        Assert.NotNull(exportService.LastExportedConnections);
+        Assert.Contains(exportService.LastExportedConnections!, c => c.Id == connection.Id);
+        Assert.True(exportService.LastIncludePasswords);
+    }
+
+    [AvaloniaFact]
+    public async Task BulkExportCommand_WhenOptionsCancelled_DoesNotExport()
+    {
+        var connection = new SqlServerConnectionSettings { Id = Guid.NewGuid(), Name = "Sql Server", DatabaseType = DatabaseType.SqlServer, IsBulkSelected = true };
+        var exportService = new FakeConnectionExportService();
+        var optionsDialogService = new FakeExportConnectionsOptionsDialogService { Result = null };
+
+        var viewModel = new ConnectionSelectorViewModel(
+            new FakeConnectionSettingsRepository([connection]),
+            new FakeConnectionGroupRepository(),
+            new FakeConnectionGroupDialogService(),
+            exportService,
+            new FakeConnectionImportService(),
+            optionsDialogService,
+            new DatabaseProviderFactoryService(),
+            new InMemorySecretStore(),
+            new FakeDialogService());
+        viewModel.RefreshBulkSelectionState();
+
+        await viewModel.BulkExportCommand.Execute(new Avalonia.Controls.Window()).ToTask();
+
+        Assert.Null(exportService.LastExportedConnections);
+    }
+
+    [AvaloniaFact]
+    public async Task ImportCommand_ReloadsConnectionsAndGroups_AfterSuccessfulImport()
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), "DataDeveloperTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDirectory);
+        try
+        {
+            var filePath = Path.Combine(tempDirectory, "import.json");
+            var exportFile = new ConnectionExportFile
+            {
+                Connections =
+                [
+                    new ConnectionExportEntry { Name = "Imported", DatabaseType = "SqlServer", Server = "sql.local", Database = "master", Port = 1433, User = "sa" }
+                ]
+            };
+            await File.WriteAllTextAsync(filePath, System.Text.Json.JsonSerializer.Serialize(exportFile));
+
+            var settingsRepository = new FakeConnectionSettingsRepository();
+            var groupRepository = new FakeConnectionGroupRepository();
+            var importService = new ConnectionImportService(settingsRepository);
+            var dialogService = new FakeDialogService { OpenJsonFileResult = filePath };
+
+            var viewModel = new ConnectionSelectorViewModel(
+                settingsRepository,
+                groupRepository,
+                new FakeConnectionGroupDialogService(),
+                new FakeConnectionExportService(),
+                importService,
+                new FakeExportConnectionsOptionsDialogService(),
+                new DatabaseProviderFactoryService(),
+                new InMemorySecretStore(),
+                dialogService);
+
+            await viewModel.ImportCommand.Execute().ToTask();
+
+            Assert.Contains(viewModel.Connections, c => c.Name == "Imported");
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task ImportCommand_DoesNotChangeConnections_WhenFileIsNotRecognized()
+    {
+        var tempDirectory = Path.Combine(Path.GetTempPath(), "DataDeveloperTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDirectory);
+        try
+        {
+            var filePath = Path.Combine(tempDirectory, "import.json");
+            await File.WriteAllTextAsync(filePath, "{\"ExportedBy\":\"SomeOtherApp\",\"FormatVersion\":1,\"Connections\":[]}");
+
+            var settingsRepository = new FakeConnectionSettingsRepository();
+            var groupRepository = new FakeConnectionGroupRepository();
+            var importService = new ConnectionImportService(settingsRepository);
+            var dialogService = new FakeDialogService { OpenJsonFileResult = filePath };
+
+            var viewModel = new ConnectionSelectorViewModel(
+                settingsRepository,
+                groupRepository,
+                new FakeConnectionGroupDialogService(),
+                new FakeConnectionExportService(),
+                importService,
+                new FakeExportConnectionsOptionsDialogService(),
+                new DatabaseProviderFactoryService(),
+                new InMemorySecretStore(),
+                dialogService);
+
+            await viewModel.ImportCommand.Execute().ToTask();
+
+            Assert.Empty(viewModel.Connections);
+        }
+        finally
+        {
+            Directory.Delete(tempDirectory, recursive: true);
+        }
     }
 
     private sealed class DeletingConnectionGroupDialogService : IConnectionGroupDialogService

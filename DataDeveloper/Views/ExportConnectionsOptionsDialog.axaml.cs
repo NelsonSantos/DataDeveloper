@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace DataDeveloper.Views;
 
-public partial class ManageConnectionGroupsDialog : Window
+public partial class ExportConnectionsOptionsDialog : Window
 {
-    public ManageConnectionGroupsDialog()
+    public ExportConnectionsOptionsDialog()
     {
         InitializeComponent();
     }

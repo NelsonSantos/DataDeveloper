@@ -3,12 +3,12 @@
         xmlns:d="https://github.com/avaloniaui"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:DataDeveloper.Views"
-        x:Class="DataDeveloper.Views.ManageConnectionGroupsDialog"
+        x:Class="DataDeveloper.Views.ExportConnectionsOptionsDialog"
         mc:Ignorable="d"
-        Title="Manage Groups"
-        Width="420" Height="480"
+        Title="Export Connections"
+        Width="420" Height="240"
         WindowStartupLocation="CenterOwner" CanResize="False">
 
-        <views:ManageConnectionGroupsDialogView />
+        <views:ExportConnectionsOptionsDialogView />
 
 </Window>

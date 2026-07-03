@@ -32,6 +32,18 @@ public class SqliteConnectionGroupRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void Save_AndLoadAll_RoundTripsIsExpanded()
+    {
+        var repository = new SqliteConnectionGroupRepository(_databasePath);
+        var group = new ConnectionGroup { Id = Guid.NewGuid(), Name = "Production", IsExpanded = false };
+
+        repository.Save(group);
+        var loaded = Assert.Single(repository.LoadAll());
+
+        Assert.False(loaded.IsExpanded);
+    }
+
+    [Fact]
     public void Save_WithSameId_RenamesExistingGroup()
     {
         var repository = new SqliteConnectionGroupRepository(_databasePath);

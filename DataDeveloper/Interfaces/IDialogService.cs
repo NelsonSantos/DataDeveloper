@@ -16,4 +16,6 @@ public interface IDialogService
     Task<string?> ShowOpenFileAsync(string? title = null);
     Task<string?> ShowOpenDatabaseFileAsync(string? title = null);
     Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null);
+    Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null);
+    Task<string?> ShowOpenJsonFileDialogAsync(string? title = null);
 }

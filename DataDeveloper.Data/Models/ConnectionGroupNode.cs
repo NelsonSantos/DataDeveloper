@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 
 namespace DataDeveloper.Data.Models;
 
-public class ConnectionGroupNode : ReactiveObject
+public class ConnectionGroupNode
 {
     public ConnectionGroupNode(ConnectionGroup group, IEnumerable<ConnectionSettings> connections)
     {
@@ -13,8 +11,9 @@ public class ConnectionGroupNode : ReactiveObject
         Children = new ObservableCollection<ConnectionSettings>(connections);
     }
 
+    // Expansion state lives on Group itself (persisted), so it survives tree
+    // rebuilds within a session and across reopening the connection selector.
     public ConnectionGroup Group { get; }
     public string Name => Group.Name;
-    [Reactive] public bool IsExpanded { get; set; } = true;
     public ObservableCollection<ConnectionSettings> Children { get; }
 }
