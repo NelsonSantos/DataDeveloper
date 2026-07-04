@@ -17,11 +17,14 @@ namespace DataDeveloper.NextGrid.UI;
 internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollable
 {
     private const double DefaultColumnWidth = 120;
+    private const double MaxInitialColumnWidthRatio = 0.5;
     private const double HeaderHeight = 34;
     private const double RowHeight = 28;
     private const double ResizeHandleHalfWidth = 4;
     private static readonly IBrush ValidationErrorBrush = new SolidColorBrush(Color.Parse("#C93C3C"));
     private static readonly Pen ValidationErrorPen = new(ValidationErrorBrush, 1.5);
+    private static readonly IBrush StructuredTextButtonBackgroundBrush = new SolidColorBrush(Color.Parse("#4A4D54"));
+    private static readonly IBrush StructuredTextButtonForegroundBrush = new SolidColorBrush(Color.Parse("#D9E8A8"));
 
     private readonly GridColumnLayoutEngine _columnLayout = new(DefaultColumnWidth);
     private readonly GridTableController _tableController;
@@ -168,7 +171,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     }
 
     public Size Extent => new(
-        GetRowHeaderWidth() + _columnLayout.GetTotalWidth() + _verticalScrollBarReserve,
+        GetRowHeaderWidth() + _columnLayout.GetTotalWidth() + _verticalScrollBarReserve + (_verticalScrollBarReserve > 0 ? GetRowHeaderWidth() : 0),
         HeaderHeight + (Rows.Count * RowHeight) + _horizontalScrollBarReserve);
 
     public Vector Offset
@@ -205,6 +208,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     public event EventHandler<GridFocusedCellChangedEventArgs>? FocusedCellChanged;
     public event EventHandler<GridSelectionChangedEventArgs>? SelectionChanged;
     public event EventHandler<GridCellEditRequestedEventArgs>? CellEditRequested;
+    public event EventHandler<GridStructuredTextCellViewRequestedEventArgs>? StructuredTextCellViewRequested;
     public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
     public event EventHandler? CellEditCanceled;
 
@@ -266,7 +270,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     protected override Size MeasureOverride(Size availableSize)
     {
         _columnLayout.EnsureColumnCount(Headers.Count);
-        InitializeColumnWidthsIfNeeded();
+        InitializeColumnWidthsIfNeeded(availableSize.Width);
         return Extent;
     }
 
@@ -450,6 +454,20 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
             Focus();
             RaiseSelectionChanged();
             InvalidateVisual();
+            return;
+        }
+
+        if (hit.Region == GridRegionKind.Cell &&
+            hit.RowIndex >= 0 && hit.ColumnIndex >= 0 &&
+            IsStructuredTextButtonHit(hit.RowIndex, hit.ColumnIndex, point))
+        {
+            _tableController.HandlePointerSelection(hit, e.KeyModifiers);
+            RaiseFocusedCellChanged();
+            RaiseSelectionChanged();
+            Focus();
+            InvalidateVisual();
+            RequestStructuredTextCellView(new GridCellAddress(hit.RowIndex, hit.ColumnIndex));
+            e.Handled = true;
             return;
         }
 
@@ -669,6 +687,54 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         CellEditRequested?.Invoke(this, new GridCellEditRequestedEventArgs(session, bounds));
     }
 
+    private void RequestStructuredTextCellView(GridCellAddress cell)
+    {
+        if (cell.Row < 0 || cell.Row >= Rows.Count || cell.Column < 0 || cell.Column >= Headers.Count)
+            return;
+
+        var row = Rows[cell.Row];
+        var value = cell.Column < row.Count ? row[cell.Column] : null;
+        var isEditable = CanEditCells && CanEditCell(cell);
+        if (isEditable)
+            _editorHost.BeginEdit(cell, ColumnTypes.ElementAtOrDefault(cell.Column), value);
+
+        var kind = StructuredTextSniffer.Detect(value as string);
+        StructuredTextCellViewRequested?.Invoke(this, new GridStructuredTextCellViewRequestedEventArgs(cell, value as string, isEditable, kind));
+    }
+
+    internal bool IsStructuredTextButtonHit(int rowIndex, int columnIndex, Point point)
+    {
+        if (rowIndex < 0 || rowIndex >= Rows.Count || columnIndex < 0 || columnIndex >= Headers.Count)
+            return false;
+
+        var row = Rows[rowIndex];
+        var value = columnIndex < row.Count ? row[columnIndex] : null;
+        if (GetColumnRenderer(columnIndex, value) is not TextGridCellRenderer)
+            return false;
+
+        var bounds = _tableController.GetCellBounds(rowIndex, columnIndex);
+        return GetStructuredTextButtonRect(bounds).Contains(point);
+    }
+
+    private Rect GetStructuredTextButtonRect(GridCellBounds bounds)
+    {
+        var rect = TextGridCellRenderer.GetIconRect(bounds);
+
+        // The button is simply right-aligned within its own cell. The only correction needed is
+        // for a cell that already ends within the viewport but right under the reserved scrollbar
+        // strip; a column wider than the viewport keeps its natural (possibly off-screen) position,
+        // just like any other overflowing cell content.
+        if (bounds.X + bounds.Width > Bounds.Width)
+            return rect;
+
+        var maxRight = Bounds.Width - _verticalScrollBarReserve;
+        if (rect.Right <= maxRight)
+            return rect;
+
+        var shiftedX = Math.Max(bounds.X, maxRight - rect.Width);
+        return new Rect(shiftedX, rect.Y, rect.Width, rect.Height);
+    }
+
     private bool CanEditCell(GridCellAddress cell)
     {
         if (cell.Row < 0 || cell.Row >= Rows.Count || cell.Column < 0 || cell.Column >= Headers.Count)
@@ -787,20 +853,47 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                     if (columnIndex == viewportInfo.Columns.EndExclusive - 1)
                         verticalLines.Add(bounds.X + bounds.Width);
 
-                    if (hasCachedRow && cachedRow is not null && columnIndex < cachedRow.Length && cachedRow[columnIndex] is not null)
+                    var cellValue = columnIndex < row.Count ? row[columnIndex] : null;
+                    var cellRenderer = GetColumnRenderer(columnIndex, cellValue);
+                    var isTextCellWithButton = cellRenderer is TextGridCellRenderer;
+                    var textRightLimit = bounds.X + bounds.Width - 6;
+                    if (isTextCellWithButton)
                     {
-                        DrawFormattedText(
-                            context,
-                            cachedRow[columnIndex].FormattedText,
-                            new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height),
-                            cachedRow[columnIndex].Alignment);
-                        continue;
+                        // Reserve space up to wherever the button actually renders (it may be
+                        // pinned near the visible edge instead of the cell's own end), so long
+                        // text never draws underneath it.
+                        var iconRect = GetStructuredTextButtonRect(bounds);
+                        textRightLimit = Math.Min(textRightLimit, iconRect.X - 4);
                     }
 
-                    var value = columnIndex < row.Count ? row[columnIndex] : null;
-                    var renderer = GetColumnRenderer(columnIndex, value);
-                    var text = renderer.FormatValue(value, GridRendererContext.Default);
-                    DrawText(context, text, new Rect(bounds.X + 6, bounds.Y, Math.Max(0, bounds.Width - 12), bounds.Height), renderer.Alignment, CellForeground);
+                    var textRect = new Rect(bounds.X + 6, bounds.Y, Math.Max(0, textRightLimit - (bounds.X + 6)), bounds.Height);
+
+                    void DrawCellText()
+                    {
+                        if (hasCachedRow && cachedRow is not null && columnIndex < cachedRow.Length && cachedRow[columnIndex] is not null)
+                        {
+                            DrawFormattedText(context, cachedRow[columnIndex].FormattedText, textRect, cachedRow[columnIndex].Alignment);
+                        }
+                        else
+                        {
+                            var text = cellRenderer.FormatValue(cellValue, GridRendererContext.Default);
+                            DrawText(context, text, textRect, cellRenderer.Alignment, CellForeground);
+                        }
+                    }
+
+                    if (isTextCellWithButton)
+                    {
+                        // Clip so long text can never render underneath the button, which may be
+                        // pinned well before the cell's own end.
+                        using (context.PushClip(textRect))
+                            DrawCellText();
+
+                        DrawStructuredTextButton(context, bounds);
+                    }
+                    else
+                    {
+                        DrawCellText();
+                    }
                 }
 
                 if (firstBounds.HasValue && lastBounds.HasValue)
@@ -840,6 +933,16 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         };
     }
 
+    private void DrawStructuredTextButton(DrawingContext context, GridCellBounds bounds)
+    {
+        var rect = GetStructuredTextButtonRect(bounds);
+        context.DrawRectangle(StructuredTextButtonBackgroundBrush, null, rect, 3, 3);
+        var formatted = new FormattedText("...", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, GetTypeface(), GridFontSize * 0.75, StructuredTextButtonForegroundBrush);
+        var textX = rect.X + Math.Max(0, (rect.Width - formatted.Width) / 2);
+        var textY = rect.Y + Math.Max(0, (rect.Height - formatted.Height) / 2);
+        context.DrawText(formatted, new Point(textX, textY));
+    }
+
     private void DrawText(DrawingContext context, string text, Rect rect, GridColumnAlignment alignment, IBrush foregroundBrush)
     {
         var formatted = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, GetTypeface(), GridFontSize, foregroundBrush);
@@ -859,7 +962,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         context.DrawText(formatted, new Point(x, y));
     }
 
-    private void InitializeColumnWidthsIfNeeded()
+    private void InitializeColumnWidthsIfNeeded(double? availableWidth = null)
     {
         if (!_autoWidthPending || Headers.Count == 0)
             return;
@@ -867,9 +970,18 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         if (Rows.Count == 0)
             return;
 
+        // Cap how wide any single column can claim on first display (e.g. a long JSON value)
+        // so it doesn't dominate the grid. The user can still drag it wider afterwards.
+        // MeasureOverride runs before Bounds reflects the new size, so it passes availableSize
+        // explicitly; Render (which runs after Arrange) can rely on Bounds directly.
+        var effectiveWidth = availableWidth ?? Bounds.Width;
+        var maxInitialColumnWidth = effectiveWidth > 0 && !double.IsInfinity(effectiveWidth)
+            ? effectiveWidth * MaxInitialColumnWidthRatio
+            : double.MaxValue;
+
         for (var columnIndex = 0; columnIndex < Headers.Count; columnIndex++)
         {
-            _columnLayout.TrackWidth(columnIndex, MeasureTextWidth(Headers[columnIndex], HeaderForeground) + 16);
+            _columnLayout.TrackWidth(columnIndex, Math.Min(maxInitialColumnWidth, MeasureTextWidth(Headers[columnIndex], HeaderForeground) + 16));
 
             for (var rowIndex = 0; rowIndex < Rows.Count; rowIndex++)
             {
@@ -877,12 +989,18 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
                 var value = columnIndex < row.Count ? row[columnIndex] : null;
                 var renderer = GetColumnRenderer(columnIndex, value);
                 var width = renderer.MeasureWidth(value, GridRendererContext.Default, text => MeasureTextWidth(text, CellForeground)) + 16;
-                _columnLayout.TrackWidth(columnIndex, width);
+                _columnLayout.TrackWidth(columnIndex, Math.Min(maxInitialColumnWidth, width));
             }
         }
 
         _lastMeasuredRowHeaderWidth = GetRowHeaderWidth();
         _autoWidthPending = false;
+
+        // Column widths just changed Extent, but nothing has told the ScrollViewer to
+        // re-evaluate scrollbar visibility yet. Without this, a scrollbar that only becomes
+        // necessary once real widths are known can stay hidden until an unrelated layout pass
+        // (e.g. selecting a cell) happens to trigger one.
+        RequestRefresh(scroll: true);
     }
 
     private double MeasureTextWidth(string text, IBrush foregroundBrush)
@@ -1033,12 +1151,38 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         return _tableController.VisibleRowCount;
     }
 
-    internal GridCellBounds GetCellBoundsForTest(int rowIndex, int columnIndex)
+    internal GridCellBounds GetCellBoundsForTest(int rowIndex, int columnIndex) =>
+        GetCellBounds(rowIndex, columnIndex);
+
+    internal bool IsStructuredTextButtonHitForTest(int rowIndex, int columnIndex, Point point) =>
+        IsStructuredTextButtonHit(rowIndex, columnIndex, point);
+
+    internal Rect GetStructuredTextButtonRectForTest(int rowIndex, int columnIndex) =>
+        GetStructuredTextButtonRect(GetCellBounds(rowIndex, columnIndex));
+
+    internal double GetExtentWidthForTest() => Extent.Width;
+
+    internal double GetViewportWidthForTest() => Bounds.Width;
+
+    internal bool TryGetResizeColumnIndexForTest(Point point, out int columnIndex) =>
+        TryGetResizeColumnIndex(point, out columnIndex);
+
+    internal void RequestStructuredTextCellViewForTest(GridCellAddress cell) => RequestStructuredTextCellView(cell);
+
+    internal void SetColumnWidthForTest(int columnIndex, double width)
+    {
+        if (_columnLayout.SetWidth(columnIndex, width))
+            RequestRefresh(scroll: true, measure: true, visual: true);
+    }
+
+    internal GridCellBounds GetCellBounds(int rowIndex, int columnIndex)
     {
         _tableController.SetDimensions(Rows.Count, Headers.Count);
         UpdateControllerViewport();
         return _tableController.GetCellBounds(rowIndex, columnIndex);
     }
+
+    internal bool IsCellBoundsVisible(GridCellBounds bounds) => _tableController.IsCellBoundsVisible(bounds);
 
     internal Point GetCellClickPointForTest(int rowIndex, int columnIndex)
     {

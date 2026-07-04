@@ -8,6 +8,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
@@ -19,6 +20,7 @@ using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.NextGrid;
+using DataDeveloper.NextGrid.Renderers;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -447,6 +449,12 @@ public class TabDataGridViewModel : BaseTabContent
             ValidateRow(row);
 
         RecalculatePendingChanges();
+    }
+
+    public Task<string?> ShowStructuredTextCellDialogAsync(Window parentWindow, string? value, bool isEditable, StructuredTextKind kind)
+    {
+        var dialogService = ServiceProvider.GetRequiredService<IStructuredTextCellDialogService>();
+        return dialogService.ShowDialogAsync(parentWindow, value, isEditable, kind);
     }
 
     private async Task SubmitPendingChangesAsync()

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="XML" extensions=".xml;.xsd;.xslt;.xsl;.config" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="#6A9955" exampleText="&lt;!-- comment --&gt;" />
+    <Color name="CData" foreground="#808080" exampleText="&lt;![CDATA[ ]]&gt;" />
+    <Color name="DocType" foreground="#808080" exampleText="&lt;!DOCTYPE root&gt;" />
+    <Color name="XmlDeclaration" foreground="#569CD6" exampleText="&lt;?xml version=&quot;1.0&quot;?&gt;" />
+    <Color name="XmlTag" foreground="#569CD6" exampleText="&lt;tag&gt;&lt;/tag&gt;" />
+    <Color name="AttributeName" foreground="#9CDCFE" exampleText="&lt;a href=&quot;#&quot;&gt;" />
+    <Color name="AttributeValue" foreground="#CE9178" exampleText="&lt;a href=&quot;#&quot;&gt;" />
+    <Color name="Entity" foreground="#D7BA7D" exampleText="&amp;#160;" />
+
+    <RuleSet name="AttributeValueSet">
+        <Span begin="&amp;" end=";" color="Entity" />
+    </RuleSet>
+
+    <RuleSet name="TagSet">
+        <Span color="AttributeValue" multiline="true" ruleSet="AttributeValueSet">
+            <Begin>"</Begin>
+            <End>"</End>
+        </Span>
+        <Span color="AttributeValue" multiline="true" ruleSet="AttributeValueSet">
+            <Begin>'</Begin>
+            <End>'</End>
+        </Span>
+        <Rule color="AttributeName">
+            [\d\w:]+(?=\s*=)
+        </Rule>
+    </RuleSet>
+
+    <RuleSet ignoreCase="false">
+        <Span color="Comment" multiline="true">
+            <Begin>&lt;!--</Begin>
+            <End>--&gt;</End>
+        </Span>
+
+        <Span color="CData" multiline="true">
+            <Begin>&lt;!\[CDATA\[</Begin>
+            <End>\]\]&gt;</End>
+        </Span>
+
+        <Span color="DocType" multiline="true">
+            <Begin>&lt;!DOCTYPE</Begin>
+            <End>&gt;</End>
+        </Span>
+
+        <Span color="XmlDeclaration" multiline="true" ruleSet="TagSet">
+            <Begin>&lt;\?</Begin>
+            <End>\?&gt;</End>
+        </Span>
+
+        <Span color="XmlTag" ruleSet="TagSet" multiline="true">
+            <Begin>&lt;</Begin>
+            <End>&gt;</End>
+        </Span>
+
+        <Span begin="&amp;" end=";" color="Entity" />
+    </RuleSet>
+</SyntaxDefinition>
