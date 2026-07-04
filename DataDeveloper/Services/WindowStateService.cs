@@ -49,4 +49,25 @@ public class WindowStateService : IWindowStateService
         if (state.WindowState != WindowState.Minimized)
             window.WindowState = state.WindowState;
     }
+
+    public void SaveSize(string key, Window window)
+    {
+        if (window.WindowState == WindowState.Minimized)
+            return;
+
+        var state = new WindowSizeInfo { Width = window.Width, Height = window.Height };
+        _fileService.SaveJson(GetSizeFileName(key), state, Subfolder);
+    }
+
+    public void RestoreSize(string key, Window window)
+    {
+        var state = _fileService.LoadJson<WindowSizeInfo>(GetSizeFileName(key), Subfolder);
+        if (state is null)
+            return;
+
+        window.Width = state.Width;
+        window.Height = state.Height;
+    }
+
+    private static string GetSizeFileName(string key) => $"window-size-{key}.json";
 }

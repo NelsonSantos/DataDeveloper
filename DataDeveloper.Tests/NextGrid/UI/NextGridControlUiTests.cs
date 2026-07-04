@@ -8,6 +8,7 @@ using Avalonia.Threading;
 using DataDeveloper.Models;
 using DataDeveloper.NextGrid;
 using DataDeveloper.NextGrid.Editors;
+using DataDeveloper.NextGrid.Renderers;
 using DataDeveloper.NextGrid.UI;
 using Xunit;
 
@@ -172,6 +173,407 @@ public sealed class NextGridControlUiTests
 
         Assert.Equal("edited", grid.Rows[0][0]);
         window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ActiveEditor_RepositionsWhenGridScrollsHorizontally()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 20);
+        grid.CanEditCells = true;
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var cell = grid.GetCellBoundsForTest(0, 1);
+        var clickPoint = new Point(cell.X + Math.Min(12, cell.Width / 2), cell.Y + Math.Min(12, cell.Height / 2));
+        grid.SelectCellAtLocalPointForTest(clickPoint);
+        grid.BeginEditFocusedCellForTest();
+        var initialPosition = grid.GetEditorPositionForTest();
+
+        grid.ScrollToForTest(80, 0);
+        ExecuteLayout(window);
+
+        var scrolledBounds = grid.GetCellBoundsForTest(0, 1);
+        Assert.True(grid.IsEditorVisibleForTest());
+        Assert.NotEqual(initialPosition.X, grid.GetEditorPositionForTest().X);
+        Assert.Equal(scrolledBounds.X + 1, grid.GetEditorPositionForTest().X, 3);
+        Assert.Equal(scrolledBounds.Y + 1, grid.GetEditorPositionForTest().Y, 3);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void ActiveEditor_ClosesWhenCellScrollsOutOfView()
+    {
+        var grid = CreateGrid(rowCount: 20, columnCount: 20);
+        grid.CanEditCells = true;
+        var window = CreateWindow(grid, 400, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var originalValue = grid.Rows[0][0];
+        var cell = grid.GetCellBoundsForTest(0, 0);
+        var clickPoint = new Point(cell.X + Math.Min(12, cell.Width / 2), cell.Y + Math.Min(12, cell.Height / 2));
+        grid.SelectCellAtLocalPointForTest(clickPoint);
+        grid.BeginEditFocusedCellForTest();
+
+        grid.ScrollToForTest(100000, 0);
+        ExecuteLayout(window);
+
+        Assert.False(grid.IsEditorVisibleForTest());
+        Assert.Equal(originalValue, grid.Rows[0][0]);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextButtonHover_ShowsExplanatoryTooltip()
+    {
+        var grid = CreateStructuredTextGrid();
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        var jsonCellBounds = grid.GetCellBoundsForTest(0, 1);
+        var iconCenter = new Point(jsonCellBounds.X + jsonCellBounds.Width - 12, jsonCellBounds.Y + (jsonCellBounds.Height / 2));
+        var cellStart = new Point(jsonCellBounds.X + 2, jsonCellBounds.Y + 2);
+
+        Assert.Equal("Open JSON viewer", grid.GetTooltipForPointForTest(iconCenter));
+        Assert.Null(grid.GetTooltipForPointForTest(cellStart));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextButtonHit_OnlyDetectedWithinIconRegionOfCell()
+    {
+        var grid = CreateStructuredTextGrid();
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var jsonCellBounds = grid.GetCellBoundsForTest(0, 1);
+        var iconCenter = new Point(jsonCellBounds.X + jsonCellBounds.Width - 12, jsonCellBounds.Y + (jsonCellBounds.Height / 2));
+        var cellStart = new Point(jsonCellBounds.X + 2, jsonCellBounds.Y + 2);
+
+        Assert.True(grid.IsStructuredTextButtonHitForTest(0, 1, iconCenter));
+        Assert.False(grid.IsStructuredTextButtonHitForTest(0, 1, cellStart));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextButtonHit_AlsoAppearsOnPlainTextColumns()
+    {
+        // Every text column gets the expand button now; JSON/XML detection happens only
+        // when the button is actually clicked, not while deciding whether to draw it.
+        var grid = CreateStructuredTextGrid();
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var plainCellBounds = grid.GetCellBoundsForTest(0, 0);
+        var plainIconArea = new Point(plainCellBounds.X + plainCellBounds.Width - 12, plainCellBounds.Y + (plainCellBounds.Height / 2));
+        Assert.True(grid.IsStructuredTextButtonHitForTest(0, 0, plainIconArea));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void RowsReplacedAfterInitialLayout_RaisesScrollInvalidatedOnceWidthsAreRecomputed()
+    {
+        var headers = new ObservableCollection<string> { "Field1", "Field2", "Field3" };
+        var types = new ObservableCollection<Type> { typeof(string), typeof(string), typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>> { new object?[] { "short", "short", "short" } };
+
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows };
+        var window = CreateWindow(grid, 300, 200);
+        window.Show();
+        ExecuteLayout(window);
+
+        var extentSnapshots = new List<double>();
+        grid.SubscribeScrollInvalidatedForTest(() => extentSnapshots.Add(grid.GetExtentWidthForTest()));
+
+        var longValue = new string('x', 200);
+        rows.Clear();
+        rows.Add(new object?[] { longValue, longValue, longValue });
+        ExecuteLayout(window);
+
+        var finalExtentWidth = grid.GetExtentWidthForTest();
+        Assert.True(finalExtentWidth > 300);
+        Assert.Contains(extentSnapshots, w => Math.Abs(w - finalExtentWidth) < 0.5);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextButtonRect_ClampsToAvoidVerticalScrollBarReserve()
+    {
+        var grid = CreateStructuredTextGrid();
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        var bounds = grid.GetCellBoundsForTest(0, 1);
+        var naturalIconCenter = new Point(bounds.X + bounds.Width - 12, bounds.Y + (bounds.Height / 2));
+
+        grid.SetScrollBarReserveForTest(0, 900);
+
+        Assert.False(grid.IsStructuredTextButtonHitForTest(0, 1, naturalIconCenter));
+        Assert.True(grid.IsStructuredTextButtonHitForTest(0, 1, new Point(bounds.X + 2, bounds.Y + (bounds.Height / 2))));
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextButtonRect_StaysAnchoredToCellEndWhenColumnIsWiderThanViewport()
+    {
+        var longJson = "{\"a\":\"" + new string('x', 400) + "\"}";
+        var headers = new ObservableCollection<string> { "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow([longJson])
+        };
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows };
+        var window = CreateWindow(grid, 300, 200);
+        window.Show();
+        ExecuteLayout(window);
+
+        // Auto-width caps the column below the viewport width on first display; widen it
+        // manually (as a user drag-resize would) to exercise the overflowing-column scenario.
+        grid.SetColumnWidthForTest(0, 2000);
+        ExecuteLayout(window);
+
+        var bounds = grid.GetCellBoundsForTest(0, 0);
+        Assert.True(bounds.X + bounds.Width > 300);
+
+        grid.SetScrollBarReserveForTest(0, 20);
+
+        var naturalRect = TextGridCellRenderer.GetIconRect(bounds);
+        var actualRect = grid.GetStructuredTextButtonRectForTest(0, 0);
+
+        Assert.Equal(naturalRect.X, actualRect.X, 3);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void LastColumnResizeHandle_IsReachableAtMaximumScroll()
+    {
+        var longJson = "{\"a\":\"" + new string('x', 400) + "\"}";
+        var headers = new ObservableCollection<string> { "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow([longJson])
+        };
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows };
+        var window = CreateWindow(grid, 300, 200);
+        window.Show();
+        ExecuteLayout(window);
+
+        grid.SetColumnWidthForTest(0, 2000);
+        ExecuteLayout(window);
+
+        grid.SetScrollBarReserveForTest(0, 20);
+        grid.ScrollToForTest(1_000_000, 0);
+        ExecuteLayout(window);
+
+        var bounds = grid.GetCellBoundsForTest(0, 0);
+        var reachableRight = grid.GetViewportWidthForTest() - 20;
+        Assert.True(
+            bounds.X + bounds.Width <= reachableRight + 0.5,
+            $"Column boundary at {bounds.X + bounds.Width} is not within the reachable area (<= {reachableRight}); the scrollbar would intercept the resize handle.");
+
+        var resizePoint = new Point(bounds.X + bounds.Width, 5);
+        Assert.True(grid.TryGetResizeColumnIndexForTest(resizePoint, out var columnIndex));
+        Assert.Equal(0, columnIndex);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void LastColumnBoundary_AlreadyReachableAtMaximumScrollWithoutScrollBarReserve()
+    {
+        var longJson = "{\"a\":\"" + new string('x', 400) + "\"}";
+        var headers = new ObservableCollection<string> { "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow([longJson])
+        };
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows };
+        var window = CreateWindow(grid, 300, 200);
+        window.Show();
+        ExecuteLayout(window);
+
+        grid.ScrollToForTest(1_000_000, 0);
+        ExecuteLayout(window);
+
+        var bounds = grid.GetCellBoundsForTest(0, 0);
+        Assert.True(bounds.X + bounds.Width <= grid.GetViewportWidthForTest() + 0.5);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void AutoWidth_CapsInitialColumnWidthAtHalfTheGridWidth()
+    {
+        var longJson = "{\"a\":\"" + new string('x', 400) + "\"}";
+        var headers = new ObservableCollection<string> { "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow([longJson])
+        };
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows };
+        var window = CreateWindow(grid, 900, 200);
+        window.Show();
+        ExecuteLayout(window);
+
+        var bounds = grid.GetCellBoundsForTest(0, 0);
+        Assert.True(bounds.Width <= (grid.GetViewportWidthForTest() * 0.5) + 0.5);
+
+        grid.SetColumnWidthForTest(0, 2000);
+        ExecuteLayout(window);
+
+        var widenedBounds = grid.GetCellBoundsForTest(0, 0);
+        Assert.Equal(2000, widenedBounds.Width, 3);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextCellView_RequestedWithEditableTrueForEditableColumn()
+    {
+        var grid = CreateStructuredTextGrid();
+        grid.CanEditCells = true;
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        GridStructuredTextCellViewRequestedEventArgs? received = null;
+        grid.StructuredTextCellViewRequested += (_, args) => received = args;
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+
+        Assert.NotNull(received);
+        Assert.Equal(new GridCellAddress(0, 1), received!.Cell);
+        Assert.Equal("{\"a\":1}", received.Value);
+        Assert.True(received.IsEditable);
+        Assert.Equal(StructuredTextKind.Json, received.Kind);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextCellView_RequestedWithXmlValue_ReportsXmlKind()
+    {
+        var headers = new ObservableCollection<string> { "Name", "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string), typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow(["Alice", "<root><a>1</a></root>"])
+        };
+        var grid = new NextGridControl { Headers = headers, ColumnTypes = types, Rows = rows, CanEditCells = true };
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        GridStructuredTextCellViewRequestedEventArgs? received = null;
+        grid.StructuredTextCellViewRequested += (_, args) => received = args;
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+
+        Assert.NotNull(received);
+        Assert.Equal("<root><a>1</a></root>", received!.Value);
+        Assert.Equal(StructuredTextKind.Xml, received.Kind);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextCellView_RequestedWithEditableFalseWhenGridNotEditable()
+    {
+        var grid = CreateStructuredTextGrid();
+        grid.CanEditCells = false;
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        GridStructuredTextCellViewRequestedEventArgs? received = null;
+        grid.StructuredTextCellViewRequested += (_, args) => received = args;
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+
+        Assert.NotNull(received);
+        Assert.False(received!.IsEditable);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void StructuredTextCellView_RequestedWithEditableFalseWhenColumnIsReadOnly()
+    {
+        var grid = CreateStructuredTextGrid();
+        grid.CanEditCells = true;
+        grid.ReadOnlyColumns = new ObservableCollection<int> { 1 };
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        GridStructuredTextCellViewRequestedEventArgs? received = null;
+        grid.StructuredTextCellViewRequested += (_, args) => received = args;
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+
+        Assert.NotNull(received);
+        Assert.False(received!.IsEditable);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void CommitStructuredTextCellEdit_UpdatesRowValueAndRaisesCellEditCommitted()
+    {
+        var grid = CreateStructuredTextGrid();
+        grid.CanEditCells = true;
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        var committed = false;
+        grid.CellEditCommitted += (_, _) => committed = true;
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+        grid.CommitStructuredTextCellEdit("{\"a\":2}");
+
+        Assert.True(committed);
+        Assert.Equal("{\"a\":2}", grid.Rows[0][1]);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public void CancelStructuredTextCellEdit_LeavesRowValueUnchanged()
+    {
+        var grid = CreateStructuredTextGrid();
+        grid.CanEditCells = true;
+        var window = CreateWindow(grid, 900, 420);
+        window.Show();
+        ExecuteLayout(window);
+
+        grid.RequestStructuredTextCellViewForTest(new GridCellAddress(0, 1));
+        grid.CancelStructuredTextCellEdit();
+
+        Assert.Equal("{\"a\":1}", grid.Rows[0][1]);
+        window.Close();
+    }
+
+    private static NextGridControl CreateStructuredTextGrid()
+    {
+        var headers = new ObservableCollection<string> { "Name", "Payload" };
+        var types = new ObservableCollection<Type> { typeof(string), typeof(string) };
+        var rows = new ObservableCollection<IReadOnlyList<object?>>
+        {
+            new EditableGridRow(["Alice", "{\"a\":1}"])
+        };
+
+        return new NextGridControl
+        {
+            Headers = headers,
+            ColumnTypes = types,
+            Rows = rows
+        };
     }
 
     [AvaloniaFact]

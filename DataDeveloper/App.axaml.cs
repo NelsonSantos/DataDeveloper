@@ -30,6 +30,8 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {    
         SyntaxLoaderService.RegisterSqlHighlighting();
+        SyntaxLoaderService.RegisterJsonHighlighting();
+        SyntaxLoaderService.RegisterXmlHighlighting();
         
         var services = new ServiceCollection();
         var viewResolver = new ViewResolverService(services);
@@ -42,6 +44,7 @@ public partial class App : Application
         services.AddTransient<IMainWindow, MainWindow>();
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IReleaseUpdateService, ReleaseUpdateService>();
+        services.AddTransient<IStructuredTextCellDialogService, StructuredTextCellDialogService>();
 
         this.RegisterServices(services);
         this.RegisterViewViewModel(viewResolver);

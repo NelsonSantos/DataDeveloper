@@ -104,6 +104,14 @@ public sealed class GridTableController
             _viewport.RowHeight);
     }
 
+    public bool IsCellBoundsVisible(GridCellBounds bounds)
+    {
+        return bounds.X + bounds.Width > _viewport.RowHeaderWidth &&
+               bounds.Y + bounds.Height > _viewport.HeaderHeight &&
+               bounds.X < _viewport.ViewportWidth &&
+               bounds.Y < _viewport.ViewportHeight;
+    }
+
     public GridHitTestResult HitTest(double x, double y)
     {
         if (x < 0 || y < 0)

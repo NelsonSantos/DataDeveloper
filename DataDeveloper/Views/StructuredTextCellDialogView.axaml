@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="520"
+             x:Class="DataDeveloper.Views.StructuredTextCellDialogView">
+    <Design.DataContext>
+        <vm:StructuredTextCellDialogViewModel />
+    </Design.DataContext>
+
+    <Grid Margin="16" RowDefinitions="*,Auto,Auto">
+        <avaloniaEdit:TextEditor x:Name="Editor"
+            Grid.Row="0"
+            FontFamily="{StaticResource MonospaceFont}"
+            ShowLineNumbers="True"
+            HorizontalScrollBarVisibility="Visible"
+            VerticalScrollBarVisibility="Visible"
+            Background="#202424"
+            IsReadOnly="{Binding !IsEditable}" />
+
+        <Border Grid.Row="1"
+                Margin="0,10,0,0"
+                Padding="8,4"
+                CornerRadius="4"
+                Background="#3A2323"
+                BorderBrush="#A64B4B"
+                BorderThickness="0.5"
+                IsVisible="{Binding HasInvalidTextWarning}">
+            <TextBlock Text="{Binding InvalidWarningMessage}"
+                       Foreground="#FFC6C6"
+                       FontSize="11" />
+        </Border>
+
+        <Grid Grid.Row="2"
+              ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
+              ColumnSpacing="10"
+              Margin="0,16,0,0">
+            <Button Grid.Column="0" Content="Prettify" Classes="dialog-button" IsVisible="{Binding ShowFormattingButtons}" Command="{Binding PrettifyCommand}" />
+            <Button Grid.Column="1" Content="Minify" Classes="dialog-button" IsVisible="{Binding ShowFormattingButtons}" Command="{Binding MinifyCommand}" />
+
+            <Button Grid.Column="3"
+                    Content="Close"
+                    Classes="dialog-button"
+                    IsVisible="{Binding ShowClose}"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+            <Button Grid.Column="3"
+                    Content="Ok"
+                    Classes="dialog-button primary"
+                    IsVisible="{Binding ShowOk}"
+                    Command="{Binding OkCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+            <Button Grid.Column="4"
+                    Content="Cancel"
+                    Classes="dialog-button"
+                    IsVisible="{Binding ShowSaveCancel}"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+            <Button Grid.Column="5"
+                    Content="Save"
+                    Classes="dialog-button primary"
+                    IsVisible="{Binding ShowSaveCancel}"
+                    Command="{Binding SaveCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -194,6 +194,63 @@ public sealed class GridTableControllerTests
     }
 
     [Fact]
+    public void IsCellBoundsVisible_ReturnsTrueWhenCellIsWithinViewport()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(20, 3);
+        controller.UpdateViewport(new GridViewportState(0, 0, 320, 200, 44, 34, 28));
+
+        var bounds = controller.GetCellBounds(2, 1);
+
+        Assert.True(controller.IsCellBoundsVisible(bounds));
+    }
+
+    [Fact]
+    public void IsCellBoundsVisible_ReturnsFalseWhenCellScrolledBehindRowHeader()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        columns.SetWidth(0, 120);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(20, 3);
+        controller.UpdateViewport(new GridViewportState(200, 0, 320, 200, 44, 34, 28));
+
+        var bounds = controller.GetCellBounds(2, 0);
+
+        Assert.False(controller.IsCellBoundsVisible(bounds));
+    }
+
+    [Fact]
+    public void IsCellBoundsVisible_ReturnsFalseWhenCellScrolledBehindColumnHeader()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(20, 3);
+        controller.UpdateViewport(new GridViewportState(0, 140, 320, 200, 44, 34, 28));
+
+        var bounds = controller.GetCellBounds(2, 0);
+
+        Assert.False(controller.IsCellBoundsVisible(bounds));
+    }
+
+    [Fact]
+    public void IsCellBoundsVisible_ReturnsFalseWhenCellScrolledPastViewportEdge()
+    {
+        var columns = new GridColumnLayoutEngine(100);
+        columns.EnsureColumnCount(3);
+        var controller = new GridTableController(columns, new GridLayoutEngine(columns), new GridViewportEngine(columns), new GridSelectionModel());
+        controller.SetDimensions(20, 3);
+        controller.UpdateViewport(new GridViewportState(0, 0, 320, 200, 44, 34, 28));
+
+        var bounds = controller.GetCellBounds(19, 2);
+
+        Assert.False(controller.IsCellBoundsVisible(bounds));
+    }
+
+    [Fact]
     public void ExtendFocus_WithPageDown_ExtendsSelectionByVisibleRows()
     {
         var columns = new GridColumnLayoutEngine(100);

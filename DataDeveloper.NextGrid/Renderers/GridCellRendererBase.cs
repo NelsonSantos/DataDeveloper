@@ -6,7 +6,7 @@ public abstract class GridCellRendererBase : IGridCellRenderer
 
     public abstract bool CanRender(Type? valueType, object? value);
 
-    public double MeasureWidth(object? value, GridRendererContext context, Func<string, double> measureText)
+    public virtual double MeasureWidth(object? value, GridRendererContext context, Func<string, double> measureText)
     {
         ArgumentNullException.ThrowIfNull(measureText);
         return measureText(FormatValue(value, context));

@@ -40,6 +40,7 @@ public sealed class NextGridControl : UserControl
     private Type? _activeDateTimeValueType;
     private object? _activeDateTimeOriginalValue;
     private bool _activeDateTimeAllowsNull;
+    private GridCellAddress? _activeEditCell;
     private readonly IReadOnlyList<string> _monthOptions =
     [
         "January",
@@ -195,6 +196,7 @@ public sealed class NextGridControl : UserControl
     }
 
     public event EventHandler<GridCellEditCommittedEventArgs>? CellEditCommitted;
+    public event EventHandler<GridStructuredTextCellViewRequestedEventArgs>? StructuredTextCellViewRequested;
 
     public NextGridControl()
     {
@@ -356,12 +358,14 @@ public sealed class NextGridControl : UserControl
         _presenter.AddHandler(Control.RequestBringIntoViewEvent, OnPresenterRequestBringIntoView, RoutingStrategies.Bubble);
         _presenter.PointerMoved += OnPresenterPointerMoved;
         _presenter.PointerExited += OnPresenterPointerExited;
+        _presenter.ScrollInvalidated += OnPresenterScrollInvalidated;
         _scrollViewer.LayoutUpdated += OnScrollViewerLayoutUpdated;
         _presenter.FocusedCellChanged += OnPresenterFocusedCellChanged;
         _presenter.SelectionChanged += OnPresenterSelectionChanged;
         _presenter.CellEditRequested += OnPresenterCellEditRequested;
         _presenter.CellEditCommitted += OnPresenterCellEditCommitted;
         _presenter.CellEditCanceled += OnPresenterCellEditCanceled;
+        _presenter.StructuredTextCellViewRequested += OnPresenterStructuredTextCellViewRequested;
         _booleanListBox.Bind(TemplatedControl.FontFamilyProperty, this.GetBindingObservable(GridFontFamilyProperty));
         _booleanListBox.Bind(TemplatedControl.FontSizeProperty, this.GetBindingObservable(GridFontSizeProperty));
         _booleanListBox.Bind(ForegroundProperty, this.GetBindingObservable(CellForegroundProperty));
@@ -407,6 +411,38 @@ public sealed class NextGridControl : UserControl
     internal int GetSelectedRowIndexForTest() => SelectedRowIndex;
 
     internal void BeginEditFocusedCellForTest() => _presenter.BeginEditAtFocusedCell();
+
+    internal void ScrollToForTest(double horizontalOffset, double verticalOffset) =>
+        _presenter.Offset = new Vector(horizontalOffset, verticalOffset);
+
+    internal Point GetEditorPositionForTest() => new(_editorTextBox.Margin.Left, _editorTextBox.Margin.Top);
+
+    internal bool IsEditorVisibleForTest() => _editorTextBox.IsVisible;
+
+    internal bool IsStructuredTextButtonHitForTest(int rowIndex, int columnIndex, Point point) =>
+        _presenter.IsStructuredTextButtonHitForTest(rowIndex, columnIndex, point);
+
+    internal Rect GetStructuredTextButtonRectForTest(int rowIndex, int columnIndex) =>
+        _presenter.GetStructuredTextButtonRectForTest(rowIndex, columnIndex);
+
+    internal void RequestStructuredTextCellViewForTest(GridCellAddress cell) =>
+        _presenter.RequestStructuredTextCellViewForTest(cell);
+
+    internal void SetColumnWidthForTest(int columnIndex, double width) =>
+        _presenter.SetColumnWidthForTest(columnIndex, width);
+
+    internal void SetScrollBarReserveForTest(double horizontalReserve, double verticalReserve) =>
+        _presenter.SetScrollBarReserve(horizontalReserve, verticalReserve);
+
+    internal void SubscribeScrollInvalidatedForTest(Action callback) =>
+        _presenter.ScrollInvalidated += (_, _) => callback();
+
+    internal double GetExtentWidthForTest() => _presenter.GetExtentWidthForTest();
+
+    internal double GetViewportWidthForTest() => _presenter.GetViewportWidthForTest();
+
+    internal bool TryGetResizeColumnIndexForTest(Point point, out int columnIndex) =>
+        _presenter.TryGetResizeColumnIndexForTest(point, out columnIndex);
 
     internal void CommitEditForTest(string value)
     {
@@ -480,19 +516,24 @@ public sealed class NextGridControl : UserControl
         if (_editorTextBox.IsVisible)
             return;
 
-        var hit = _presenter.HitTestAtLocalPointForTest(e.GetPosition(_presenter));
-        if (hit.Region == GridRegionKind.Cell &&
-            hit.RowIndex >= 0 &&
-            hit.RowIndex < Rows.Count &&
-            Rows[hit.RowIndex] is IGridEditableRow editableRow)
-        {
-            var message = editableRow.GetValidationError(hit.ColumnIndex);
-            ToolTip.SetTip(_presenter, message);
-            return;
-        }
-
-        ToolTip.SetTip(_presenter, null);
+        ToolTip.SetTip(_presenter, GetTooltipForPoint(e.GetPosition(_presenter)));
     }
+
+    private string? GetTooltipForPoint(Point point)
+    {
+        var hit = _presenter.HitTestAtLocalPointForTest(point);
+        if (hit.Region != GridRegionKind.Cell || hit.RowIndex < 0 || hit.RowIndex >= Rows.Count)
+            return null;
+
+        if (_presenter.IsStructuredTextButtonHit(hit.RowIndex, hit.ColumnIndex, point))
+            return "Open JSON viewer";
+
+        return Rows[hit.RowIndex] is IGridEditableRow editableRow
+            ? editableRow.GetValidationError(hit.ColumnIndex)
+            : null;
+    }
+
+    internal string? GetTooltipForPointForTest(Point point) => GetTooltipForPoint(point);
 
     private void OnPresenterPointerExited(object? sender, PointerEventArgs e)
     {
@@ -502,6 +543,8 @@ public sealed class NextGridControl : UserControl
     private void OnPresenterCellEditRequested(object? sender, GridCellEditRequestedEventArgs e)
     {
         ClearEditorError();
+        _activeEditCell = new GridCellAddress(e.Bounds.RowIndex, e.Bounds.ColumnIndex);
+
         if (IsBooleanEditor(e.Session))
         {
             ShowBooleanPopup(e.Session, e.Bounds);
@@ -528,6 +571,33 @@ public sealed class NextGridControl : UserControl
         _editorTextBox.SelectAll();
     }
 
+    private void OnPresenterScrollInvalidated(object? sender, EventArgs e)
+    {
+        if (_activeEditCell is not { } cell)
+            return;
+
+        var bounds = _presenter.GetCellBounds(cell.Row, cell.Column);
+        if (!_presenter.IsCellBoundsVisible(bounds))
+        {
+            _presenter.CancelEdit();
+            return;
+        }
+
+        if (_booleanPopup.IsOpen)
+        {
+            _booleanPopup.HorizontalOffset = bounds.X + 1;
+            _booleanPopup.VerticalOffset = bounds.Y + bounds.Height + 1;
+            return;
+        }
+
+        if (_editorTextBox.IsVisible)
+        {
+            _editorTextBox.Margin = new Thickness(bounds.X + 1, bounds.Y + 1, 0, 0);
+            if (_dateTimePopup.IsOpen)
+                PositionDateTimePopup(bounds);
+        }
+    }
+
     private void OnPresenterCellEditCommitted(object? sender, GridCellEditCommittedEventArgs e)
     {
         HideEditor();
@@ -540,6 +610,21 @@ public sealed class NextGridControl : UserControl
     {
         HideEditor();
         _presenter.Focus();
+    }
+
+    private void OnPresenterStructuredTextCellViewRequested(object? sender, GridStructuredTextCellViewRequestedEventArgs e)
+    {
+        StructuredTextCellViewRequested?.Invoke(this, e);
+    }
+
+    public void CommitStructuredTextCellEdit(string? value)
+    {
+        _presenter.CommitEdit(value);
+    }
+
+    public void CancelStructuredTextCellEdit()
+    {
+        _presenter.CancelEdit();
     }
 
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
@@ -620,6 +705,7 @@ public sealed class NextGridControl : UserControl
 
     private void HideEditor()
     {
+        _activeEditCell = null;
         ClearEditorError();
         _editorTextBox.IsVisible = false;
         _editorTextBox.Margin = new Thickness(0);

@@ -68,4 +68,23 @@ public sealed class GridRendererRegistryTests
         Assert.IsType<NumberGridCellRenderer>(renderer);
         Assert.Equal(GridColumnAlignment.Right, renderer.Alignment);
     }
+
+    [Theory]
+    [InlineData("{\"id\":1,\"name\":\"Alice\"}")]
+    [InlineData("[1,2,3]")]
+    [InlineData("<root><a>1</a></root>")]
+    [InlineData("{\"id\":1,")]
+    [InlineData("<root><a>1</a>")]
+    [InlineData("plain text")]
+    public void Resolve_ReturnsTextRendererForAnyStringRegardlessOfContent(string value)
+    {
+        // JSON/XML detection now happens at click-time (when the cell's expand button is
+        // used), not while resolving which renderer draws the cell. Every string column gets
+        // the same TextGridCellRenderer (and therefore the same expand button).
+        var registry = new GridRendererRegistry();
+
+        var renderer = registry.Resolve(typeof(string), value);
+
+        Assert.IsType<TextGridCellRenderer>(renderer);
+    }
 }

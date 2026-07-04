@@ -15,7 +15,8 @@
 - [ ] Export CSV/JSON
 - [x] Criar menu Edit: copy/paste/undo/redo/find/replace/upper/lower/beatify/indent/unindent
 - [x] Resolver menus nativos
-- [ ] Implementar editor de colunas avançado (Json, Imagen, etc)
+- [x] Implementar editor de colunas avançado (Json, Xml)
+- [ ] Implementar editor de colunas avançado (Imagen, etc)
 - [x] Validar a melhor forma de licença do software
 - [x] Colocar um disclaimer de uso de software livre, indicando que o software é livre e que não há garantias de qualquer tipo.
 - [ ] Colocar licença de recursos usados no software/mencionar os autores (XPTable, etc)
