@@ -627,6 +627,10 @@ public sealed class NextGridControl : UserControl
         _presenter.CancelEdit();
     }
 
+    public bool CanCopy => _presenter.HasSelectionForCopy;
+
+    public Task CopySelectionAsync() => _presenter.CopySelectionToClipboardAsync();
+
     private void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
         if (!_editorTextBox.IsVisible)

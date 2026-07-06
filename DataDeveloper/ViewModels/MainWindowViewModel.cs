@@ -15,6 +15,7 @@ using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
+using DataDeveloper.NextGrid.UI;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using ReactiveUI;
@@ -33,6 +34,15 @@ public class MainWindowViewModel : ViewModelBase
     private readonly KeyModifiers _primaryShortcutModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
     private TextEditor? _activeEditor;
     private DatabaseType _activeDatabaseType;
+    private NextGridControl? _activeGrid;
+    private ClipboardFocusTarget _clipboardFocusTarget = ClipboardFocusTarget.None;
+
+    private enum ClipboardFocusTarget
+    {
+        None,
+        Editor,
+        Grid
+    }
 
     public MainWindowViewModel(IServiceProvider serviceProvider)
     {
@@ -55,7 +65,7 @@ public class MainWindowViewModel : ViewModelBase
         this.SaveAsCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(isSaveAs: true), this.WhenAnyValue(vm => vm.HasEditor));
         this.AboutCommand = ReactiveCommand.CreateFromTask(ShowAboutAsync);
         this.CutCommand = ReactiveCommand.Create(Cut, this.WhenAnyValue(vm => vm.CanCut));
-        this.CopyCommand = ReactiveCommand.Create(Copy, this.WhenAnyValue(vm => vm.CanCopy));
+        this.CopyCommand = ReactiveCommand.CreateFromTask(Copy, this.WhenAnyValue(vm => vm.CanCopy));
         this.PasteCommand = ReactiveCommand.Create(Paste, this.WhenAnyValue(vm => vm.CanPaste));
         this.UndoCommand = ReactiveCommand.Create(Undo, this.WhenAnyValue(vm => vm.CanUndo));
         this.RedoCommand = ReactiveCommand.Create(Redo, this.WhenAnyValue(vm => vm.CanRedo));
@@ -243,6 +253,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         _activeEditor = editor;
         _activeDatabaseType = databaseType;
+        _clipboardFocusTarget = ClipboardFocusTarget.Editor;
         RefreshActiveEditorState();
     }
 
@@ -252,18 +263,43 @@ public class MainWindowViewModel : ViewModelBase
             return;
 
         _activeEditor = null;
+        if (_clipboardFocusTarget == ClipboardFocusTarget.Editor)
+            _clipboardFocusTarget = ClipboardFocusTarget.None;
+
+        RefreshActiveEditorState();
+    }
+
+    public void SetActiveGrid(NextGridControl grid)
+    {
+        _activeGrid = grid;
+        _clipboardFocusTarget = ClipboardFocusTarget.Grid;
+        RefreshActiveEditorState();
+    }
+
+    public void ClearActiveGrid(NextGridControl grid)
+    {
+        if (!ReferenceEquals(_activeGrid, grid))
+            return;
+
+        _activeGrid = null;
+        if (_clipboardFocusTarget == ClipboardFocusTarget.Grid)
+            _clipboardFocusTarget = ClipboardFocusTarget.None;
+
         RefreshActiveEditorState();
     }
 
     public void RefreshActiveEditorState()
     {
-        HasActiveEditor = _activeEditor is not null;
-        HasSelection = _activeEditor?.SelectionLength > 0;
-        CanCut = _activeEditor?.CanCut == true;
-        CanCopy = _activeEditor?.CanCopy == true;
-        CanPaste = _activeEditor is not null;
-        CanUndo = _activeEditor?.CanUndo == true;
-        CanRedo = _activeEditor?.CanRedo == true;
+        var isEditorFocus = _clipboardFocusTarget == ClipboardFocusTarget.Editor;
+        var isGridFocus = _clipboardFocusTarget == ClipboardFocusTarget.Grid;
+
+        HasActiveEditor = isEditorFocus && _activeEditor is not null;
+        HasSelection = isEditorFocus && _activeEditor?.SelectionLength > 0;
+        CanCut = isEditorFocus && _activeEditor?.CanCut == true;
+        CanCopy = isGridFocus ? _activeGrid?.CanCopy == true : isEditorFocus && _activeEditor?.CanCopy == true;
+        CanPaste = isEditorFocus && _activeEditor is not null;
+        CanUndo = isEditorFocus && _activeEditor?.CanUndo == true;
+        CanRedo = isEditorFocus && _activeEditor?.CanRedo == true;
         this.RaisePropertyChanged(nameof(HasEditor));
         this.RaisePropertyChanged(nameof(HasConnections));
     }
@@ -276,9 +312,11 @@ public class MainWindowViewModel : ViewModelBase
         RefreshActiveEditorState();
     }
 
-    private void Copy()
+    private async Task Copy()
     {
-        if (_activeEditor?.CanCopy == true)
+        if (_clipboardFocusTarget == ClipboardFocusTarget.Grid && _activeGrid?.CanCopy == true)
+            await _activeGrid.CopySelectionAsync();
+        else if (_activeEditor?.CanCopy == true)
             _activeEditor.Copy();
     }
 

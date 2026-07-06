@@ -659,7 +659,13 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
         InvalidateVisual();
     }
 
-    private async void CopySelectionToClipboard()
+    internal bool HasSelectionForCopy => _tableController.Selection.Ranges.Count > 0;
+
+    internal Task CopySelectionToClipboardAsync() => CopySelectionToClipboardCore();
+
+    private async void CopySelectionToClipboard() => await CopySelectionToClipboardCore();
+
+    private async Task CopySelectionToClipboardCore()
     {
         if (_tableController.Selection.Ranges.Count == 0)
             return;

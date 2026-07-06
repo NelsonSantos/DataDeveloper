@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
@@ -699,6 +700,66 @@ public sealed class NextGridControlUiTests
         var initial = NextGridControl.ResolveDateTimePopupInitialValue(session);
 
         Assert.Equal(new DateTimeOffset(new DateTime(2026, 4, 6, 20, 7, 14)), initial);
+    }
+
+    [AvaloniaFact]
+    public void CanCopy_ReflectsWhetherACellIsSelected()
+    {
+        var grid = CreateGrid(rowCount: 5, columnCount: 3);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        Assert.False(grid.CanCopy);
+
+        var cell = grid.GetCellBoundsForTest(0, 0);
+        grid.SelectCellAtLocalPointForTest(new Point(cell.X + 8, cell.Y + 8));
+
+        Assert.True(grid.CanCopy);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task CopySelectionAsync_CopiesFocusedCellValueToClipboard()
+    {
+        var grid = CreateGrid(rowCount: 5, columnCount: 3);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var cell = grid.GetCellBoundsForTest(2, 1);
+        grid.SelectCellAtLocalPointForTest(new Point(cell.X + 8, cell.Y + 8));
+
+        await grid.CopySelectionAsync();
+
+        var text = await window.Clipboard!.GetTextAsync();
+        Assert.Equal("R3C2", text);
+        window.Close();
+    }
+
+    [AvaloniaFact]
+    public async Task CtrlOrCmdC_WithFocusedCell_CopiesCellValueToClipboard()
+    {
+        var grid = CreateGrid(rowCount: 5, columnCount: 3);
+        var window = CreateWindow(grid, 900, 420);
+
+        window.Show();
+        ExecuteLayout(window);
+
+        var cell = grid.GetCellBoundsForTest(1, 1);
+        var clickPoint = new Point(cell.X + 8, cell.Y + 8);
+        window.MouseDown(clickPoint, MouseButton.Left);
+        window.MouseUp(clickPoint, MouseButton.Left);
+        Dispatcher.UIThread.RunJobs();
+
+        window.KeyPressQwerty(PhysicalKey.C, RawInputModifiers.Control);
+        Dispatcher.UIThread.RunJobs();
+
+        var text = await window.Clipboard!.GetTextAsync();
+        Assert.Equal("R2C2", text);
+        window.Close();
     }
 
     private static NextGridControl CreateGrid(int rowCount, int columnCount)
