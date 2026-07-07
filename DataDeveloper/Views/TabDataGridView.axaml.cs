@@ -1,5 +1,7 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
+using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.NextGrid.UI;
 
@@ -12,6 +14,23 @@ public partial class TabDataGridView : UserControl
         InitializeComponent();
         ResultGrid.CellEditCommitted += OnCellEditCommitted;
         ResultGrid.StructuredTextCellViewRequested += OnStructuredTextCellViewRequested;
+        ResultGrid.GotFocus += OnResultGridGotFocus;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnResultGridGotFocus(object? sender, RoutedEventArgs e)
+    {
+        GetMainWindowViewModel()?.SetActiveGrid(ResultGrid);
+    }
+
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
+    {
+        GetMainWindowViewModel()?.ClearActiveGrid(ResultGrid);
+    }
+
+    private MainWindowViewModel? GetMainWindowViewModel()
+    {
+        return this.TryGetParentWindow()?.DataContext as MainWindowViewModel;
     }
 
     private void OnCellEditCommitted(object? sender, GridCellEditCommittedEventArgs e)
