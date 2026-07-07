@@ -288,6 +288,12 @@ public class MainWindowViewModel : ViewModelBase
         RefreshActiveEditorState();
     }
 
+    public void ClearActiveClipboardFocus()
+    {
+        _clipboardFocusTarget = ClipboardFocusTarget.None;
+        RefreshActiveEditorState();
+    }
+
     public void RefreshActiveEditorState()
     {
         var isEditorFocus = _clipboardFocusTarget == ClipboardFocusTarget.Editor;
