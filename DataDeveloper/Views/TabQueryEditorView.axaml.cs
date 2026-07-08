@@ -4,15 +4,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.CodeCompletion;
 using DataDeveloper.Data;
 using DataDeveloper.Models;
+using DataDeveloper.NextGrid.UI;
 using DataDeveloper.Services;
 using DataDeveloper.TemplateSelectors;
 using DataDeveloper.ViewModels;
@@ -47,7 +50,23 @@ public partial class TabQueryEditorView : UserControl
         SqlEditor.GotFocus += SqlEditorOnGotFocus;
         SqlEditor.TextChanged += SqlEditorOnStateChanged;
         SqlEditor.TextArea.SelectionChanged += SqlEditorOnStateChanged;
+        GotFocus += OnDescendantGotFocus;
         Unloaded += OnUnloaded;
+    }
+
+    private void OnDescendantGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        // Focus moved to some other control in this view (e.g. a parameter value
+        // TextBox), so neither the SQL editor nor the results grid should keep
+        // claiming the window's Cut/Copy/Paste shortcuts; let that control handle
+        // its own clipboard operations instead.
+        if (SqlEditor.IsKeyboardFocusWithin)
+            return;
+
+        if (e.Source is Visual visual && visual.FindAncestorOfType<NextGridControl>(includeSelf: true) is not null)
+            return;
+
+        GetMainWindowViewModel()?.ClearActiveClipboardFocus();
     }
 
     protected override void OnDataContextChanged(EventArgs e)

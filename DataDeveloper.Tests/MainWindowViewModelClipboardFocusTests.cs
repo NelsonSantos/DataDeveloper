@@ -49,6 +49,40 @@ public class MainWindowViewModelClipboardFocusTests
     }
 
     [AvaloniaFact]
+    public void ClearActiveClipboardFocus_StopsEditorFromClaimingCutCopyPaste()
+    {
+        // Regression test: focusing an unrelated control elsewhere in the same view
+        // (e.g. a "Create Variable" parameter value TextBox) must stop the SQL editor
+        // from swallowing Ctrl/Cmd+V, so that control can paste into itself instead.
+        var viewModel = CreateViewModel();
+        var editor = new TextEditor { Text = "select 1", SelectionStart = 0, SelectionLength = 8 };
+
+        viewModel.SetActiveEditor(editor, DatabaseType.SqlServer);
+        Assert.True(viewModel.CanPaste);
+        Assert.True(viewModel.CanCopy);
+
+        viewModel.ClearActiveClipboardFocus();
+
+        Assert.False(viewModel.CanPaste);
+        Assert.False(viewModel.CanCopy);
+        Assert.False(viewModel.HasActiveEditor);
+    }
+
+    [AvaloniaFact]
+    public void ClearActiveClipboardFocus_ThenRefocusingEditor_RestoresItAsCopyPasteTarget()
+    {
+        var viewModel = CreateViewModel();
+        var editor = new TextEditor { Text = "select 1", SelectionStart = 0, SelectionLength = 8 };
+
+        viewModel.SetActiveEditor(editor, DatabaseType.SqlServer);
+        viewModel.ClearActiveClipboardFocus();
+        viewModel.SetActiveEditor(editor, DatabaseType.SqlServer);
+
+        Assert.True(viewModel.CanPaste);
+        Assert.True(viewModel.CanCopy);
+    }
+
+    [AvaloniaFact]
     public async Task Copy_WhenGridIsActiveTarget_CopiesGridSelectionNotEditorText()
     {
         var viewModel = CreateViewModel();

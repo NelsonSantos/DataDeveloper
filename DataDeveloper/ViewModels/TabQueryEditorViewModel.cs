@@ -28,6 +28,7 @@ public class TabQueryEditorViewModel : BaseTabContent
     private static readonly HashSet<int> SupportedRunTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly Dictionary<string, int> _cachePages = new();
+    private readonly Dictionary<string, (string? Value, bool IsNull)> _parameterValueMemory = new(StringComparer.OrdinalIgnoreCase);
     private readonly IStatementExecutor _statementExecutor;
     private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     private IStatementExecutor? _activeStatementExecutor;
@@ -389,13 +390,31 @@ public class TabQueryEditorViewModel : BaseTabContent
     private void RefreshDetectedParameters()
     {
         var detectedParameters = SqlParameterDetector.ExtractParameters(SqlStatement);
-        var existingValues = ParameterValues.ToDictionary(parameter => parameter.Name, parameter => parameter.Value, StringComparer.OrdinalIgnoreCase);
+        var existingByName = ParameterValues.ToDictionary(parameter => parameter.Name, StringComparer.OrdinalIgnoreCase);
+
+        // Remember every parameter's value and "Send as Null" state before rebuilding, so
+        // they survive even if the parameter briefly disappears from detection mid-edit
+        // (e.g. while the user is still typing its name) and shows back up later.
+        foreach (var parameter in ParameterValues)
+            _parameterValueMemory[parameter.Name] = (parameter.Value, parameter.IsNull);
 
         ParameterValues.Clear();
         foreach (var parameter in detectedParameters)
         {
-            existingValues.TryGetValue(parameter, out var existingValue);
-            ParameterValues.Add(new QueryParameterValue(parameter, existingValue));
+            if (existingByName.TryGetValue(parameter, out var existing))
+            {
+                ParameterValues.Add(existing);
+                continue;
+            }
+
+            var queryParameterValue = new QueryParameterValue(parameter);
+            if (_parameterValueMemory.TryGetValue(parameter, out var remembered))
+            {
+                queryParameterValue.Value = remembered.Value;
+                queryParameterValue.IsNull = remembered.IsNull;
+            }
+
+            ParameterValues.Add(queryParameterValue);
         }
 
         this.RaisePropertyChanged(nameof(HasDetectedParameters));
