@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using DataDeveloper.Core;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
+using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
@@ -148,6 +151,54 @@ public class TabConnectionSessionTests
 
         Assert.True(removed);
         Assert.Equal(1, context.DialogService.SaveChangesPromptCount);
+    }
+
+    [Fact]
+    public async Task OpenQueryEditorWithScript_MarksNewTabDirty_SoClosingWithoutSavingPromptsInsteadOfSilentlyDiscarding()
+    {
+        // Regression test: "DDL create to new query" used to open the generated script
+        // already marked as clean (TextWasChanged = false), even though it has no backing
+        // file. That made CloseTabQueryEditor skip the save prompt entirely and silently
+        // remove the tab.
+        using var context = CreateConnectionContext();
+        context.ViewModel.OpenQueryEditorWithScript("create table foo (id int)");
+        var editor = context.ViewModel.QueryEditors[context.ViewModel.SelectedEditor];
+
+        Assert.True(editor.TextWasChanged);
+        Assert.Null(editor.File);
+
+        var removed = await context.ViewModel.CloseTabQueryEditor(editor, showDialog: false);
+
+        // The Save-As dialog is "cancelled" by RecordingDialogService (returns null), so the
+        // tab must not be discarded silently.
+        Assert.False(removed);
+        Assert.Contains(editor, context.ViewModel.QueryEditors);
+    }
+
+    [Fact]
+    public async Task SaveCurrentEditorTab_OnUntitledTabWithNoFile_ShowsSaveAsDialogInsteadOfClosingTab()
+    {
+        // Regression test: MainWindowViewModel.SaveCurrentEditorTab used to route any tab
+        // without an existing file on disk into CloseTabQueryEditor instead of SaveChanges,
+        // so pressing Ctrl+S / using the Save menu on an untitled tab (e.g. one opened via
+        // "DDL create to new query") silently closed it instead of prompting for a file name.
+        using var context = CreateConnectionContext();
+        context.ViewModel.OpenQueryEditorWithScript("create table foo (id int)");
+        var editor = context.ViewModel.QueryEditors[context.ViewModel.SelectedEditor];
+
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+
+        var saveCurrentEditorTab = typeof(MainWindowViewModel).GetMethod(
+            "SaveCurrentEditorTab",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(saveCurrentEditorTab);
+
+        var saveTask = Assert.IsAssignableFrom<Task>(saveCurrentEditorTab!.Invoke(mainWindowViewModel, new object[] { false }));
+        await saveTask;
+
+        Assert.Equal(1, context.DialogService.ShowSaveFileDialogCallCount);
+        Assert.Contains(editor, context.ViewModel.QueryEditors);
     }
 
     [Fact]
@@ -297,6 +348,7 @@ public class TabConnectionSessionTests
     private sealed class RecordingDialogService : IDialogService
     {
         public int SaveChangesPromptCount { get; private set; }
+        public int ShowSaveFileDialogCallCount { get; private set; }
         public DialogResult NextSaveChangesResult { get; set; } = DialogResult.No;
 
         public Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info)
@@ -313,11 +365,47 @@ public class TabConnectionSessionTests
         public Task ShowMessageAsync(string message, string? title = null) => Task.CompletedTask;
         public Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync) => Task.CompletedTask;
         public Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null) => Task.FromResult(DialogResult.Cancel);
-        public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null)
+        {
+            ShowSaveFileDialogCallCount++;
+            return Task.FromResult<string?>(null);
+        }
+
         public Task<string?> ShowOpenFileAsync(string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
+    }
+
+    private sealed class MainWindowServiceProviderStub : IServiceProvider
+    {
+        private readonly IEventAggregatorService _eventAggregatorService = new EventAggregatorService();
+
+        public object? GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IConnectionDialogService))
+                return new StubConnectionDialogService();
+            if (serviceType == typeof(IEventAggregatorService))
+                return _eventAggregatorService;
+            if (serviceType == typeof(IDialogService))
+                return new RecordingDialogService();
+            if (serviceType == typeof(IReleaseUpdateService))
+                return new StubReleaseUpdateService();
+
+            throw new NotSupportedException($"Service not configured for test: {serviceType}");
+        }
+    }
+
+    private sealed class StubConnectionDialogService : IConnectionDialogService
+    {
+        public Task<IConnectionSettings?> ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class StubReleaseUpdateService : IReleaseUpdateService
+    {
+        public Task NotifyIfUpdateAvailableAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task CheckForUpdatesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 }

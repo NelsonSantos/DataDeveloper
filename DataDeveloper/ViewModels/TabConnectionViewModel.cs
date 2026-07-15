@@ -479,7 +479,6 @@ public class TabConnectionViewModel : BaseTabContent
         AddQueryEditor();
         var queryEditor = QueryEditors[this.SelectedEditor];
         queryEditor.SqlStatement = sqlStatement;
-        queryEditor.TextWasChanged = false;
     }
 
     private async Task LoadConnection()
