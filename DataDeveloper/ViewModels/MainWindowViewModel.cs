@@ -103,10 +103,7 @@ public class MainWindowViewModel : ViewModelBase
         var connection = this.Connections[this.SelectedTabConnectionIndex];
         var queryEditor = connection.QueryEditors[connection.SelectedEditor];
 
-        if (File.Exists(queryEditor.File))
-            await connection.SaveChanges(queryEditor, isSaveAs);
-        else
-            await connection.CloseTabQueryEditor(queryEditor, showDialog: false);
+        await connection.SaveChanges(queryEditor, isSaveAs);
     }
 
     private async Task OpenFile()
