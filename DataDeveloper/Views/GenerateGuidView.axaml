@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="420"
+             x:Class="DataDeveloper.Views.GenerateGuidView">
+    <Design.DataContext>
+        <vm:GenerateGuidViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="0,16,0,0">
+            <Button Grid.Column="1"
+                    Content="Regenerate"
+                    Classes="dialog-button"
+                    Command="{Binding RegenerateCommand}" />
+            <SplitButton Grid.Column="2"
+                         Content="{Binding PrimaryActionLabel}"
+                         Classes="dialog-button primary"
+                         Command="{Binding PrimaryActionCommand}">
+                <SplitButton.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                        <MenuItem Header="{Binding CopyLabel}" Command="{Binding SelectCopyCommand}" />
+                        <MenuItem Header="{Binding CopyAndCloseLabel}" Command="{Binding SelectCopyAndCloseCommand}" />
+                    </MenuFlyout>
+                </SplitButton.Flyout>
+            </SplitButton>
+        </Grid>
+
+        <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,110" ColumnSpacing="12">
+                <StackPanel Grid.Column="0" Spacing="4">
+                    <TextBlock Text="Format" FontSize="12" />
+                    <ComboBox ItemsSource="{Binding FormatOptions}"
+                              SelectedItem="{Binding SelectedFormat, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="4">
+                    <TextBlock Text="Quantity" FontSize="12" />
+                    <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+
+            <CheckBox Content="Uppercase" IsChecked="{Binding Uppercase, Mode=TwoWay}" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Generated" FontSize="12" />
+                <TextBox Text="{Binding GeneratedText}"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="NoWrap"
+                         FontFamily="Consolas,Menlo,monospace"
+                         Height="150"
+                         VerticalContentAlignment="Top" />
+            </StackPanel>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

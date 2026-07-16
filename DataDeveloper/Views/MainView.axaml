@@ -47,6 +47,9 @@
                 <MenuItem Header="_Comment" Command="{Binding CommentCommand}" InputGesture="{Binding CommentGesture}" HotKey="{Binding CommentGesture}" />
                 <MenuItem Header="U_ncomment" Command="{Binding UncommentCommand}" InputGesture="{Binding UncommentGesture}" HotKey="{Binding UncommentGesture}" />
             </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="_Generate GUID..." Command="{Binding GenerateGuidCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+            </MenuItem>
             <MenuItem Header="_Help" IsVisible="{Binding ShowHelpMenu}">
                 <MenuItem Header="_About Data Developer" Command="{Binding AboutCommand}" />
             </MenuItem>

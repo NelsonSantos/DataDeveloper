@@ -393,6 +393,8 @@ public class TabConnectionSessionTests
                 return new RecordingDialogService();
             if (serviceType == typeof(IReleaseUpdateService))
                 return new StubReleaseUpdateService();
+            if (serviceType == typeof(IGenerateGuidWindowService))
+                return new StubGenerateGuidWindowService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -401,6 +403,13 @@ public class TabConnectionSessionTests
     private sealed class StubConnectionDialogService : IConnectionDialogService
     {
         public Task<IConnectionSettings?> ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class StubGenerateGuidWindowService : IGenerateGuidWindowService
+    {
+        public void Show(Avalonia.Controls.Window parentWindow)
+        {
+        }
     }
 
     private sealed class StubReleaseUpdateService : IReleaseUpdateService
