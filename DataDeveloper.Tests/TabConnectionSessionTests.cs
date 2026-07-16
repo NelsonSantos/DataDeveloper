@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reactive.Threading.Tasks;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -202,6 +203,105 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void HasCurrentFile_ReflectsWhetherTheSelectedTabHasAnExistingFileOnDisk()
+    {
+        using var context = CreateConnectionContext();
+        var editor = context.ViewModel.QueryEditors[context.ViewModel.SelectedEditor];
+
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+
+        Assert.False(mainWindowViewModel.HasCurrentFile);
+
+        var tempFile = Path.Combine(Path.GetTempPath(), $"datadeveloper-reveal-{Guid.NewGuid():N}.sql");
+        try
+        {
+            File.WriteAllText(tempFile, "select 1");
+            editor.File = tempFile;
+
+            Assert.True(mainWindowViewModel.HasCurrentFile);
+
+            editor.File = "/path/that/does/not/exist.sql";
+
+            Assert.False(mainWindowViewModel.HasCurrentFile);
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public void AddRecentFile_MovesToFrontDeduplicatesAndCapsAtTwenty()
+    {
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        var addRecentFile = typeof(MainWindowViewModel).GetMethod("AddRecentFile", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(addRecentFile);
+
+        for (var i = 0; i < 25; i++)
+            addRecentFile!.Invoke(mainWindowViewModel, new object[] { $"/tmp/recent-{i}.sql" });
+
+        Assert.Equal(20, mainWindowViewModel.RecentFiles.Count);
+        Assert.Equal("/tmp/recent-24.sql", mainWindowViewModel.RecentFiles[0]);
+        Assert.DoesNotContain("/tmp/recent-4.sql", mainWindowViewModel.RecentFiles);
+        Assert.True(mainWindowViewModel.HasRecentFiles);
+
+        addRecentFile!.Invoke(mainWindowViewModel, new object[] { "/tmp/recent-10.sql" });
+
+        Assert.Equal(20, mainWindowViewModel.RecentFiles.Count);
+        Assert.Equal("/tmp/recent-10.sql", mainWindowViewModel.RecentFiles[0]);
+    }
+
+    [Fact]
+    public void CanOpenRecentFiles_IsFalseWithoutAnOpenConnection_EvenWhenRecentFilesExist()
+    {
+        var serviceProvider = new MainWindowServiceProviderStub();
+        serviceProvider.RecentFilesService.InitialFiles = new List<string> { "/tmp/a.sql" };
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+
+        Assert.True(mainWindowViewModel.HasRecentFiles);
+        Assert.False(mainWindowViewModel.CanOpenRecentFiles);
+
+        using var context = CreateConnectionContext();
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+
+        Assert.True(mainWindowViewModel.CanOpenRecentFiles);
+    }
+
+    [Fact]
+    public async Task OpenRecentFileCommand_WithMissingFile_RemovesItAndShowsMessageInsteadOfThrowing()
+    {
+        using var context = CreateConnectionContext();
+        var serviceProvider = new MainWindowServiceProviderStub();
+        serviceProvider.RecentFilesService.InitialFiles = new List<string> { "/tmp/does-not-exist.sql" };
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+
+        Assert.True(mainWindowViewModel.HasRecentFiles);
+
+        await mainWindowViewModel.OpenRecentFileCommand.Execute("/tmp/does-not-exist.sql").ToTask();
+
+        Assert.False(mainWindowViewModel.HasRecentFiles);
+        Assert.Empty(mainWindowViewModel.RecentFiles);
+    }
+
+    [Fact]
+    public async Task ClearRecentFilesCommand_EmptiesTheList()
+    {
+        var serviceProvider = new MainWindowServiceProviderStub();
+        serviceProvider.RecentFilesService.InitialFiles = new List<string> { "/tmp/a.sql", "/tmp/b.sql" };
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+
+        Assert.True(mainWindowViewModel.HasRecentFiles);
+
+        await mainWindowViewModel.ClearRecentFilesCommand.Execute().ToTask();
+
+        Assert.False(mainWindowViewModel.HasRecentFiles);
+        Assert.Empty(mainWindowViewModel.RecentFiles);
+    }
+
+    [Fact]
     public void PersistSessionSnapshot_WritesEditorsWithContentToStore()
     {
         using var context = CreateConnectionContext();
@@ -383,6 +483,8 @@ public class TabConnectionSessionTests
     {
         private readonly IEventAggregatorService _eventAggregatorService = new EventAggregatorService();
 
+        public StubRecentFilesService RecentFilesService { get; } = new();
+
         public object? GetService(Type serviceType)
         {
             if (serviceType == typeof(IConnectionDialogService))
@@ -395,6 +497,8 @@ public class TabConnectionSessionTests
                 return new StubReleaseUpdateService();
             if (serviceType == typeof(IGenerateGuidWindowService))
                 return new StubGenerateGuidWindowService();
+            if (serviceType == typeof(IRecentFilesService))
+                return RecentFilesService;
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -416,5 +520,18 @@ public class TabConnectionSessionTests
     {
         public Task NotifyIfUpdateAvailableAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task CheckForUpdatesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class StubRecentFilesService : IRecentFilesService
+    {
+        public List<string> InitialFiles { get; set; } = new();
+        public IReadOnlyList<string>? LastSaved { get; private set; }
+
+        public IReadOnlyList<string> Load() => InitialFiles;
+
+        public void Save(IReadOnlyList<string> files)
+        {
+            LastSaved = files.ToList();
+        }
     }
 }

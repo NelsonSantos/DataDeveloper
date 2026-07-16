@@ -81,6 +81,7 @@ public partial class App : Application
         services.AddTransient<IGenerateGuidWindowService, GenerateGuidWindowService>();
         services.AddTransient<GenerateGuidViewModel>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
+        services.AddSingleton<IRecentFilesService, RecentFilesService>();
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
         services.AddTransient<StatementSplitter>();

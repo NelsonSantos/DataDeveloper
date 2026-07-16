@@ -32,6 +32,8 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly IReleaseUpdateService _releaseUpdateService;
     private readonly IGenerateGuidWindowService _generateGuidWindowService;
+    private readonly IRecentFilesService _recentFilesService;
+    private const int MaxRecentFiles = 20;
     private readonly KeyModifiers _primaryShortcutModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
     private TextEditor? _activeEditor;
     private DatabaseType _activeDatabaseType;
@@ -53,6 +55,10 @@ public class MainWindowViewModel : ViewModelBase
         _dialogService = _serviceProvider.GetRequiredService<IDialogService>();
         _releaseUpdateService = _serviceProvider.GetRequiredService<IReleaseUpdateService>();
         _generateGuidWindowService = _serviceProvider.GetRequiredService<IGenerateGuidWindowService>();
+        _recentFilesService = _serviceProvider.GetRequiredService<IRecentFilesService>();
+
+        foreach (var file in _recentFilesService.Load().Take(MaxRecentFiles))
+            RecentFiles.Add(file);
 
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
         _eventAggregatorService.Subscribe<ShowExecutionStatusEvent>(this, ShowExecutionStatusEvent);
@@ -65,6 +71,9 @@ public class MainWindowViewModel : ViewModelBase
         this.OpenFileCommand = ReactiveCommand.CreateFromTask(OpenFile, this.WhenAnyValue(vm => vm.HasConnections));
         this.SaveCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(), this.WhenAnyValue(vm => vm.HasEditor));
         this.SaveAsCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(isSaveAs: true), this.WhenAnyValue(vm => vm.HasEditor));
+        this.RevealCurrentFileCommand = ReactiveCommand.CreateFromTask(RevealCurrentFile, this.WhenAnyValue(vm => vm.HasCurrentFile));
+        this.OpenRecentFileCommand = ReactiveCommand.CreateFromTask<string>(OpenRecentFile);
+        this.ClearRecentFilesCommand = ReactiveCommand.Create(ClearRecentFiles);
         this.AboutCommand = ReactiveCommand.CreateFromTask(ShowAboutAsync);
         this.GenerateGuidCommand = ReactiveCommand.Create<StyledElement>(GenerateGuid);
         this.CutCommand = ReactiveCommand.Create(Cut, this.WhenAnyValue(vm => vm.CanCut));
@@ -106,7 +115,69 @@ public class MainWindowViewModel : ViewModelBase
         var connection = this.Connections[this.SelectedTabConnectionIndex];
         var queryEditor = connection.QueryEditors[connection.SelectedEditor];
 
-        await connection.SaveChanges(queryEditor, isSaveAs);
+        var saved = await connection.SaveChanges(queryEditor, isSaveAs);
+        this.RaisePropertyChanged(nameof(HasCurrentFile));
+
+        if (saved && !string.IsNullOrWhiteSpace(queryEditor.File))
+            AddRecentFile(queryEditor.File);
+    }
+
+    private Task RevealCurrentFile()
+    {
+        var queryEditor = GetCurrentTabQueryEditorViewModel();
+        return string.IsNullOrWhiteSpace(queryEditor?.File)
+            ? Task.CompletedTask
+            : FileExplorerLauncher.RevealAsync(queryEditor.File);
+    }
+
+    private async Task OpenRecentFile(string filePath)
+    {
+        if (!HasConnections)
+            return;
+
+        if (!File.Exists(filePath))
+        {
+            RemoveRecentFile(filePath);
+            await _dialogService.ShowMessageAsync($"The file \"{filePath}\" no longer exists.", "File not found");
+            return;
+        }
+
+        await this.Connections[this.SelectedTabConnectionIndex].AddQueryEditorCommand.Execute(filePath).ToTask();
+        AddRecentFile(filePath);
+    }
+
+    private void ClearRecentFiles()
+    {
+        RecentFiles.Clear();
+        this.RaisePropertyChanged(nameof(HasRecentFiles));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
+        _recentFilesService.Save(RecentFiles);
+    }
+
+    private void AddRecentFile(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+            return;
+
+        RecentFiles.Remove(filePath);
+        RecentFiles.Insert(0, filePath);
+
+        while (RecentFiles.Count > MaxRecentFiles)
+            RecentFiles.RemoveAt(RecentFiles.Count - 1);
+
+        this.RaisePropertyChanged(nameof(HasRecentFiles));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
+        _recentFilesService.Save(RecentFiles);
+    }
+
+    private void RemoveRecentFile(string filePath)
+    {
+        if (!RecentFiles.Remove(filePath))
+            return;
+
+        this.RaisePropertyChanged(nameof(HasRecentFiles));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
+        _recentFilesService.Save(RecentFiles);
     }
 
     private async Task OpenFile()
@@ -118,6 +189,7 @@ public class MainWindowViewModel : ViewModelBase
         if (fileToOpen != null)
         {
             await this.Connections[this.SelectedTabConnectionIndex].AddQueryEditorCommand.Execute(fileToOpen).ToTask();
+            AddRecentFile(fileToOpen);
         }
 
     }
@@ -154,7 +226,9 @@ public class MainWindowViewModel : ViewModelBase
 
         this.RaisePropertyChanged(nameof(HasConnections));
         this.RaisePropertyChanged(nameof(HasEditor));
-        
+        this.RaisePropertyChanged(nameof(HasCurrentFile));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
+
         return countClosed == count;
     }
 
@@ -163,6 +237,14 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> OpenFileCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCurrentEditorTabCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveAsCurrentEditorTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> RevealCurrentFileCommand { get; }
+    public ReactiveCommand<string, Unit> OpenRecentFileCommand { get; }
+    public ReactiveCommand<Unit, Unit> ClearRecentFilesCommand { get; }
+    public ObservableCollection<string> RecentFiles { get; } = new();
+
+    public bool HasRecentFiles => RecentFiles.Count > 0;
+
+    public bool CanOpenRecentFiles => HasRecentFiles && HasConnections;
     public ReactiveCommand<Unit, Unit> AboutCommand { get; }
     public ReactiveCommand<StyledElement, Unit> GenerateGuidCommand { get; }
     public ReactiveCommand<Unit, Unit> CutCommand { get; }
@@ -228,6 +310,30 @@ public class MainWindowViewModel : ViewModelBase
         set { }
     }
 
+    public bool HasCurrentFile
+    {
+        get
+        {
+            var file = GetCurrentTabQueryEditorViewModel()?.File;
+            return !string.IsNullOrWhiteSpace(file) && File.Exists(file);
+        }
+        set { }
+    }
+
+    public string RevealInFileExplorerLabel
+    {
+        get
+        {
+            if (OperatingSystem.IsMacOS())
+                return "Reveal in Finder";
+
+            if (OperatingSystem.IsWindows())
+                return "Show in Explorer";
+
+            return "Open Containing Folder";
+        }
+    }
+
     private void OnSelectedTabConnectionIndexChanged()
     {
         if (!Connections.Any()) return;
@@ -236,6 +342,8 @@ public class MainWindowViewModel : ViewModelBase
         queryEditor.ShowCursorData();
         this.RaisePropertyChanged(nameof(HasConnections));
         this.RaisePropertyChanged(nameof(HasEditor));
+        this.RaisePropertyChanged(nameof(HasCurrentFile));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
     }
 
     private void NewWindow()
@@ -315,6 +423,8 @@ public class MainWindowViewModel : ViewModelBase
         CanRedo = isEditorFocus && _activeEditor?.CanRedo == true;
         this.RaisePropertyChanged(nameof(HasEditor));
         this.RaisePropertyChanged(nameof(HasConnections));
+        this.RaisePropertyChanged(nameof(HasCurrentFile));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
     }
 
     private void Cut()
@@ -463,6 +573,8 @@ public class MainWindowViewModel : ViewModelBase
 
                 this.RaisePropertyChanged(nameof(HasConnections));
                 this.RaisePropertyChanged(nameof(HasEditor));
+                this.RaisePropertyChanged(nameof(HasCurrentFile));
+                this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
             }
         }
         catch (Exception e)
