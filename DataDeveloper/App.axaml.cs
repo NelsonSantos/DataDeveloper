@@ -78,6 +78,8 @@ public partial class App : Application
         services.AddTransient<IConnectionExportService, ConnectionExportService>();
         services.AddTransient<IConnectionImportService, ConnectionImportService>();
         services.AddTransient<IExportConnectionsOptionsDialogService, ExportConnectionsOptionsDialogService>();
+        services.AddTransient<IGenerateGuidWindowService, GenerateGuidWindowService>();
+        services.AddTransient<GenerateGuidViewModel>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
@@ -93,6 +95,7 @@ public partial class App : Application
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
         resolver.Register<ManageConnectionGroupsViewModel, ManageConnectionGroupsDialog>();
         resolver.Register<ExportConnectionsOptionsViewModel, ExportConnectionsOptionsDialog>();
+        resolver.Register<GenerateGuidViewModel, GenerateGuidWindow>();
     }
 
     private async void OnAboutMenuClick(object? sender, EventArgs e)

@@ -175,6 +175,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeDialogService();
             if (serviceType == typeof(IReleaseUpdateService))
                 return new FakeReleaseUpdateService();
+            if (serviceType == typeof(IGenerateGuidWindowService))
+                return new FakeGenerateGuidWindowService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -183,6 +185,13 @@ public class MainWindowViewModelClipboardFocusTests
     private sealed class FakeConnectionDialogService : IConnectionDialogService
     {
         public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class FakeGenerateGuidWindowService : IGenerateGuidWindowService
+    {
+        public void Show(Window parentWindow)
+        {
+        }
     }
 
     private sealed class FakeReleaseUpdateService : IReleaseUpdateService

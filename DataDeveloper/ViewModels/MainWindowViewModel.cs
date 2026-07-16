@@ -31,6 +31,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly IDialogService _dialogService;
     private readonly IReleaseUpdateService _releaseUpdateService;
+    private readonly IGenerateGuidWindowService _generateGuidWindowService;
     private readonly KeyModifiers _primaryShortcutModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
     private TextEditor? _activeEditor;
     private DatabaseType _activeDatabaseType;
@@ -51,7 +52,8 @@ public class MainWindowViewModel : ViewModelBase
         _eventAggregatorService = _serviceProvider.GetRequiredService<IEventAggregatorService>();
         _dialogService = _serviceProvider.GetRequiredService<IDialogService>();
         _releaseUpdateService = _serviceProvider.GetRequiredService<IReleaseUpdateService>();
-        
+        _generateGuidWindowService = _serviceProvider.GetRequiredService<IGenerateGuidWindowService>();
+
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
         _eventAggregatorService.Subscribe<ShowExecutionStatusEvent>(this, ShowExecutionStatusEvent);
 
@@ -64,6 +66,7 @@ public class MainWindowViewModel : ViewModelBase
         this.SaveCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(), this.WhenAnyValue(vm => vm.HasEditor));
         this.SaveAsCurrentEditorTabCommand = ReactiveCommand.CreateFromTask(() => SaveCurrentEditorTab(isSaveAs: true), this.WhenAnyValue(vm => vm.HasEditor));
         this.AboutCommand = ReactiveCommand.CreateFromTask(ShowAboutAsync);
+        this.GenerateGuidCommand = ReactiveCommand.Create<StyledElement>(GenerateGuid);
         this.CutCommand = ReactiveCommand.Create(Cut, this.WhenAnyValue(vm => vm.CanCut));
         this.CopyCommand = ReactiveCommand.CreateFromTask(Copy, this.WhenAnyValue(vm => vm.CanCopy));
         this.PasteCommand = ReactiveCommand.Create(Paste, this.WhenAnyValue(vm => vm.CanPaste));
@@ -161,6 +164,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveCurrentEditorTabCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveAsCurrentEditorTabCommand { get; }
     public ReactiveCommand<Unit, Unit> AboutCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> GenerateGuidCommand { get; }
     public ReactiveCommand<Unit, Unit> CutCommand { get; }
     public ReactiveCommand<Unit, Unit> CopyCommand { get; }
     public ReactiveCommand<Unit, Unit> PasteCommand { get; }
@@ -244,6 +248,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         var version = ApplicationVersionHelper.GetCurrentVersion(typeof(MainWindowViewModel).Assembly);
         await _dialogService.ShowAboutAsync(version, () => _releaseUpdateService.CheckForUpdatesAsync());
+    }
+
+    private void GenerateGuid(StyledElement control)
+    {
+        var window = ServicesExtensionMethods.GetParentWindow(control);
+        _generateGuidWindowService.Show(window);
     }
 
     public void SetActiveEditor(TextEditor editor, DatabaseType databaseType)
