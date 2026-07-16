@@ -19,9 +19,15 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Load/Add connection" Command="{Binding NewConnectionCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
                 <Separator />
+                <MenuItem Header="Open _Recent" x:Name="OpenRecentMenuItem" IsEnabled="{Binding CanOpenRecentFiles}" SubmenuOpened="OpenRecentMenuItem_OnSubmenuOpened">
+                    <MenuItem Header="placeholder" />
+                </MenuItem>
+                <Separator />
                 <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" InputGesture="{Binding OpenFileGesture}" HotKey="{Binding OpenFileGesture}" />
                 <MenuItem Header="_Save..." Command="{Binding SaveCurrentEditorTabCommand}" InputGesture="{Binding SaveGesture}" HotKey="{Binding SaveGesture}" />
                 <MenuItem Header="Save as..." Command="{Binding SaveAsCurrentEditorTabCommand}" InputGesture="{Binding SaveAsGesture}" HotKey="{Binding SaveAsGesture}" />
+                <Separator />
+                <MenuItem Header="{Binding RevealInFileExplorerLabel}" Command="{Binding RevealCurrentFileCommand}" />
                 <Separator />
                 <MenuItem Header="_New query tab" Command="{Binding NewQueryTabCommand}" InputGesture="{Binding NewQueryTabGesture}" HotKey="{Binding NewQueryTabGesture}" />
                 <MenuItem Header="New Window" Command="{Binding NewWindowCommand}"/>

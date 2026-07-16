@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
@@ -177,6 +178,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeReleaseUpdateService();
             if (serviceType == typeof(IGenerateGuidWindowService))
                 return new FakeGenerateGuidWindowService();
+            if (serviceType == typeof(IRecentFilesService))
+                return new FakeRecentFilesService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -185,6 +188,14 @@ public class MainWindowViewModelClipboardFocusTests
     private sealed class FakeConnectionDialogService : IConnectionDialogService
     {
         public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class FakeRecentFilesService : IRecentFilesService
+    {
+        public IReadOnlyList<string> Load() => Array.Empty<string>();
+        public void Save(IReadOnlyList<string> files)
+        {
+        }
     }
 
     private sealed class FakeGenerateGuidWindowService : IGenerateGuidWindowService
