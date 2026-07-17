@@ -499,6 +499,8 @@ public class TabConnectionSessionTests
                 return new StubGenerateGuidWindowService();
             if (serviceType == typeof(IRecentFilesService))
                 return RecentFilesService;
+            if (serviceType == typeof(ISchemaCompareDialogService))
+                return new StubSchemaCompareDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -506,7 +508,12 @@ public class TabConnectionSessionTests
 
     private sealed class StubConnectionDialogService : IConnectionDialogService
     {
-        public Task<IConnectionSettings?> ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+        public Task<IConnectionSettings?> ShowDialogAsync(Avalonia.Controls.Window parentWindow, DatabaseType? lockedDatabaseType = null) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class StubSchemaCompareDialogService : ISchemaCompareDialogService
+    {
+        public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.CompletedTask;
     }
 
     private sealed class StubGenerateGuidWindowService : IGenerateGuidWindowService

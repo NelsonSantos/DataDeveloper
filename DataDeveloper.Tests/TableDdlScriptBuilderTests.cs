@@ -77,6 +77,33 @@ public class TableDdlScriptBuilderTests
     }
 
     [Fact]
+    public void BuildCreateTableScript_OmitsLengthSuffixForTypesThatDoNotSupportIt()
+    {
+        // Some providers report a non-zero internal storage size for types with no length
+        // concept at all (e.g. SQL Server's sys.columns.max_length is 16 for uniqueidentifier,
+        // 4 for int, 8 for datetime). A loaded column can carry that raw value in Length even
+        // though the type itself never accepts a "(n)" suffix in DDL.
+        var table = new TableDefinition
+        {
+            SchemaName = "dbo",
+            TableName = "BusConfiguration"
+        };
+        table.Columns.Add(new TableColumnDefinition { Name = "Id", DataType = "uniqueidentifier", Length = 16, IsNullable = false });
+        table.Columns.Add(new TableColumnDefinition { Name = "Key", DataType = "int", Length = 4, IsNullable = false });
+        table.Columns.Add(new TableColumnDefinition { Name = "CreatedUTC", DataType = "datetime", Length = 8, IsNullable = false });
+        table.PrimaryKey.ColumnNames.Add("Id");
+
+        var sql = TableDdlScriptBuilder.BuildCreateTableScript(DatabaseType.SqlServer, table);
+
+        Assert.Contains("[Id] uniqueidentifier not null", sql);
+        Assert.Contains("[Key] int not null", sql);
+        Assert.Contains("[CreatedUTC] datetime not null", sql);
+        Assert.DoesNotContain("uniqueidentifier(", sql);
+        Assert.DoesNotContain("int(", sql);
+        Assert.DoesNotContain("datetime(", sql);
+    }
+
+    [Fact]
     public void BuildCreateTableScript_GeneratesPostgresTableWithSchemaAndIdentity()
     {
         var table = new TableDefinition

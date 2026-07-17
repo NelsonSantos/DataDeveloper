@@ -180,6 +180,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeGenerateGuidWindowService();
             if (serviceType == typeof(IRecentFilesService))
                 return new FakeRecentFilesService();
+            if (serviceType == typeof(ISchemaCompareDialogService))
+                return new FakeSchemaCompareDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -187,7 +189,12 @@ public class MainWindowViewModelClipboardFocusTests
 
     private sealed class FakeConnectionDialogService : IConnectionDialogService
     {
-        public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow) => Task.FromResult<IConnectionSettings?>(null);
+        public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow, DatabaseType? lockedDatabaseType = null) => Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class FakeSchemaCompareDialogService : ISchemaCompareDialogService
+    {
+        public Task ShowDialogAsync(Window parentWindow) => Task.CompletedTask;
     }
 
     private sealed class FakeRecentFilesService : IRecentFilesService

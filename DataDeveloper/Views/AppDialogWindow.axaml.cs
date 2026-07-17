@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -77,6 +79,22 @@ public partial class AppDialogWindow : Window
         }
     }
 
+    private const string CopyIconGlyph = "\U000F018F";
+    private const string CopiedIconGlyph = "\U000F012C";
+
+    private async Task CopyMessageToClipboardAsync(TextBlock icon, string message)
+    {
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard is null)
+            return;
+
+        await clipboard.SetTextAsync(message);
+
+        icon.Text = CopiedIconGlyph;
+        await Task.Delay(TimeSpan.FromSeconds(1.5));
+        icon.Text = CopyIconGlyph;
+    }
+
     private Control BuildContent(AppDialogViewModel viewModel)
     {
         var buttonsPanel = new StackPanel
@@ -106,6 +124,33 @@ public partial class AppDialogWindow : Window
                 Foreground = Brushes.White
             }
         };
+
+        var copyIcon = new TextBlock
+        {
+            Text = CopyIconGlyph,
+            FontFamily = FontFamily.Parse("avares://DataDeveloper/Assets/Fonts/materialdesignicons-webfont.ttf#Material Design Icons"),
+            FontSize = 16,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.Parse("#FFD6DAE2"))
+        };
+
+        var copyButton = new Button
+        {
+            Content = copyIcon,
+            Width = 30,
+            Height = 30,
+            Padding = new Thickness(0),
+            CornerRadius = new CornerRadius(6),
+            Background = new SolidColorBrush(Color.Parse("#FF343A44")),
+            BorderBrush = new SolidColorBrush(Color.Parse("#FF4A505C")),
+            BorderThickness = new Thickness(1),
+            HorizontalContentAlignment = HorizontalAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        ToolTip.SetTip(copyButton, "Copy message content");
+        copyButton.Click += async (_, _) => await CopyMessageToClipboardAsync(copyIcon, viewModel.Message);
 
         var contentColumn = new StackPanel
         {
@@ -147,6 +192,18 @@ public partial class AppDialogWindow : Window
         };
         Grid.SetColumn(contentColumn, 1);
 
+        var bottomRow = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("Auto,*"),
+            Children =
+            {
+                copyButton,
+                buttonsPanel
+            }
+        };
+        Grid.SetColumn(copyButton, 0);
+        Grid.SetColumn(buttonsPanel, 1);
+
         var layout = new Grid
         {
             RowDefinitions = new RowDefinitions("Auto,Auto"),
@@ -154,10 +211,10 @@ public partial class AppDialogWindow : Window
             Children =
             {
                 headerGrid,
-                buttonsPanel
+                bottomRow
             }
         };
-        Grid.SetRow(buttonsPanel, 1);
+        Grid.SetRow(bottomRow, 1);
 
         return new Border
         {

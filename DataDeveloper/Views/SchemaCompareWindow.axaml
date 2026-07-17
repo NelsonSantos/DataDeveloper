@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="https://github.com/avaloniaui"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:DataDeveloper.Views"
+        x:Class="DataDeveloper.Views.SchemaCompareWindow"
+        mc:Ignorable="d"
+        Title="Compare Schemas"
+        Width="900" Height="700"
+        WindowStartupLocation="CenterOwner" CanResize="True">
+
+        <views:SchemaCompareView />
+
+</Window>

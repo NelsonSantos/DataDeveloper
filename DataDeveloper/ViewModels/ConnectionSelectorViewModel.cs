@@ -426,6 +426,24 @@ public class ConnectionSelectorViewModel : ViewModelBase
         }
     }
 
+    private bool _isConnectionFilterLocked;
+    public bool IsConnectionFilterLocked
+    {
+        get => _isConnectionFilterLocked;
+        private set => this.RaiseAndSetIfChanged(ref _isConnectionFilterLocked, value);
+    }
+
+    /// <summary>
+    /// Pins the connection-type filter to a single type and disables the filter dropdown,
+    /// for callers (e.g. the Schema Compare wizard) that only make sense for one database
+    /// type at a time.
+    /// </summary>
+    public void LockConnectionTypeFilter(ConnectionTypeFilterOption option)
+    {
+        SelectedConnectionFilter = option;
+        IsConnectionFilterLocked = true;
+    }
+
     private bool _isEditing;
     public bool IsEditing
     {
