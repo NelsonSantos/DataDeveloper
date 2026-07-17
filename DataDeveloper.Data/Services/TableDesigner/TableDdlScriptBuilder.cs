@@ -149,7 +149,7 @@ public static partial class TableDdlScriptBuilder
                 if (typeOrNullableChanged)
                 {
                     statements.Add(
-                        $"alter table {qualifiedName} alter column {QuoteIdentifier(databaseType, current.Name)} {BuildDataType(current)} {(current.IsNullable ? "null" : "not null")};");
+                        $"alter table {qualifiedName} alter column {QuoteIdentifier(databaseType, current.Name)} {BuildDataType(databaseType, current)} {(current.IsNullable ? "null" : "not null")};");
                 }
                 if (defaultChanged)
                     AppendSqlServerDefaultChange(databaseType, qualifiedName, original, current, statements);
@@ -170,7 +170,7 @@ public static partial class TableDdlScriptBuilder
 
                 var postgresColumnName = QuoteIdentifier(databaseType, current.Name);
                 if (HasColumnTypeChange(databaseType, original, current))
-                    statements.Add($"alter table {qualifiedName} alter column {postgresColumnName} type {BuildDataType(current)};");
+                    statements.Add($"alter table {qualifiedName} alter column {postgresColumnName} type {BuildDataType(databaseType, current)};");
                 if (original.IsNullable != current.IsNullable)
                     statements.Add($"alter table {qualifiedName} alter column {postgresColumnName} {(current.IsNullable ? "drop not null" : "set not null")};");
                 if (defaultChanged)
@@ -189,7 +189,7 @@ public static partial class TableDdlScriptBuilder
                     var modifyParts = new List<string>
                     {
                         QuoteIdentifier(databaseType, current.Name),
-                        BuildDataType(current)
+                        BuildDataType(databaseType, current)
                     };
 
                     if (defaultChanged)
@@ -453,7 +453,7 @@ public static partial class TableDdlScriptBuilder
         var parts = new List<string>
         {
             QuoteIdentifier(databaseType, column.Name),
-            BuildDataType(column)
+            BuildDataType(databaseType, column)
         };
 
         if (column.IsIdentity)
@@ -474,19 +474,28 @@ public static partial class TableDdlScriptBuilder
         return string.Join(" ", parts);
     }
 
-    private static string BuildDataType(TableColumnDefinition column)
+    private static string BuildDataType(DatabaseType databaseType, TableColumnDefinition column)
     {
-        if (column.Length is > 0)
+        // Only emit Length/Precision/Scale for facets the resolved type actually declares
+        // support for (same guard HasColumnTypeChange already applies for diffing). Several
+        // providers report a non-zero internal storage size for types with no length concept
+        // at all (e.g. SQL Server's sys.columns.max_length is non-zero even for int/datetime/
+        // uniqueidentifier columns) - emitting that raw number as "(n)" produces invalid-looking
+        // DDL like "int(4)" or "uniqueidentifier(16)".
+        var typeOption = ProviderDataTypeCatalog.GetDataTypes(databaseType)
+            .FirstOrDefault(option => string.Equals(option.Name, column.DataType, StringComparison.OrdinalIgnoreCase));
+
+        if (typeOption?.SupportsLength == true && column.Length is > 0)
             return $"{column.DataType}({column.Length.Value})";
 
-        if (column.Precision is > 0)
+        if (typeOption?.SupportsPrecision == true && column.Precision is > 0)
         {
-            return column.Scale is > 0
+            return typeOption.SupportsScale && column.Scale is > 0
                 ? $"{column.DataType}({column.Precision.Value}, {column.Scale.Value})"
                 : $"{column.DataType}({column.Precision.Value})";
         }
 
-        if (column.Scale is > 0)
+        if (typeOption?.SupportsScale == true && column.Scale is > 0)
             return $"{column.DataType}({column.Scale.Value})";
 
         return column.DataType;

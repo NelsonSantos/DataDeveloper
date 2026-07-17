@@ -42,6 +42,7 @@
                               HorizontalAlignment="Stretch"
                               ItemsSource="{Binding AvailableConnectionFilters}"
                               SelectedItem="{Binding SelectedConnectionFilter, Mode=TwoWay}"
+                              IsEnabled="{Binding !IsConnectionFilterLocked}"
                               >
                         <ComboBox.ItemTemplate>
                             <DataTemplate>

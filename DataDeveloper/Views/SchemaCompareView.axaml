@@ -1,0 +1,360 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:controls="clr-namespace:DataDeveloper.Controls"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="DataDeveloper.Views.SchemaCompareView">
+    <Design.DataContext>
+        <vm:SchemaCompareViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Border.step-marker">
+            <Setter Property="Background" Value="#FF2A2E36" />
+            <Setter Property="BorderBrush" Value="#FF4A505C" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.step-marker.step-current, Border.step-marker.step-done">
+            <Setter Property="Background" Value="#FF4D6DD1" />
+            <Setter Property="BorderBrush" Value="#FF5F7FE3" />
+        </Style>
+        <Style Selector="TextBlock.step-marker-number">
+            <Setter Property="Foreground" Value="#FFB0B6C0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.step-marker.step-current TextBlock.step-marker-number, Border.step-marker.step-done TextBlock.step-marker-number">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        <Style Selector="TextBlock.step-marker-check">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.step-label">
+            <Setter Property="Foreground" Value="#FFB0B6C0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.step-label.step-label-active">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        <Style Selector="Border.step-connector">
+            <Setter Property="Background" Value="#FF4A505C" />
+            <Setter Property="Height" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,20" />
+        </Style>
+        <Style Selector="Border.step-connector.step-connector-done">
+            <Setter Property="Background" Value="#FF4D6DD1" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel Margin="16">
+
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,20"
+              ColumnDefinitions="Auto,*,Auto,*,Auto,*,Auto,*,Auto,*,Auto">
+
+            <StackPanel Grid.Column="0" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectDatabaseTypeStep}"
+                        Classes.step-done="{Binding IsSelectDatabaseTypeStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="1" Classes="step-marker-number" IsVisible="{Binding !IsSelectDatabaseTypeStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectDatabaseTypeStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Type" Classes="step-label" Classes.step-label-active="{Binding !IsSelectDatabaseTypeStepDone}" />
+            </StackPanel>
+
+            <Border Grid.Column="1" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectDatabaseTypeStepDone}" />
+
+            <StackPanel Grid.Column="2" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectSourceStep}"
+                        Classes.step-done="{Binding IsSelectSourceStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="2" Classes="step-marker-number" IsVisible="{Binding !IsSelectSourceStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectSourceStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Source" Classes="step-label" Classes.step-label-active="{Binding IsSelectSourceStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="3" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectSourceStepDone}" />
+
+            <StackPanel Grid.Column="4" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectDestinationStep}"
+                        Classes.step-done="{Binding IsSelectDestinationStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="3" Classes="step-marker-number" IsVisible="{Binding !IsSelectDestinationStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectDestinationStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Destination" Classes="step-label" Classes.step-label-active="{Binding IsSelectDestinationStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="5" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectDestinationStepDone}" />
+
+            <StackPanel Grid.Column="6" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectObjectsStep}"
+                        Classes.step-done="{Binding IsSelectObjectsStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="4" Classes="step-marker-number" IsVisible="{Binding !IsSelectObjectsStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectObjectsStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Objects" Classes="step-label" Classes.step-label-active="{Binding IsSelectObjectsStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="7" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectObjectsStepDone}" />
+
+            <StackPanel Grid.Column="8" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsReviewResultsStep}"
+                        Classes.step-done="{Binding IsReviewResultsStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="5" Classes="step-marker-number" IsVisible="{Binding !IsReviewResultsStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsReviewResultsStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Results" Classes="step-label" Classes.step-label-active="{Binding IsReviewResultsStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="9" Classes="step-connector" Classes.step-connector-done="{Binding IsReviewResultsStepDone}" />
+
+            <StackPanel Grid.Column="10" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsFinalScriptStep}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <TextBlock Text="6" Classes="step-marker-number" />
+                </Border>
+                <TextBlock Text="Script" Classes="step-label" Classes.step-label-active="{Binding IsFinalScriptStep}" />
+            </StackPanel>
+
+        </Grid>
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10" Margin="0,16,0,0">
+            <Button Grid.Column="0"
+                    Content="Back"
+                    Classes="dialog-button"
+                    Command="{Binding BackCommand}"
+                    IsVisible="{Binding !IsSelectDatabaseTypeStep}" />
+            <Button Grid.Column="1"
+                    Content="{Binding CopyScriptButtonLabel}"
+                    Classes="dialog-button"
+                    Command="{Binding CopyScriptCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    HorizontalAlignment="Center"
+                    IsVisible="{Binding IsFinalScriptStep}" />
+            <Button Grid.Column="2"
+                    Content="Cancel"
+                    Classes="dialog-button"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    IsEnabled="{Binding !IsComparing}" />
+            <Button Grid.Column="3"
+                    Content="Save"
+                    Classes="dialog-button"
+                    Command="{Binding SaveScriptCommand}"
+                    IsVisible="{Binding IsFinalScriptStep}" />
+            <Button Grid.Column="4"
+                    Content="Execute"
+                    Classes="dialog-button primary"
+                    Command="{Binding ExecuteScriptCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    IsVisible="{Binding IsFinalScriptStep}" />
+            <Button Grid.Column="4"
+                    Content="{Binding NextButtonLabel}"
+                    Classes="dialog-button primary"
+                    Command="{Binding NextCommand}"
+                    IsVisible="{Binding !IsFinalScriptStep}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="IndianRed"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,12"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <Grid>
+
+            <!-- Step 1: Select database type -->
+            <StackPanel IsVisible="{Binding IsSelectDatabaseTypeStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Select the database type to compare" FontWeight="SemiBold" />
+                <ListBox ItemsSource="{Binding AvailableDatabaseTypes}"
+                         SelectedItem="{Binding SelectedDatabaseType, Mode=TwoWay}"
+                         SelectionMode="Single">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                <controls:DatabaseTypeIcon Grid.Column="0" DatabaseType="{Binding}" BadgeSize="24" IconSize="14" BadgePadding="3" />
+                                <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+
+            <!-- Step 2: Select source connection -->
+            <StackPanel IsVisible="{Binding IsSelectSourceStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Select the source connection" FontWeight="SemiBold" />
+                <Border BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6" Padding="12"
+                        IsVisible="{Binding SelectedSourceConnection, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <controls:DatabaseTypeIcon Grid.Column="0" DatabaseType="{Binding SelectedSourceConnection.DatabaseType}" BadgeSize="28" IconSize="16" BadgePadding="4" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding SelectedSourceConnection.Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedSourceConnection.DatabaseType}" FontSize="11" Opacity="0.7" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <TextBlock Text="No source connection selected yet."
+                           Opacity="0.7"
+                           IsVisible="{Binding SelectedSourceConnection, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                <Button Content="Choose source connection..."
+                        Classes="dialog-button"
+                        Command="{Binding ChooseSourceConnectionCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                        HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Step 3: Select destination connection -->
+            <StackPanel IsVisible="{Binding IsSelectDestinationStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Select the destination connection" FontWeight="SemiBold" />
+                <Border BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6" Padding="12"
+                        IsVisible="{Binding SelectedDestinationConnection, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <controls:DatabaseTypeIcon Grid.Column="0" DatabaseType="{Binding SelectedDestinationConnection.DatabaseType}" BadgeSize="28" IconSize="16" BadgePadding="4" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding SelectedDestinationConnection.Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedDestinationConnection.DatabaseType}" FontSize="11" Opacity="0.7" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <TextBlock Text="No destination connection selected yet."
+                           Opacity="0.7"
+                           IsVisible="{Binding SelectedDestinationConnection, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                <Button Content="Choose destination connection..."
+                        Classes="dialog-button"
+                        Command="{Binding ChooseDestinationConnectionCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                        HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Step 4: Select objects -->
+            <Grid IsVisible="{Binding IsSelectObjectsStep}" RowDefinitions="Auto,Auto,*" RowSpacing="8"
+                  Width="640" HorizontalAlignment="Center">
+                <TextBlock Grid.Row="0" Text="Select the objects to compare" FontWeight="SemiBold" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Select all" Classes="dialog-button" Command="{Binding SelectAllObjectsCommand}" />
+                    <Button Content="Deselect all" Classes="dialog-button" Command="{Binding DeselectAllObjectsCommand}" />
+                </StackPanel>
+                <Border Grid.Row="2" BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding ObjectChecklist}" IsEnabled="{Binding !IsBusyLoadingObjects}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,90,*" ColumnSpacing="10" Margin="8,4">
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding ObjectType}" Opacity="0.7" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Step 5: Review results -->
+            <Grid IsVisible="{Binding IsReviewResultsStep}" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                <TextBlock Grid.Row="0" Text="Review what will change" FontWeight="SemiBold" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Select all" Classes="dialog-button" Command="{Binding SelectAllResultsCommand}" />
+                    <Button Content="Deselect all" Classes="dialog-button" Command="{Binding DeselectAllResultsCommand}" />
+                </StackPanel>
+                <Grid Grid.Row="2" ColumnDefinitions="*,10,*">
+                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6">
+                        <ScrollViewer>
+                            <ListBox ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResultRow, Mode=TwoWay}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="Auto,90,110,*" ColumnSpacing="10" Margin="4,2">
+                                            <CheckBox Grid.Column="0" IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding CanToggle}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding ObjectType}" Opacity="0.7" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding Status}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Name}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </ScrollViewer>
+                    </Border>
+                    <avaloniaEdit:TextEditor Grid.Column="2"
+                                              x:Name="ResultScriptPreview"
+                                              FontFamily="{StaticResource MonospaceFont}"
+                                              ShowLineNumbers="True"
+                                              SyntaxHighlighting="SQL"
+                                              IsReadOnly="True"
+                                              HorizontalScrollBarVisibility="Auto"
+                                              VerticalScrollBarVisibility="Auto"
+                                              Background="#202424" />
+                </Grid>
+            </Grid>
+
+            <!-- Step 6: Final script -->
+            <Grid IsVisible="{Binding IsFinalScriptStep}" RowDefinitions="Auto,*" RowSpacing="8">
+                <TextBlock Grid.Row="0" Text="Generated script" FontWeight="SemiBold" />
+                <avaloniaEdit:TextEditor Grid.Row="1"
+                                          x:Name="FinalScriptEditor"
+                                          FontFamily="{StaticResource MonospaceFont}"
+                                          ShowLineNumbers="True"
+                                          SyntaxHighlighting="SQL"
+                                          IsReadOnly="True"
+                                          HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Background="#202424" />
+            </Grid>
+
+            <!-- Comparison progress overlay - lives inline instead of a separate window; a
+                 separately shown Window never painted its content on macOS in testing. -->
+            <Border IsVisible="{Binding IsComparing}" Background="#DD1A1C21" CornerRadius="8">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Width="360">
+                    <TextBlock Text="Comparing selected objects..." FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding ProgressCurrentObjectName}"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis"
+                               HorizontalAlignment="Center"
+                               Opacity="0.8" />
+                    <ProgressBar Minimum="0" Maximum="{Binding ProgressTotal}" Value="{Binding ProgressCompleted}" />
+                    <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" FontSize="12" Opacity="0.7" />
+                    <Button Content="Cancel"
+                            Classes="dialog-button"
+                            Command="{Binding CancelComparisonCommand}"
+                            HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </DockPanel>
+</UserControl>
