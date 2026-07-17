@@ -15,8 +15,15 @@
   - Adds an **Open Recent** submenu, placed before Open, listing up to the 20 most recently opened/saved files (most recent first, no duplicate entries), with a **Clear items** action at the bottom. Disabled when there are no recent files or no connection open to attach the file to. Clicking an entry whose file no longer exists removes it from the list and shows a message instead of throwing.
   - Recent files are tracked on File > Open and on successful Save/Save As, persisted to `recent-files.json` via the same `AppDataFileService` JSON pattern already used for window state (`IRecentFilesService`/`RecentFilesService`).
   - The Open Recent submenu is populated dynamically in code-behind when opened (mirrors the existing dynamic-menu pattern used for the schema explorer's context menu); a placeholder child item is kept in XAML so Avalonia actually renders the submenu as expandable — the empty menu never opened.
+- **#39 feat: add Schema Compare tool** (https://github.com/NelsonSantos/DataDeveloper/pull/39)
+  - New "Compare Schemas" wizard (Tools menu) that diffs tables, views, procedures, and functions between two same-provider connections and produces a combined CREATE/ALTER/DROP script for review.
+  - Save the script, or Execute it against the destination — Execute is gated behind a double confirmation (continue, then an explicit risk acknowledgment) before anything runs.
+  - Progress overlay with cancellation for large comparisons; connection pickers reuse the existing Load/Add connection dialog, locked to the chosen database type.
+  - Adds a copy-message button to the shared app dialog, useful for pasting error text elsewhere.
+  - Fixes two correctness bugs found while building this: DDL length suffixes (e.g. `uniqueidentifier(16)`) leaking onto types that don't support a length facet, and missing `GO`/`/` batch separators between combined objects, which made generated scripts fail on SQL Server with "must be the first statement in a batch" errors.
 
 ## Included Commits
+- 670bac1 Merge pull request #39 from NelsonSantos/feature/schema-compare-tool
 - cbae25c Merge pull request #38 from NelsonSantos/feature/reveal-file-in-explorer
 - 7ea97f9 Merge pull request #37 from NelsonSantos/feature/generate-guid-tool
 - 0c9cc00 Merge pull request #36 from NelsonSantos/feature/fix-ddl-new-query-save
