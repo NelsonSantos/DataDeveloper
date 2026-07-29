@@ -204,4 +204,26 @@ public class DialogService : IDialogService
 
         return files.FirstOrDefault()?.TryGetLocalPath();
     }
+
+    public async Task<string?> ShowOpenImportFileAsync(string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title ?? "Import file...",
+            AllowMultiple = false,
+            FileTypeFilter = new List<FilePickerFileType>
+            {
+                new("CSV / Excel file")
+                {
+                    Patterns = new[] { "*.csv", "*.xls", "*.xlsx" },
+                    AppleUniformTypeIdentifiers = new[] { "public.comma-separated-values-text", "com.microsoft.excel.xls", "org.openxmlformats.spreadsheetml.sheet" },
+                    MimeTypes = new[] { "text/csv", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        return files.FirstOrDefault()?.TryGetLocalPath();
+    }
 }

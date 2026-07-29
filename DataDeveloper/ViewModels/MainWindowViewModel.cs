@@ -34,6 +34,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly IReleaseUpdateService _releaseUpdateService;
     private readonly IGenerateGuidWindowService _generateGuidWindowService;
     private readonly ISchemaCompareDialogService _schemaCompareDialogService;
+    private readonly IFileImportDialogService _fileImportDialogService;
     private readonly IRecentFilesService _recentFilesService;
     private const int MaxRecentFiles = 20;
     private readonly KeyModifiers _primaryShortcutModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
@@ -58,6 +59,7 @@ public class MainWindowViewModel : ViewModelBase
         _releaseUpdateService = _serviceProvider.GetRequiredService<IReleaseUpdateService>();
         _generateGuidWindowService = _serviceProvider.GetRequiredService<IGenerateGuidWindowService>();
         _schemaCompareDialogService = _serviceProvider.GetRequiredService<ISchemaCompareDialogService>();
+        _fileImportDialogService = _serviceProvider.GetRequiredService<IFileImportDialogService>();
         _recentFilesService = _serviceProvider.GetRequiredService<IRecentFilesService>();
 
         foreach (var file in _recentFilesService.Load().Take(MaxRecentFiles))
@@ -80,6 +82,7 @@ public class MainWindowViewModel : ViewModelBase
         this.AboutCommand = ReactiveCommand.CreateFromTask(ShowAboutAsync);
         this.GenerateGuidCommand = ReactiveCommand.Create<StyledElement>(GenerateGuid);
         this.CompareSchemasCommand = ReactiveCommand.CreateFromTask<StyledElement>(CompareSchemas);
+        this.ImportFileCommand = ReactiveCommand.CreateFromTask<StyledElement>(ImportFile);
         this.CutCommand = ReactiveCommand.Create(Cut, this.WhenAnyValue(vm => vm.CanCut));
         this.CopyCommand = ReactiveCommand.CreateFromTask(Copy, this.WhenAnyValue(vm => vm.CanCopy));
         this.PasteCommand = ReactiveCommand.Create(Paste, this.WhenAnyValue(vm => vm.CanPaste));
@@ -252,6 +255,7 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AboutCommand { get; }
     public ReactiveCommand<StyledElement, Unit> GenerateGuidCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CompareSchemasCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }
     public ReactiveCommand<Unit, Unit> CutCommand { get; }
     public ReactiveCommand<Unit, Unit> CopyCommand { get; }
     public ReactiveCommand<Unit, Unit> PasteCommand { get; }
@@ -373,6 +377,18 @@ public class MainWindowViewModel : ViewModelBase
     {
         var window = ServicesExtensionMethods.GetParentWindow(control);
         await _schemaCompareDialogService.ShowDialogAsync(window);
+    }
+
+    private async Task ImportFile(StyledElement control)
+    {
+        var window = ServicesExtensionMethods.GetParentWindow(control);
+        var usedConnection = await _fileImportDialogService.ShowDialogAsync(window);
+        if (usedConnection is null)
+            return;
+
+        var tab = Connections.FirstOrDefault(connection => connection.ConnectionSettings.Id == usedConnection.Id);
+        if (tab is not null)
+            await tab.SchemaExplorer.RefreshSchemaAsync();
     }
 
     public void SetActiveEditor(TextEditor editor, DatabaseType databaseType)

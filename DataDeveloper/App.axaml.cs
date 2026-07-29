@@ -82,6 +82,7 @@ public partial class App : Application
         services.AddTransient<GenerateGuidViewModel>();
         services.AddTransient<ISchemaCompareDialogService, SchemaCompareDialogService>();
         services.AddTransient<SchemaCompareViewModel>();
+        services.AddTransient<IFileImportDialogService, FileImportDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<IRecentFilesService, RecentFilesService>();
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
@@ -100,6 +101,7 @@ public partial class App : Application
         resolver.Register<ExportConnectionsOptionsViewModel, ExportConnectionsOptionsDialog>();
         resolver.Register<GenerateGuidViewModel, GenerateGuidWindow>();
         resolver.Register<SchemaCompareViewModel, SchemaCompareWindow>();
+        resolver.Register<FileImportViewModel, FileImportWindow>();
     }
 
     private async void OnAboutMenuClick(object? sender, EventArgs e)

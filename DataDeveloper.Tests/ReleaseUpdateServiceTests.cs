@@ -236,6 +236,9 @@ public sealed class ReleaseUpdateServiceTests
 
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null)
             => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowOpenImportFileAsync(string? title = null)
+            => Task.FromResult<string?>(null);
     }
 
     private sealed class StubHttpMessageHandler(string responseContent) : HttpMessageHandler

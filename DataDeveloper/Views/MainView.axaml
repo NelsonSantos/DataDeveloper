@@ -56,6 +56,7 @@
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Generate GUID..." Command="{Binding GenerateGuidCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
                 <MenuItem Header="_Compare Schemas..." Command="{Binding CompareSchemasCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+                <MenuItem Header="_Import File..." Command="{Binding ImportFileCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
             </MenuItem>
             <MenuItem Header="_Help" IsVisible="{Binding ShowHelpMenu}">
                 <MenuItem Header="_About Data Developer" Command="{Binding AboutCommand}" />

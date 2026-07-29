@@ -182,6 +182,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeRecentFilesService();
             if (serviceType == typeof(ISchemaCompareDialogService))
                 return new FakeSchemaCompareDialogService();
+            if (serviceType == typeof(IFileImportDialogService))
+                return new FakeFileImportDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -195,6 +197,12 @@ public class MainWindowViewModelClipboardFocusTests
     private sealed class FakeSchemaCompareDialogService : ISchemaCompareDialogService
     {
         public Task ShowDialogAsync(Window parentWindow) => Task.CompletedTask;
+    }
+
+    private sealed class FakeFileImportDialogService : IFileImportDialogService
+    {
+        public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow, IConnectionSettings? preselectedConnection = null) =>
+            Task.FromResult<IConnectionSettings?>(null);
     }
 
     private sealed class FakeRecentFilesService : IRecentFilesService
@@ -242,5 +250,7 @@ public class MainWindowViewModelClipboardFocusTests
         public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
 
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
     }
 }
