@@ -382,6 +382,7 @@ public class TabConnectionSessionTests
         services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
         services.AddSingleton<IDialogService>(dialogService);
         services.AddSingleton<ISessionTabStore>(store);
+        services.AddSingleton<IFileImportDialogService>(new StubFileImportDialogService());
         var serviceProvider = services.BuildServiceProvider();
 
         var viewModel = new TabConnectionViewModel(connectionSettings, true, serviceProvider);
@@ -477,6 +478,7 @@ public class TabConnectionSessionTests
         public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
     }
 
     private sealed class MainWindowServiceProviderStub : IServiceProvider
@@ -501,6 +503,8 @@ public class TabConnectionSessionTests
                 return RecentFilesService;
             if (serviceType == typeof(ISchemaCompareDialogService))
                 return new StubSchemaCompareDialogService();
+            if (serviceType == typeof(IFileImportDialogService))
+                return new StubFileImportDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -514,6 +518,12 @@ public class TabConnectionSessionTests
     private sealed class StubSchemaCompareDialogService : ISchemaCompareDialogService
     {
         public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.CompletedTask;
+    }
+
+    private sealed class StubFileImportDialogService : IFileImportDialogService
+    {
+        public Task<IConnectionSettings?> ShowDialogAsync(Avalonia.Controls.Window parentWindow, IConnectionSettings? preselectedConnection = null) =>
+            Task.FromResult<IConnectionSettings?>(null);
     }
 
     private sealed class StubGenerateGuidWindowService : IGenerateGuidWindowService

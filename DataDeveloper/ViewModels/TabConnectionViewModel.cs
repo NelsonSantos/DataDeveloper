@@ -33,6 +33,7 @@ public class TabConnectionViewModel : BaseTabContent
 {
     private int _countQueryEditors = 0;
     private readonly IDialogService _dialogService;
+    private readonly IFileImportDialogService _fileImportDialogService;
     private readonly IEventAggregatorService _eventAggregatorService;
     private readonly IProviderSqlAnalyzer _sqlAnalyzer;
     private readonly ISessionTabStore _sessionTabStore;
@@ -47,6 +48,7 @@ public class TabConnectionViewModel : BaseTabContent
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
         _sqlAnalyzer = ConnectionSettings.GetSqlAnalyzer();
         _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
+        _fileImportDialogService = ServiceProvider.GetRequiredService<IFileImportDialogService>();
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         _sessionTabStore = ServiceProvider.GetRequiredService<ISessionTabStore>();
 
@@ -55,6 +57,7 @@ public class TabConnectionViewModel : BaseTabContent
         CloseTabQueryEditorCommand = ReactiveCommand.CreateFromTask<TabQueryEditorViewModel, bool>(tab => CloseTabQueryEditor(tab));
         AddQueryEditorCommand = ReactiveCommand.Create<string?>(AddQueryEditor);
         CreateTableCommand = ReactiveCommand.CreateFromTask<StyledElement>(CreateTableAsync);
+        ImportFileCommand = ReactiveCommand.CreateFromTask<StyledElement>(ImportFileAsync);
         RefreshCommand = ReactiveCommand.CreateFromTask(Refresh);
         RestoreSessionOrAddDefaultEditor();
         SetupAutosave();
@@ -96,6 +99,12 @@ public class TabConnectionViewModel : BaseTabContent
         };
 
         await window.ShowDialog(source.GetParentWindow());
+    }
+
+    public async Task ImportFileAsync(StyledElement source)
+    {
+        await _fileImportDialogService.ShowDialogAsync(source.GetParentWindow(), ConnectionSettings);
+        await SchemaExplorer.RefreshSchemaAsync();
     }
 
     public async Task EditTableAsync(SchemaNode node, StyledElement source)
@@ -526,6 +535,7 @@ public class TabConnectionViewModel : BaseTabContent
     [Reactive] public bool IsSchemaExplorerMinimized { get; set; }
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CreateTableCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }
     public ReactiveCommand<TabQueryEditorViewModel, bool> CloseTabQueryEditorCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ObservableCollection<SchemaNode> RootConnections { get; } = new();

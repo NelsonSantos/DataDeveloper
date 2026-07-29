@@ -63,19 +63,29 @@
                         <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
                     </StackPanel>
                 </Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button
+                        Margin="4"
+                        Command="{Binding CreateTableCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                        Background="Transparent">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="&#xF0A75;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                            <TextBlock FontSize="13" Text="New table" VerticalAlignment="Center" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        Margin="4"
+                        Command="{Binding ImportFileCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                        Background="Transparent">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <TextBlock Text="&#xF0552;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                            <TextBlock FontSize="13" Text="Import file" VerticalAlignment="Center" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
                 <Button
-                    Grid.Column="1"
-                    HorizontalAlignment="Left"
-                    Margin="4"
-                    Command="{Binding CreateTableCommand}"
-                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                    Background="Transparent">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="&#xF0A75;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                        <TextBlock FontSize="13" Text="New table" VerticalAlignment="Center" Margin="0,4,0,0" />
-                    </StackPanel>
-                </Button>
-                <Button 
                     x:Name="NewQueryButton"
                     Grid.Column="2"  
                     HorizontalAlignment="Right" 

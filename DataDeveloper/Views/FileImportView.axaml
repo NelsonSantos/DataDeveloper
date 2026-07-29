@@ -1,0 +1,381 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:controls="clr-namespace:DataDeveloper.Controls"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="DataDeveloper.Views.FileImportView">
+    <Design.DataContext>
+        <vm:FileImportViewModel />
+    </Design.DataContext>
+
+    <UserControl.Styles>
+        <Style Selector="Border.step-marker">
+            <Setter Property="Background" Value="#FF2A2E36" />
+            <Setter Property="BorderBrush" Value="#FF4A505C" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.step-marker.step-current, Border.step-marker.step-done">
+            <Setter Property="Background" Value="#FF4D6DD1" />
+            <Setter Property="BorderBrush" Value="#FF5F7FE3" />
+        </Style>
+        <Style Selector="TextBlock.step-marker-number">
+            <Setter Property="Foreground" Value="#FFB0B6C0" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.step-marker.step-current TextBlock.step-marker-number, Border.step-marker.step-done TextBlock.step-marker-number">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        <Style Selector="TextBlock.step-marker-check">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.step-label">
+            <Setter Property="Foreground" Value="#FFB0B6C0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.step-label.step-label-active">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Medium" />
+        </Style>
+        <Style Selector="Border.step-connector">
+            <Setter Property="Background" Value="#FF4A505C" />
+            <Setter Property="Height" Value="2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,0,20" />
+        </Style>
+        <Style Selector="Border.step-connector.step-connector-done">
+            <Setter Property="Background" Value="#FF4D6DD1" />
+        </Style>
+    </UserControl.Styles>
+
+    <DockPanel Margin="16">
+
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,20"
+              ColumnDefinitions="Auto,*,Auto,*,Auto,*,Auto,*,Auto,*,Auto">
+
+            <StackPanel Grid.Column="0" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectConnectionStep}"
+                        Classes.step-done="{Binding IsSelectConnectionStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="1" Classes="step-marker-number" IsVisible="{Binding !IsSelectConnectionStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectConnectionStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Connection" Classes="step-label" Classes.step-label-active="{Binding IsSelectConnectionStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="1" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectConnectionStepDone}" />
+
+            <StackPanel Grid.Column="2" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsSelectFileStep}"
+                        Classes.step-done="{Binding IsSelectFileStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="2" Classes="step-marker-number" IsVisible="{Binding !IsSelectFileStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsSelectFileStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="File" Classes="step-label" Classes.step-label-active="{Binding IsSelectFileStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="3" Classes="step-connector" Classes.step-connector-done="{Binding IsSelectFileStepDone}" />
+
+            <StackPanel Grid.Column="4" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsChooseTargetStep}"
+                        Classes.step-done="{Binding IsChooseTargetStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="3" Classes="step-marker-number" IsVisible="{Binding !IsChooseTargetStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsChooseTargetStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Target" Classes="step-label" Classes.step-label-active="{Binding IsChooseTargetStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="5" Classes="step-connector" Classes.step-connector-done="{Binding IsChooseTargetStepDone}" />
+
+            <StackPanel Grid.Column="6" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsMapColumnsStep}"
+                        Classes.step-done="{Binding IsMapColumnsStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="4" Classes="step-marker-number" IsVisible="{Binding !IsMapColumnsStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsMapColumnsStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Columns" Classes="step-label" Classes.step-label-active="{Binding IsMapColumnsStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="7" Classes="step-connector" Classes.step-connector-done="{Binding IsMapColumnsStepDone}" />
+
+            <StackPanel Grid.Column="8" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsReviewStep}"
+                        Classes.step-done="{Binding IsReviewStepDone}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <Grid>
+                        <TextBlock Text="5" Classes="step-marker-number" IsVisible="{Binding !IsReviewStepDone}" />
+                        <TextBlock Text="&#x2713;" Classes="step-marker-check" IsVisible="{Binding IsReviewStepDone}" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Review" Classes="step-label" Classes.step-label-active="{Binding IsReviewStep}" />
+            </StackPanel>
+
+            <Border Grid.Column="9" Classes="step-connector" Classes.step-connector-done="{Binding IsReviewStepDone}" />
+
+            <StackPanel Grid.Column="10" Width="92" Spacing="6">
+                <Border Classes="step-marker"
+                        Classes.step-current="{Binding IsResultStep}"
+                        Width="28" Height="28" CornerRadius="14" HorizontalAlignment="Center">
+                    <TextBlock Text="6" Classes="step-marker-number" />
+                </Border>
+                <TextBlock Text="Done" Classes="step-label" Classes.step-label-active="{Binding IsResultStep}" />
+            </StackPanel>
+
+        </Grid>
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10" Margin="0,16,0,0">
+            <Button Grid.Column="0"
+                    Content="Back"
+                    Classes="dialog-button"
+                    Command="{Binding BackCommand}"
+                    IsVisible="{Binding !IsSelectConnectionStep}" />
+            <Button Grid.Column="2"
+                    Content="Cancel"
+                    Classes="dialog-button"
+                    Command="{Binding CloseCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    IsVisible="{Binding !IsResultStep}" />
+            <Button Grid.Column="2"
+                    Content="Close"
+                    Classes="dialog-button primary"
+                    Command="{Binding CloseCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                    IsVisible="{Binding IsResultStep}" />
+            <Button Grid.Column="3"
+                    Content="{Binding NextButtonLabel}"
+                    Classes="dialog-button primary"
+                    Command="{Binding NextCommand}"
+                    IsVisible="{Binding !IsResultStep}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding ErrorMessage}"
+                   Foreground="IndianRed"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,12"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+
+        <Grid>
+
+            <!-- Step 1: Select connection -->
+            <StackPanel IsVisible="{Binding IsSelectConnectionStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Select the destination connection" FontWeight="SemiBold" />
+                <Border BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6" Padding="12"
+                        IsVisible="{Binding SelectedConnection, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <controls:DatabaseTypeIcon Grid.Column="0" DatabaseType="{Binding SelectedConnection.DatabaseType}" BadgeSize="28" IconSize="16" BadgePadding="4" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="{Binding SelectedConnection.Name}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding SelectedConnection.DatabaseType}" FontSize="11" Opacity="0.7" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <TextBlock Text="No connection selected yet."
+                           Opacity="0.7"
+                           IsVisible="{Binding SelectedConnection, Converter={x:Static conv:ObjectConverters.IsNull}}" />
+                <Button Content="Choose connection..."
+                        Classes="dialog-button"
+                        Command="{Binding ChooseConnectionCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                        HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Step 2: Select file -->
+            <Grid IsVisible="{Binding IsSelectFileStep}" RowDefinitions="Auto,Auto,*" RowSpacing="8"
+                  Width="720" HorizontalAlignment="Center">
+                <TextBlock Grid.Row="0" Text="Select the CSV / XLS / XLSX file to import" FontWeight="SemiBold" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Choose file..." Classes="dialog-button" Command="{Binding ChooseFileCommand}" />
+                    <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Opacity="0.8" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+                <Border Grid.Row="2" BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6"
+                        IsVisible="{Binding FilePreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8">
+                            <ItemsControl ItemsSource="{Binding FilePreview.Headers}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontWeight="Bold" Width="140" Margin="4" TextTrimming="CharacterEllipsis" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <ItemsControl ItemsSource="{Binding FilePreview.SampleRows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ItemsControl ItemsSource="{Binding}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" Width="140" Margin="4" TextTrimming="CharacterEllipsis" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Step 3: Choose target -->
+            <StackPanel IsVisible="{Binding IsChooseTargetStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Choose the import target" FontWeight="SemiBold" />
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                    <RadioButton GroupName="TargetMode" Content="Create a new table"
+                                 IsChecked="{Binding IsNewTableMode, Mode=OneWay}"
+                                 Command="{Binding SelectNewTableModeCommand}" />
+                    <RadioButton GroupName="TargetMode" Content="Import into an existing table"
+                                 IsChecked="{Binding IsExistingTableMode, Mode=OneWay}"
+                                 Command="{Binding SelectExistingTableModeCommand}" />
+                </StackPanel>
+
+                <StackPanel IsVisible="{Binding IsNewTableMode}" Spacing="8">
+                    <TextBlock Text="Table name" />
+                    <TextBox Text="{Binding NewTableName, Mode=TwoWay}" Watermark="table_name" />
+                    <TextBlock Text="Schema (optional)" />
+                    <TextBox Text="{Binding NewSchemaName, Mode=TwoWay}" Watermark="schema" />
+                </StackPanel>
+
+                <StackPanel IsVisible="{Binding IsExistingTableMode}" Spacing="8">
+                    <TextBlock Text="Target table" />
+                    <ComboBox ItemsSource="{Binding AvailableTables}"
+                              SelectedItem="{Binding SelectedExistingTable, Mode=TwoWay}"
+                              HorizontalAlignment="Stretch" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Step 4: Map columns -->
+            <Grid IsVisible="{Binding IsMapColumnsStep}" RowDefinitions="Auto,*" RowSpacing="8">
+                <TextBlock Grid.Row="0" Text="Review the detected columns and adjust names/types as needed" FontWeight="SemiBold" />
+                <Border Grid.Row="1" BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6">
+                    <ScrollViewer>
+                        <ItemsControl x:Name="MappingRowsItemsControl" ItemsSource="{Binding MappingRows}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,140,*" ColumnSpacing="10" Margin="8,6">
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding IsIncluded, Mode=TwoWay}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding SourceColumnName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                                        <Grid Grid.Column="2" ColumnDefinitions="*,150,Auto" ColumnSpacing="8"
+                                              IsVisible="{Binding DataContext.IsNewTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
+                                            <TextBox Grid.Column="0" Text="{Binding NewColumn.Name, Mode=TwoWay}" Watermark="column name" />
+                                            <ComboBox Grid.Column="1" ItemsSource="{Binding NewColumn.AvailableDataTypes}" SelectedItem="{Binding NewColumn.SelectedDataType, Mode=TwoWay}" />
+                                            <CheckBox Grid.Column="2" Content="Nullable" VerticalAlignment="Center" IsChecked="{Binding NewColumn.IsNullable, Mode=TwoWay}" />
+                                        </Grid>
+
+                                        <ComboBox Grid.Column="2" HorizontalAlignment="Stretch"
+                                                  ItemsSource="{Binding AvailableTargetColumns}"
+                                                  SelectedItem="{Binding TargetColumnName, Mode=TwoWay}"
+                                                  IsVisible="{Binding DataContext.IsExistingTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+
+            <!-- Step 5: Review -->
+            <Grid IsVisible="{Binding IsReviewStep}" RowDefinitions="Auto,Auto,*" RowSpacing="8">
+                <TextBlock Grid.Row="0" Text="Review the import" FontWeight="SemiBold" />
+                <StackPanel Grid.Row="1" Spacing="4">
+                    <TextBlock IsVisible="{Binding IsNewTableMode}" Text="{Binding NewTableName, StringFormat='New table: {0}'}" />
+                    <TextBlock IsVisible="{Binding IsExistingTableMode}" Text="{Binding SelectedExistingTable.DisplayName, StringFormat='Target table: {0}'}" />
+                    <TextBlock Text="{Binding RowCountToImport, StringFormat='Rows to import: {0}'}" />
+                </StackPanel>
+                <avaloniaEdit:TextEditor Grid.Row="2"
+                                          x:Name="CreateScriptPreview"
+                                          IsVisible="{Binding IsNewTableMode}"
+                                          FontFamily="{StaticResource MonospaceFont}"
+                                          ShowLineNumbers="True"
+                                          SyntaxHighlighting="SQL"
+                                          IsReadOnly="True"
+                                          HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Background="#202424" />
+            </Grid>
+
+            <!-- Step 6: Result -->
+            <StackPanel IsVisible="{Binding IsResultStep}" Spacing="12"
+                        Width="640" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                <Border Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Center" Background="#2E7D5B"
+                        IsVisible="{Binding IsImportFullySuccessful}">
+                    <TextBlock Text="&#xF05E0;" Classes="MaterialIcon" FontSize="28" Foreground="White" HorizontalAlignment="Center" />
+                </Border>
+                <Border Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Center" Background="#C28A19"
+                        IsVisible="{Binding IsImportPartiallySuccessful}">
+                    <TextBlock Text="&#xF0028;" Classes="MaterialIcon" FontSize="28" Foreground="White" HorizontalAlignment="Center" />
+                </Border>
+                <Border Width="56" Height="56" CornerRadius="28" HorizontalAlignment="Center" Background="#B44646"
+                        IsVisible="{Binding IsImportFailed}">
+                    <TextBlock Text="&#xF0159;" Classes="MaterialIcon" FontSize="28" Foreground="White" HorizontalAlignment="Center" />
+                </Border>
+
+                <TextBlock Text="Import finished" FontWeight="SemiBold" FontSize="16" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding ImportResult.RowsImported, StringFormat='Rows imported: {0}'}" />
+                <TextBlock Text="{Binding ImportResult.RowsFailed, StringFormat='Rows failed: {0}'}" />
+                <Border BorderThickness="1" BorderBrush="#FF4A505C" CornerRadius="6" Padding="8" MaxHeight="200"
+                        IsVisible="{Binding HasImportErrors}">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding ImportResult.Errors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="IndianRed" FontSize="11" Margin="0,2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <!-- Import progress overlay -->
+            <Border IsVisible="{Binding IsImporting}" Background="#DD1A1C21" CornerRadius="8">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Width="360">
+                    <TextBlock Text="Importing rows..." FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <ProgressBar Minimum="0" Maximum="{Binding ProgressTotal}" Value="{Binding ProgressCompleted}" />
+                    <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" FontSize="12" Opacity="0.7" />
+                </StackPanel>
+            </Border>
+
+        </Grid>
+    </DockPanel>
+</UserControl>
