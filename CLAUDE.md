@@ -34,6 +34,11 @@
 - Do not delete remote branches on GitHub unless the user explicitly asks to remove the remote branch too.
 - Every change must be made on its own branch named `feature/<feature-name>`. Do not commit or push directly to `main`.
 
+## Releases
+- Use `scripts/create-release.sh <version>` to cut a release (e.g. `./scripts/create-release.sh 26.0731.0`). It creates and pushes the version tag, waits for the GitHub Release to be published, and updates its notes.
+- Do not trigger the `release.yml` workflow via `workflow_dispatch` (`gh workflow run release.yml ...`) directly. Its manual-dispatch path checks out the version tag before that tag exists, so every build fails at checkout. Only the tag-push path (which `create-release.sh` drives) works.
+- Must be run from `main` with a clean working tree.
+
 ## Parser architecture
 - `DataDeveloper.Antlr` is the single owner of ANTLR grammars and checked-in generated parser/lexer code.
 - Keep authoritative parser sources under `DataDeveloper.Antlr/Generated` and `DataDeveloper.Antlr/Support`. Do not add or restore parser copies under `DataDeveloper.Data`.
