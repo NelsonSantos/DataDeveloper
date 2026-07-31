@@ -736,6 +736,7 @@ public class TableDesignerViewModelTests
         public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
         public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
     }
 
     private sealed class NoOpDialogService : IDialogService
@@ -796,6 +797,11 @@ public class TableDesignerViewModelTests
         }
 
         public Task<string?> ShowOpenImportFileAsync(string? title = null)
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        public Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null)
         {
             return Task.FromResult<string?>(null);
         }

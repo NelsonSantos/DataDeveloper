@@ -23,6 +23,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Select ranges, rows, columns, and copy results to the clipboard
 - Use context menus in the schema explorer to copy names and open SQL templates for tables, views, procedures, and functions
 - Import data from CSV, XLS, and XLSX files through a step-by-step wizard, either into a new table or mapped into an existing one
+- Export a query result grid to CSV or XLSX, remembering the last format used per connection
 - Resize columns and navigate results with keyboard shortcuts
 - Track query execution and previous-result cleanup from the status bar
 - Run on macOS, Windows, and Linux
