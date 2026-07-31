@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
+using DataDeveloper.Core;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Enums;
@@ -21,6 +23,7 @@ using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.NextGrid;
 using DataDeveloper.NextGrid.Renderers;
+using DataDeveloper.Services.GridExport;
 using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -44,7 +47,13 @@ public class TabDataGridViewModel : BaseTabContent
     private readonly Action? _transactionStateChanged;
     private readonly int? _commandTimeoutSeconds;
     private readonly List<PendingDeletedGridRow> _pendingDeletedRows = [];
+    private readonly IDialogService _dialogService;
+    private readonly AppDataFileService _fileService;
+    private readonly GridExportToolSettings _exportSettings;
     private CancellationTokenSource? _loadCancellationTokenSource;
+
+    private const string ExportSettingsFileName = "grid-export-tool.json";
+    private const string ExportSettingsSubfolder = "Config";
 
     public TabDataGridViewModel(
         IConnectionSettings connectionSettings,
@@ -70,6 +79,10 @@ public class TabDataGridViewModel : BaseTabContent
         _commandTimeoutSeconds = commandTimeoutSeconds;
         ConnectionSettings = connectionSettings;
         StatementResult = statementResult;
+        _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
+        _fileService = ServiceProvider.GetRequiredService<AppDataFileService>();
+        _exportSettings = _fileService.LoadJson<GridExportToolSettings>(ExportSettingsFileName, ExportSettingsSubfolder) ?? new GridExportToolSettings();
+        SelectedExportFormat = _exportSettings.PreferredFormatByConnectionId.GetValueOrDefault(ConnectionSettings.Id, GridExportFormat.Csv);
 
         SelectedPage = selectedPage;
         LoadNextPageCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(SelectedPage)
@@ -90,11 +103,17 @@ public class TabDataGridViewModel : BaseTabContent
         SubmitChangesCommand = ReactiveCommand.CreateFromTask(
             SubmitChangesAsync,
             this.WhenAnyValue(vm => vm.CanSubmitChanges));
+        ExportCommand = ReactiveCommand.CreateFromTask(
+            ExportAsync,
+            this.WhenAnyValue(vm => vm.CanExport));
+        SelectCsvFormatCommand = ReactiveCommand.Create(() => SetExportFormat(GridExportFormat.Csv));
+        SelectXlsxFormatCommand = ReactiveCommand.Create(() => SetExportFormat(GridExportFormat.Xlsx));
         this.WhenAnyValue(vm => vm.IsEditableResult).Subscribe(_ =>
         {
             this.RaisePropertyChanged(nameof(EditabilityStatusText));
             this.RaisePropertyChanged(nameof(ShowReadOnlyReason));
         });
+        this.WhenAnyValue(vm => vm.SelectedExportFormat).Subscribe(_ => this.RaisePropertyChanged(nameof(ExportPrimaryLabel)));
         this.WhenAnyValue(
                 vm => vm.IsClosed,
                 vm => vm.IsBusy,
@@ -696,6 +715,10 @@ public class TabDataGridViewModel : BaseTabContent
 
     public bool CanSubmitChanges => IsEditableResult && HasPendingChanges && !HasValidationErrors && !IsBusy && !IsEditorOperationInProgress;
 
+    public bool CanExport => GridRows.Count > 0 && !IsBusy;
+
+    public string ExportPrimaryLabel => SelectedExportFormat == GridExportFormat.Xlsx ? "Export XLSX" : "Export CSV";
+
     public int PendingInsertCount => GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.New);
 
     public int PendingUpdateCount => GridRows.OfType<EditableGridRow>().Count(row => row.State == EditableGridRowState.Modified);
@@ -737,6 +760,7 @@ public class TabDataGridViewModel : BaseTabContent
         this.RaisePropertyChanged(nameof(CanAddRow));
         this.RaisePropertyChanged(nameof(CanDeleteRow));
         this.RaisePropertyChanged(nameof(CanSubmitChanges));
+        this.RaisePropertyChanged(nameof(CanExport));
     }
 
     private void ValidateAllRows()
@@ -823,6 +847,7 @@ public class TabDataGridViewModel : BaseTabContent
     [Reactive] public bool IsClosed { get; set; }
     [Reactive] public int RowNumber { get; set; }
     [Reactive] public int SelectedPage { get; set; }
+    [Reactive] public GridExportFormat SelectedExportFormat { get; private set; }
     public ObservableCollection<ColumnHeader> Headers { get; } = new();
     public ObservableCollection<string> GridHeaders { get; } = new();
     public ObservableCollection<Type> GridColumnTypes { get; } = new();
@@ -835,4 +860,52 @@ public class TabDataGridViewModel : BaseTabContent
     public ReactiveCommand<Unit, Unit> AddRowCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteRowCommand { get; }
     public ReactiveCommand<Unit, Unit> SubmitChangesCommand { get; }
+    public ReactiveCommand<Unit, Unit> ExportCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectCsvFormatCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectXlsxFormatCommand { get; }
+
+    private void SetExportFormat(GridExportFormat format)
+    {
+        SelectedExportFormat = format;
+        _exportSettings.PreferredFormatByConnectionId[ConnectionSettings.Id] = format;
+        _fileService.SaveJson(ExportSettingsFileName, _exportSettings, ExportSettingsSubfolder);
+    }
+
+    private async Task ExportAsync()
+    {
+        if (!IsClosed)
+        {
+            var choice = await _dialogService.ShowDialogAsync(
+                "This result isn't fully loaded yet. Load all remaining rows and export everything, or export only the rows currently loaded?",
+                "Export results",
+                DialogButtons.YesNoCancel,
+                DialogIcon.Question);
+
+            if (choice == DialogResult.Cancel)
+                return;
+
+            if (choice == DialogResult.Yes)
+                await LoadNextPage(showExecutionStatus: false);
+        }
+
+        var extension = SelectedExportFormat == GridExportFormat.Xlsx ? "xlsx" : "csv";
+        var suggestedName = $"{Name}.{extension}";
+        var path = await _dialogService.ShowSaveExportFileDialogAsync(SelectedExportFormat, suggestedName, "Export results");
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        try
+        {
+            if (SelectedExportFormat == GridExportFormat.Xlsx)
+                await GridExportWriter.WriteXlsxAsync(path, GridHeaders, GridRows, GridColumnTypes);
+            else
+                await GridExportWriter.WriteCsvAsync(path, GridHeaders, GridRows, GridColumnTypes);
+
+            await _dialogService.ShowMessageAsync($"Exported {GridRows.Count:N0} row(s) to {Path.GetFileName(path)}.", "Export results");
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowMessageAsync(ex.Message, "Export failed");
+        }
+    }
 }

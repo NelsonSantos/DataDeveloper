@@ -161,6 +161,8 @@ public class ConnectionSelectorViewModelTests
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult(OpenJsonFileResult);
 
         public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
     }
 
     private sealed class FakeDatabaseProvider : IDatabaseProvider

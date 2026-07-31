@@ -19,4 +19,5 @@ public interface IDialogService
     Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null);
     Task<string?> ShowOpenJsonFileDialogAsync(string? title = null);
     Task<string?> ShowOpenImportFileAsync(string? title = null);
+    Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null);
 }

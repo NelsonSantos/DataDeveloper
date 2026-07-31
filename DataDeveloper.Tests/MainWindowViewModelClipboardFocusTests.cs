@@ -252,5 +252,7 @@ public class MainWindowViewModelClipboardFocusTests
         public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
 
         public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
+
+        public Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
     }
 }

@@ -11,7 +11,7 @@
     </Design.DataContext>
     <Grid RowDefinitions="Auto, Auto, Auto, *">
         <Border Grid.Row="0" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto, Auto, Auto, Auto, Auto" ColumnSpacing="5" Margin="0,3, 0, 3">
             <TextBlock Grid.Column="0" Text="&#xF1ABD;" Classes="MaterialIcon" FontSize="25" Foreground="LightGray" />
             <TextBlock Grid.Column="1" Text="Rows per page:" FontSize="11" VerticalAlignment="Center" Foreground="LightGray" />
             <ComboBox Grid.Column="2" FontSize="12" FontFamily="{StaticResource MonospaceFont}"
@@ -86,7 +86,23 @@
                     Text="&#xF0193;" Classes="MaterialIcon"
                     Foreground="{Binding CanSubmitChanges, Converter={StaticResource BoolToColor}, ConverterParameter='DeepSkyBlue|Gray'}" />
             </Button>
-            <Border Grid.Column="10"
+            <Border Grid.Column="10" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
+            <SplitButton Grid.Column="11"
+                Content="{Binding ExportPrimaryLabel}"
+                FontSize="11"
+                Background="Transparent"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Export the result grid"
+                Command="{Binding ExportCommand}"
+                IsEnabled="{Binding CanExport}">
+                <SplitButton.Flyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                        <MenuItem Header="Export as CSV" Command="{Binding SelectCsvFormatCommand}" />
+                        <MenuItem Header="Export as XLSX" Command="{Binding SelectXlsxFormatCommand}" />
+                    </MenuFlyout>
+                </SplitButton.Flyout>
+            </SplitButton>
+            <Border Grid.Column="12"
                     BorderThickness="0.5"
                     BorderBrush="#6F7A45"
                     Background="#2D3420"
@@ -99,7 +115,7 @@
                            VerticalAlignment="Center"
                            Foreground="#D9E8A8" />
             </Border>
-            <Border Grid.Column="11"
+            <Border Grid.Column="13"
                     BorderThickness="0.5"
                     BorderBrush="#A64B4B"
                     Background="#3A2323"
@@ -112,28 +128,28 @@
                            VerticalAlignment="Center"
                            Foreground="#FFC6C6" />
             </Border>
-            <TextBlock Grid.Column="13"
+            <TextBlock Grid.Column="15"
                        Text="{Binding GridSelectionStatusText}"
                        FontSize="11"
                        FontFamily="{StaticResource MonospaceFont}"
                        VerticalAlignment="Center"
                        Foreground="LightGray" />
-            <Border Grid.Column="14" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
-            <Border Grid.Column="15" BorderThickness="0.5" BorderBrush="LightGray" CornerRadius="3" Margin="0, 3, 0 ,3" Padding="4, 0, 5, 0">
-                <TextBlock 
-                    Text="" 
+            <Border Grid.Column="16" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
+            <Border Grid.Column="17" BorderThickness="0.5" BorderBrush="LightGray" CornerRadius="3" Margin="0, 3, 0 ,3" Padding="4, 0, 5, 0">
+                <TextBlock
+                    Text=""
                     FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="LightGray">
                     <Run Text="{Binding RowNumber, StringFormat=' {0:N0} row(s) loaded'}" />
                     <Run Text="{Binding TimeElapsed, StringFormat=' in {0:c}'}"/>
                 </TextBlock>
             </Border>
-            <Border Grid.Column="16" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
-            <TextBlock Grid.Column="17"
+            <Border Grid.Column="18" Background="LightGray" Width="0.5" Opacity="0.5" Margin="0,3" />
+            <TextBlock Grid.Column="19"
                        Text="{Binding EditabilityStatusText}"
                        FontSize="11"
                        VerticalAlignment="Center"
                        Foreground="LightGray" />
-            <TextBlock Grid.Column="18"
+            <TextBlock Grid.Column="20"
                        Text="&#xF02FC;"
                        Classes="MaterialIcon"
                        Foreground="#FFD8AE"

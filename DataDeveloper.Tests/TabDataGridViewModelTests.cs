@@ -1,8 +1,10 @@
 using System.Diagnostics;
 using System.Reflection;
+using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.Services;
@@ -51,6 +53,8 @@ public class TabDataGridViewModelTests
         var executor = new CapturingStatementExecutor();
         var services = new ServiceCollection();
         services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
+        services.AddSingleton<IDialogService, NoOpDialogService>();
+        services.AddSingleton<AppDataFileService>();
         var serviceProvider = services.BuildServiceProvider();
 
         var parameters = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
@@ -93,6 +97,8 @@ public class TabDataGridViewModelTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<IEventAggregatorService, EventAggregatorService>();
+        services.AddSingleton<IDialogService, NoOpDialogService>();
+        services.AddSingleton<AppDataFileService>();
         var serviceProvider = services.BuildServiceProvider();
 
         return new TestTabDataGridViewModel(
@@ -214,5 +220,22 @@ public class TabDataGridViewModelTests
         {
             return _statementExecutor;
         }
+    }
+
+    private sealed class NoOpDialogService : IDialogService
+    {
+        public Task<DialogResult> ShowDialogAsync(string message, string? title = null, DialogButtons buttons = DialogButtons.Ok, DialogIcon icon = DialogIcon.Info) => Task.FromResult(DialogResult.Cancel);
+        public Task<DialogResult> ShowDialogResult(string message, string? title = null) => Task.FromResult(DialogResult.Cancel);
+        public Task ShowMessageAsync(string message, string? title = null) => Task.CompletedTask;
+        public Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync) => Task.CompletedTask;
+        public Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null) => Task.FromResult(DialogResult.Cancel);
+        public Task<string?> ShowSaveFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenFileAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenDatabaseFileAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowCreateDatabaseFileAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowSaveJsonFileDialogAsync(string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenJsonFileDialogAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowOpenImportFileAsync(string? title = null) => Task.FromResult<string?>(null);
+        public Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null) => Task.FromResult<string?>(null);
     }
 }

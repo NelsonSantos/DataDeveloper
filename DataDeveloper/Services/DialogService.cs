@@ -226,4 +226,35 @@ public class DialogService : IDialogService
 
         return files.FirstOrDefault()?.TryGetLocalPath();
     }
+
+    public async Task<string?> ShowSaveExportFileDialogAsync(GridExportFormat format, string? suggestedName = null, string? title = null)
+    {
+        var owner = GetOwnerWindow();
+        var isXlsx = format == GridExportFormat.Xlsx;
+        var file = await owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title ?? "Export results...",
+            SuggestedFileName = suggestedName ?? (isXlsx ? "result.xlsx" : "result.csv"),
+            DefaultExtension = isXlsx ? "xlsx" : "csv",
+            ShowOverwritePrompt = true,
+            FileTypeChoices = new List<FilePickerFileType>
+            {
+                isXlsx
+                    ? new FilePickerFileType("Excel workbook")
+                    {
+                        Patterns = new[] { "*.xlsx" },
+                        AppleUniformTypeIdentifiers = new[] { "org.openxmlformats.spreadsheetml.sheet" },
+                        MimeTypes = new[] { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+                    }
+                    : new FilePickerFileType("CSV file")
+                    {
+                        Patterns = new[] { "*.csv" },
+                        AppleUniformTypeIdentifiers = new[] { "public.comma-separated-values-text" },
+                        MimeTypes = new[] { "text/csv" }
+                    }
+            }
+        });
+
+        return file?.TryGetLocalPath();
+    }
 }
