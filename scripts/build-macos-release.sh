@@ -104,9 +104,9 @@ if command -v codesign >/dev/null 2>&1; then
   codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null 2>&1 || true
 fi
 
-ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$PUBLISH_ROOT/$APP_NAME-$RUNTIME_IDENTIFIER.zip"
+ditto -c -k --sequesterRsrc --keepParent "$APP_BUNDLE" "$PUBLISH_ROOT/$APP_NAME-$VERSION-$RUNTIME_IDENTIFIER.zip"
 
 echo "Release gerada em:"
 echo "  $APP_BUNDLE"
 echo "Zip gerado em:"
-echo "  $PUBLISH_ROOT/$APP_NAME-$RUNTIME_IDENTIFIER.zip"
+echo "  $PUBLISH_ROOT/$APP_NAME-$VERSION-$RUNTIME_IDENTIFIER.zip"

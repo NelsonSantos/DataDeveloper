@@ -42,9 +42,9 @@ Download the latest package for your operating system from the GitHub Releases p
 
 ### macOS
 
-- Download the `.zip` file for your Mac:
-  - `DataDeveloper-osx-arm64.zip` for Apple Silicon
-  - `DataDeveloper-osx-x64.zip` for Intel
+- Download the `.zip` file for your Mac (the file name includes the release version, for example `DataDeveloper-26.0731.0-osx-arm64.zip`):
+  - `DataDeveloper-<version>-osx-arm64.zip` for Apple Silicon
+  - `DataDeveloper-<version>-osx-x64.zip` for Intel
 - Extract the archive.
 - Move `DataDeveloper.app` to `Applications`.
 - Open the app from `Applications`.
@@ -54,24 +54,24 @@ If needed, allow it in `System Settings > Privacy & Security`.
 
 ### Windows
 
-- Download `DataDeveloper-win-x64-setup.exe`.
+- Download `DataDeveloper-<version>-win-x64-setup.exe` (the file name includes the release version, for example `DataDeveloper-26.0731.0-win-x64-setup.exe`).
 - Run the installer.
 - Complete the setup wizard.
 - Launch DataDeveloper from the Start menu or desktop shortcut, depending on the installer options you selected.
 
 ### Linux
 
-- Download `DataDeveloper-linux-x64.AppImage`.
+- Download `DataDeveloper-<version>-linux-x64.AppImage` (the file name includes the release version, for example `DataDeveloper-26.0731.0-linux-x64.AppImage`).
 - Make the file executable:
 
 ```bash
-chmod +x DataDeveloper-linux-x64.AppImage
+chmod +x DataDeveloper-<version>-linux-x64.AppImage
 ```
 
 - Run the AppImage:
 
 ```bash
-./DataDeveloper-linux-x64.AppImage
+./DataDeveloper-<version>-linux-x64.AppImage
 ```
 
 If your distribution requires FUSE support for AppImage, install the appropriate package first.

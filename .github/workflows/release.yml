@@ -77,7 +77,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-${{ matrix.rid }}
-          path: artifacts/macos/${{ matrix.rid }}/DataDeveloper-${{ matrix.rid }}.zip
+          path: artifacts/macos/${{ matrix.rid }}/DataDeveloper-${{ needs.resolve-version.outputs.version }}-${{ matrix.rid }}.zip
 
   build-windows:
     needs: resolve-version
@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-win-x64
-          path: artifacts/windows/win-x64/DataDeveloper-win-x64-setup.exe
+          path: artifacts/windows/win-x64/DataDeveloper-${{ needs.resolve-version.outputs.version }}-win-x64-setup.exe
 
   build-linux:
     needs: resolve-version
@@ -136,12 +136,12 @@ jobs:
           curl -L https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -o appimagetool
           chmod +x appimagetool
       - name: Build AppImage
-        run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64
+        run: APPIMAGE_TOOL="$PWD/appimagetool" APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./packaging/linux/build-appimage.sh artifacts/linux/linux-x64/DataDeveloper.AppDir linux-x64 ${{ needs.resolve-version.outputs.version }}
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v5
         with:
           name: DataDeveloper-linux-x64
-          path: artifacts/linux/linux-x64/DataDeveloper-linux-x64.AppImage
+          path: artifacts/linux/linux-x64/DataDeveloper-${{ needs.resolve-version.outputs.version }}-linux-x64.AppImage
 
   publish-release:
     needs: [resolve-version, build-macos, build-windows, build-linux]
