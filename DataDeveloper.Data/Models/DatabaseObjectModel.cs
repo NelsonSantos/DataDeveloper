@@ -24,6 +24,11 @@ public class DatabaseObjectModel
     public string? DataType { get; set; }
 
     /// <summary>
+    /// Extra information the catalog shows next to the object, e.g. a sequence's increment.
+    /// </summary>
+    public string? Details { get; set; }
+
+    /// <summary>
     /// The name shown in the schema tree: qualified with the schema only when the object is
     /// outside the connection's default schema.
     /// </summary>

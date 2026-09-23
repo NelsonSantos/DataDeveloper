@@ -15,7 +15,8 @@ public class SchemaExplorer : ISchemaExplorer
             [DbObjectKind.Table] = (NodeType.Tables, "Tables", NodeType.Table),
             [DbObjectKind.View] = (NodeType.Views, "Views", NodeType.View),
             [DbObjectKind.Procedure] = (NodeType.Procedures, "Procedures", NodeType.Procedure),
-            [DbObjectKind.Function] = (NodeType.Functions, "Functions", NodeType.Function)
+            [DbObjectKind.Function] = (NodeType.Functions, "Functions", NodeType.Function),
+            [DbObjectKind.Sequence] = (NodeType.Sequences, "Sequences", NodeType.Sequence)
         };
 
     private readonly SchemaMetadataService _metadata;
@@ -89,10 +90,12 @@ public class SchemaExplorer : ISchemaExplorer
             SchemaObjectType.View => DbObjectKind.View,
             SchemaObjectType.Procedure => DbObjectKind.Procedure,
             SchemaObjectType.Function => DbObjectKind.Function,
+            SchemaObjectType.Sequence => DbObjectKind.Sequence,
             _ => null
         };
 
-        if (kind is null)
+        // A provider without the object kind (e.g. sequences on SQLite) has no folder to refresh.
+        if (kind is null || !_metadata.RootObjectKinds.Contains(kind.Value))
         {
             await RefreshSchemaAsync();
             return;
@@ -424,7 +427,13 @@ public class SchemaExplorer : ISchemaExplorer
         foreach (var item in orderedObjects)
         {
             var objectRef = new DbObjectRef(kind, string.IsNullOrWhiteSpace(item.SchemaName) ? null : item.SchemaName, item.Name);
-            if (existing.TryGetValue(NormalizeObjectName(item.DisplayName), out var currentNode))
+            var details = !string.IsNullOrWhiteSpace(item.Details) ? item.Details
+                : nodeType == NodeType.Function && !string.IsNullOrWhiteSpace(item.DataType) ? item.DataType
+                : null;
+
+            // Reusing the node keeps its expanded state and loaded children; details are fixed per
+            // node, so one whose details changed (e.g. an altered sequence) is replaced.
+            if (existing.TryGetValue(NormalizeObjectName(item.DisplayName), out var currentNode) && currentNode.Details == details)
             {
                 currentNode.ObjectRef = objectRef;
                 refreshedChildren.Add(currentNode);
@@ -432,9 +441,6 @@ public class SchemaExplorer : ISchemaExplorer
                 continue;
             }
 
-            var details = nodeType == NodeType.Function && !string.IsNullOrWhiteSpace(item.DataType)
-                ? item.DataType
-                : null;
             var node = new SchemaNode(nodeType, item.DisplayName, isFolder: false, parent: folder, details: details, tag: isRoutine ? item : null)
             {
                 ObjectRef = objectRef

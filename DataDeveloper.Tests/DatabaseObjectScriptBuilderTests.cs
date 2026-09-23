@@ -1,5 +1,6 @@
 using System;
 using DataDeveloper.Data.Enums;
+using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.Oracle;
 using DataDeveloper.Data.Providers.MySql;
@@ -287,6 +288,23 @@ public class DatabaseObjectScriptBuilderTests
 
         Assert.Contains(":OrderId", script, StringComparison.Ordinal);
         Assert.DoesNotContain("@OrderId", script, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "select next value for [sales].[order_number] as NextValue;")]
+    [InlineData(DatabaseType.Oracle, "select \"sales\".\"order_number\".nextval as NextValue from dual;")]
+    [InlineData(DatabaseType.PostgresSql, "select nextval('\"sales\".\"order_number\"') as NextValue;")]
+    public void BuildSelectNextValueScript_UsesProviderSyntax(DatabaseType databaseType, string expected)
+    {
+        var node = CreateNode(NodeType.Sequence, "sales.order_number");
+        IConnectionSettings settings = databaseType switch
+        {
+            DatabaseType.SqlServer => new SqlServerConnectionSettings { DatabaseType = databaseType },
+            DatabaseType.Oracle => new OracleConnectionSettings { DatabaseType = databaseType },
+            _ => new PostgresConnectionSettings { DatabaseType = databaseType }
+        };
+
+        Assert.Equal(expected, DatabaseObjectScriptBuilder.BuildSelectNextValueScript(settings, node));
     }
 
     private static SchemaNode CreateNode(NodeType nodeType, string name, bool isFolder = false, SchemaNode? parent = null, object? tag = null)

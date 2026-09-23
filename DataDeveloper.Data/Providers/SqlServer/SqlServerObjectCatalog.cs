@@ -325,6 +325,14 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
                   and r.routine_schema not in ('sys', 'INFORMATION_SCHEMA')
                   and o.is_ms_shipped = 0;
                 """,
+            DbObjectKind.Sequence => """
+                                     select
+                                         schema_name(s.schema_id) as SchemaName,
+                                         s.name as Name,
+                                         cast(case when schema_name(s.schema_id) = schema_name() then 1 else 0 end as bit) as IsDefaultSchema,
+                                         concat('increment ', cast(s.increment as nvarchar(40)), ', current ', cast(s.current_value as nvarchar(40))) as Details
+                                     from sys.sequences s;
+                                     """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
@@ -436,5 +444,25 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
             where t.parent_id = {TableObjectId}
             order by t.name;
             """);
+    }
+
+    public override IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence];
+
+    // SQL Server has no function returning a sequence's DDL, so it is assembled from sys.sequences.
+    protected override DdlRetrieval GetSequenceDdlRetrieval(DbObjectRef sequence)
+    {
+        return new DdlRetrieval(
+            "select" + Environment.NewLine +
+            "    'create sequence ' + quotename(schema_name(s.schema_id)) + '.' + quotename(s.name) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    as ' + type_name(s.user_type_id) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    start with ' + cast(s.start_value as nvarchar(40)) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    increment by ' + cast(s.increment as nvarchar(40)) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    minvalue ' + cast(s.minimum_value as nvarchar(40)) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    maxvalue ' + cast(s.maximum_value as nvarchar(40)) + char(13) + char(10) +" + Environment.NewLine +
+            "    '    ' + case when s.is_cycling = 1 then 'cycle' else 'no cycle' end + char(13) + char(10) +" + Environment.NewLine +
+            "    '    ' + case when s.is_cached = 0 then 'no cache' when s.cache_size is null then 'cache' else 'cache ' + cast(s.cache_size as nvarchar(20)) end + ';' as Definition" + Environment.NewLine +
+            "from sys.sequences s" + Environment.NewLine +
+            $"where s.object_id = object_id(N'{EscapeSqlLiteral(sequence.QualifiedName)}');");
     }
 }

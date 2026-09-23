@@ -14,6 +14,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Browse database schema from a dedicated explorer panel
 - See each table's columns, keys (primary, unique and foreign), check constraints, indexes, and triggers in the schema explorer
 - See objects outside the connection's default schema listed with their schema name (for example `sales.orders`)
+- Browse sequences on SQL Server, Oracle, and PostgreSQL, with their DDL and a script to fetch the next value
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
 - Configure DML transaction mode per connection, using either auto commit or manual commit/rollback
