@@ -362,6 +362,37 @@ public class TabConnectionSessionTests
         return (new SessionTabStore(fileService), AppDataFileService.AppDataDirectory);
     }
 
+    [Fact]
+    public async Task LoadSchemaNodeAsync_WhenTheLoadFails_ShowsTheErrorAndKeepsTheFolderRetryable()
+    {
+        using var context = CreateConnectionContext();
+        await context.ViewModel.Initialization;
+        var table = CreateSchemaNode(Data.Enums.NodeType.Table, "orders", isFolder: false, parent: null);
+        var columns = CreateSchemaNode(Data.Enums.NodeType.Columns, "Columns", isFolder: true, parent: table);
+
+        // A file that is not a SQLite database makes every catalog query fail.
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        await File.WriteAllTextAsync(context.ConnectionSettings.Database, "this is not a database file, just some text padding it out");
+
+        await context.ViewModel.LoadSchemaNodeAsync(columns);
+
+        var (message, title) = Assert.Single(context.DialogService.Messages);
+        Assert.Equal("Schema explorer", title);
+        Assert.StartsWith("Could not load Columns of orders.", message, StringComparison.Ordinal);
+        Assert.True(columns.CanLoad);
+        Assert.Equal(Data.Enums.NodeType.None, Assert.Single(columns.Children).NodeType);
+    }
+
+    private static Data.Models.SchemaNode CreateSchemaNode(Data.Enums.NodeType nodeType, string name, bool isFolder, Data.Models.SchemaNode? parent)
+    {
+        return (Data.Models.SchemaNode)Activator.CreateInstance(
+                   typeof(Data.Models.SchemaNode),
+                   BindingFlags.Instance | BindingFlags.NonPublic,
+                   binder: null,
+                   args: [nodeType, name, isFolder, parent, isFolder, null, null],
+                   culture: null)!;
+    }
+
     private static ConnectionContext CreateConnectionContext(Guid? connectionId = null, ISessionTabStore? sessionStore = null)
     {
         EnsureDatabaseServices();
@@ -463,7 +494,13 @@ public class TabConnectionSessionTests
             return Task.FromResult(NextSaveChangesResult);
         }
 
-        public Task ShowMessageAsync(string message, string? title = null) => Task.CompletedTask;
+        public List<(string Message, string? Title)> Messages { get; } = new();
+
+        public Task ShowMessageAsync(string message, string? title = null)
+        {
+            Messages.Add((message, title));
+            return Task.CompletedTask;
+        }
         public Task ShowAboutAsync(string version, Func<Task> checkForUpdatesAsync) => Task.CompletedTask;
         public Task<DialogResult> ShowReleaseUpdateAsync(string message, string? title = null) => Task.FromResult(DialogResult.Cancel);
 

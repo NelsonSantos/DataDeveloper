@@ -30,7 +30,12 @@ internal sealed class FakeObjectCatalog(params string[] tableNames) : IObjectCat
         }));
     }
 
-    public string GetColumnsStatement() => NoObjects;
+    /// <summary>
+    /// The statement returned for a table's columns; tests can swap it to simulate failures.
+    /// </summary>
+    public string ColumnsStatement { get; set; } = NoObjects;
+
+    public string GetColumnsStatement() => ColumnsStatement;
     public string GetRoutineParametersStatement() => NoObjects;
     public DdlRetrieval? GetDdlRetrieval(DbObjectRef databaseObject) => null;
     public string GetColumnDefaultsStatement() => NoObjects;

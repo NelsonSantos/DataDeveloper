@@ -86,4 +86,28 @@ public class SchemaExplorerTests
             File.Delete(databasePath);
         }
     }
+
+    [Fact]
+    public async Task LoadNodeAsync_WhenTheLoadFails_ResetsTheFolderSoExpandingAgainRetries()
+    {
+        var connection = new SqlServerConnectionSettings { DatabaseType = DatabaseType.SqlServer, Name = "Test" };
+        var catalog = new FakeObjectCatalog("orders") { ColumnsStatement = "select * from no_such_table" };
+        var explorer = new SchemaExplorer(new FakeDatabaseProvider(), connection, catalog);
+        await explorer.InitializeSchemaNode();
+        var columns = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables)
+            .Children.Single().Children.Single(node => node.NodeType == NodeType.Columns);
+        columns.IsExpanded = true;
+
+        await Assert.ThrowsAsync<SqliteException>(() => explorer.LoadNodeAsync(columns));
+
+        Assert.True(columns.CanLoad);
+        Assert.False(columns.IsExpanded);
+        Assert.Equal(NodeType.None, Assert.Single(columns.Children).NodeType);
+
+        catalog.ColumnsStatement = "select 'id' as Name, 'int' as DataType";
+        await explorer.LoadNodeAsync(columns);
+
+        Assert.False(columns.CanLoad);
+        Assert.Equal("id", Assert.Single(columns.Children).Name);
+    }
 }
