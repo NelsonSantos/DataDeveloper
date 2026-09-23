@@ -35,8 +35,14 @@
   - The object listing, column and routine parameter statements move from `IDatabaseProvider` into each provider's `IObjectCatalog` (`GetObjectListStatement(kind)`, `GetColumnsStatement`, `GetRoutineParametersStatement`). `IDatabaseProvider` now only has `GetConnection`, `TestConnection` and `GetAvailableDatabaseNames`.
   - `SchemaExplorer` builds its folders from the catalog's `RootObjectKinds`. SQLite declares only tables and views, so the `if (SqLite)` special case is gone. The explorer reads everything through `SchemaMetadataService`.
   - Column statements get the same `SchemaName`/`TableName` filtering as the phase 3 structure statements. Oracle columns now read from `all_tab_columns` filtered by owner.
+- **#49 fix: report schema tree load failures instead of crashing** (https://github.com/NelsonSantos/DataDeveloper/pull/49)
+  - Expanding a schema tree folder (Columns, Parameters) ran `schemaExplorer.LoadNodeAsync` inside `TreeViewExpansionBehavior.OnItemExpanded`, an `async void` handler with no error handling. Any failure while loading escaped and could crash the app, for example:
+  - a dropped connection
+  - a missing privilege
+  - a catalog view the server version doesn't have
 
 ## Included Commits
+- b10c708 Merge pull request #49 from NelsonSantos/feature/tree-node-load-errors
 - dc17ff8 Merge pull request #48 from NelsonSantos/feature/schema-metadata-tree
 - acf31dc Merge pull request #47 from NelsonSantos/feature/schema-metadata-table-structure
 - 20e68a2 Merge pull request #46 from NelsonSantos/feature/schema-metadata-ddl
