@@ -10,6 +10,7 @@ using Xunit;
 
 namespace DataDeveloper.Tests.Integration;
 
+[Collection(DatabaseIntegrationCollection.Name)]
 public class FileImportEngineIntegrationTests : IDisposable
 {
     private readonly List<string> _tempFiles = new();
