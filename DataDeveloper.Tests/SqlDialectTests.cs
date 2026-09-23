@@ -101,4 +101,60 @@ public class SqlDialectTests
     {
         Assert.Equal(expected, SqlDialect.For(databaseType).FormatParameterReference("p0"));
     }
+
+    [Theory]
+    [InlineData(DatabaseType.Oracle, "datadeveloper.customers", new[] { "DATADEVELOPER", "CUSTOMERS" })]
+    [InlineData(DatabaseType.Oracle, "\"MinhaTabela\"", new[] { "MinhaTabela" })]
+    [InlineData(DatabaseType.Oracle, "hr.\"Order Items\"", new[] { "HR", "Order Items" })]
+    [InlineData(DatabaseType.PostgresSql, "Sales.Orders", new[] { "sales", "orders" })]
+    [InlineData(DatabaseType.PostgresSql, "\"MixedCase\"", new[] { "MixedCase" })]
+    [InlineData(DatabaseType.SqlServer, "dbo.Orders", new[] { "dbo", "Orders" })]
+    [InlineData(DatabaseType.SqlServer, "[Sales].[Orders]", new[] { "Sales", "Orders" })]
+    [InlineData(DatabaseType.MySql, "Shop.Orders", new[] { "Shop", "Orders" })]
+    [InlineData(DatabaseType.SqLite, "Orders", new[] { "Orders" })]
+    public void ResolveQualifiedName_FoldsOnlyUnquotedPartsTheWayTheDatabaseDoes(DatabaseType databaseType, string sqlName, string[] expected)
+    {
+        Assert.Equal(expected, SqlDialect.For(databaseType).ResolveQualifiedName(sqlName));
+    }
+
+    [Theory]
+    [InlineData("MinhaTabela", "\"MinhaTabela\"")]
+    [InlineData("customers", "\"customers\"")]
+    [InlineData("CUSTOMERS", "CUSTOMERS")]
+    [InlineData("Order Items", "Order Items")]
+    [InlineData("DATE", "DATE")]
+    public void ToFormattableName_OracleQuotesStoredNamesThatFormatIdentifierWouldUpperCase(string storedName, string expected)
+    {
+        Assert.Equal(expected, SqlDialect.For(DatabaseType.Oracle).ToFormattableName(storedName));
+    }
+
+    [Theory]
+    [InlineData("MinhaTabela", "\"MinhaTabela\"")]
+    [InlineData("customers", "\"customers\"")]
+    [InlineData("CUSTOMERS", "CUSTOMERS")]
+    [InlineData("Order Items", "\"Order Items\"")]
+    [InlineData("DATE", "\"DATE\"")]
+    [InlineData("date", "\"date\"")]
+    public void ToFormattableName_OracleRoundTripsThroughFormatIdentifierToTheStoredName(string storedName, string expectedSql)
+    {
+        var dialect = SqlDialect.For(DatabaseType.Oracle);
+
+        Assert.Equal(expectedSql, dialect.FormatIdentifier(dialect.ToFormattableName(storedName)));
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.PostgresSql)]
+    [InlineData(DatabaseType.MySql)]
+    [InlineData(DatabaseType.SqLite)]
+    public void ToFormattableName_KeepsStoredNamesOutsideOracle(DatabaseType databaseType)
+    {
+        Assert.Equal("MixedCase", SqlDialect.For(databaseType).ToFormattableName("MixedCase"));
+    }
+
+    [Fact]
+    public void FormatIdentifier_OracleKeepsANameTypedInQuotes()
+    {
+        Assert.Equal("\"MinhaTabela\"", SqlDialect.For(DatabaseType.Oracle).FormatIdentifier(" \"MinhaTabela\" "));
+    }
 }

@@ -43,8 +43,28 @@ public abstract class SqlDialect : ISqlDialect
 
     public IReadOnlyList<string> SplitQualifiedName(string qualifiedName)
     {
-        var result = new List<string>();
+        return SplitParts(qualifiedName).Select(part => part.Text).ToList();
+    }
+
+    public IReadOnlyList<string> ResolveQualifiedName(string sqlName)
+    {
+        return SplitParts(sqlName)
+            .Select(part => part.IsDelimited ? part.Text : FoldUnquotedIdentifier(part.Text))
+            .ToList();
+    }
+
+    public virtual string ToFormattableName(string storedName) => storedName;
+
+    /// <summary>
+    /// How the database stores an identifier written without delimiters.
+    /// </summary>
+    protected virtual string FoldUnquotedIdentifier(string identifier) => identifier;
+
+    private static List<(string Text, bool IsDelimited)> SplitParts(string qualifiedName)
+    {
+        var result = new List<(string Text, bool IsDelimited)>();
         var current = new StringBuilder();
+        var isDelimited = false;
         char? quote = null;
 
         foreach (var ch in qualifiedName)
@@ -60,6 +80,7 @@ public abstract class SqlDialect : ISqlDialect
                 if (ch is '[' or '"' or '`')
                 {
                     quote = ch;
+                    isDelimited = true;
                     continue;
                 }
 
@@ -92,7 +113,8 @@ public abstract class SqlDialect : ISqlDialect
             var part = current.ToString().Trim();
             current.Clear();
             if (!string.IsNullOrWhiteSpace(part))
-                result.Add(part);
+                result.Add((part, isDelimited));
+            isDelimited = false;
         }
     }
 

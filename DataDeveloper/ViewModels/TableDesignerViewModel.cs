@@ -12,6 +12,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.TableDesigner;
+using DataDeveloper.Data.Services.SqlDialects;
 using DataDeveloper.Data.Services.TableDesigner;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
@@ -177,7 +178,8 @@ public sealed class TableDesignerViewModel : ViewModelBase
                 .Where(option => string.Equals(option.TableName, foreignKey.ReferencedTableName, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             var referencedTable = sameNameTables.FirstOrDefault(option =>
-                                      string.Equals(option.Node.ObjectRef?.Schema, foreignKey.ReferencedSchemaName, StringComparison.OrdinalIgnoreCase))
+                                      option.Node.ObjectRef?.Schema is { } schema &&
+                                      string.Equals(ToDesignerName(schema), foreignKey.ReferencedSchemaName, StringComparison.OrdinalIgnoreCase))
                                   ?? sameNameTables.FirstOrDefault();
 
             if (referencedTable is not null)
@@ -598,8 +600,11 @@ public sealed class TableDesignerViewModel : ViewModelBase
 
         foreach (var tableNode in tablesFolder.Children.Where(child => child.NodeType == NodeType.Table))
         {
+            // The tree shows stored names; the designer holds names in the form its DDL formats
+            // back to the same object.
             var (schemaName, tableName) = SplitObjectName(tableNode.Name);
-            AvailableReferenceTables.Add(new TableDesignerReferenceTableOption(tableNode.Name, schemaName, tableName, tableNode));
+            AvailableReferenceTables.Add(new TableDesignerReferenceTableOption(
+                tableNode.Name, ToDesignerName(schemaName), ToDesignerName(tableName), tableNode));
         }
     }
 
@@ -619,7 +624,13 @@ public sealed class TableDesignerViewModel : ViewModelBase
             .Where(child => child.NodeType == NodeType.Column)
             .Select(child => child.Name)
             .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(ToDesignerName)
             .ToList();
+    }
+
+    private string ToDesignerName(string storedName)
+    {
+        return string.IsNullOrEmpty(storedName) ? storedName : SqlDialect.For(DatabaseType).ToFormattableName(storedName);
     }
 
     private static (string SchemaName, string TableName) SplitObjectName(string objectName)

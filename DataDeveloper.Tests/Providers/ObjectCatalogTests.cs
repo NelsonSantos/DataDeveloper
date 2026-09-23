@@ -77,7 +77,7 @@ public class ObjectCatalogTests
 
     [Theory]
     [InlineData(DatabaseType.SqlServer, "coalesce(@SchemaName")]
-    [InlineData(DatabaseType.Oracle, "coalesce(upper(:SchemaName), user)")]
+    [InlineData(DatabaseType.Oracle, "coalesce(:SchemaName, user)")]
     [InlineData(DatabaseType.PostgresSql, "coalesce(cast(@SchemaName as text), current_schema())")]
     [InlineData(DatabaseType.MySql, "coalesce(@SchemaName, database())")]
     public void TableStructureStatements_FallBackToTheDefaultSchema(DatabaseType databaseType, string fallback)

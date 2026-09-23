@@ -53,8 +53,10 @@ public sealed class OracleObjectCatalog : ObjectCatalog
     }
 
 
-    // Without a schema, tables are looked up among the connection user's own objects, as the tree lists them.
-    private const string TableOwner = "coalesce(upper(:SchemaName), user)";
+    // Names are compared exactly as stored, so callers resolve names typed in SQL text first
+    // (see ISqlDialect.ResolveQualifiedName). Without a schema, tables are looked up among the
+    // connection user's own objects, as the tree lists them.
+    private const string TableOwner = "coalesce(:SchemaName, user)";
 
     public override string GetColumnDefaultsStatement()
     {
@@ -67,7 +69,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                     data_default as "DefaultValueExpression"
                 from all_tab_columns
                 where owner = {TableOwner}
-                  and table_name = upper(:TableName)
+                  and table_name = :TableName
                 order by column_id
                 """;
     }
@@ -82,7 +84,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 from all_constraints c
                 join all_cons_columns cc on cc.owner = c.owner and cc.constraint_name = c.constraint_name
                 where c.owner = {TableOwner}
-                  and c.table_name = upper(:TableName)
+                  and c.table_name = :TableName
                   and c.constraint_type = 'P'
                 order by cc.position
                 """;
@@ -108,7 +110,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 join all_constraints rc on rc.owner = c.r_owner and rc.constraint_name = c.r_constraint_name
                 join all_cons_columns rcc on rcc.owner = rc.owner and rcc.constraint_name = rc.constraint_name and rcc.position = cc.position
                 where c.owner = {TableOwner}
-                  and c.table_name = upper(:TableName)
+                  and c.table_name = :TableName
                   and c.constraint_type = 'R'
                 order by c.constraint_name, cc.position
                 """;
@@ -126,7 +128,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 from all_indexes i
                 join all_ind_columns ic on ic.index_owner = i.owner and ic.index_name = i.index_name
                 where i.table_owner = {TableOwner}
-                  and i.table_name = upper(:TableName)
+                  and i.table_name = :TableName
                   and not exists (
                       select 1 from all_constraints c
                       where c.owner = i.table_owner
@@ -188,9 +190,9 @@ public sealed class OracleObjectCatalog : ObjectCatalog
         sb.AppendLine("    select ucc.owner, ucc.table_name, ucc.column_name");
         sb.AppendLine("    from all_constraints uc");
         sb.AppendLine("    join all_cons_columns ucc on ucc.owner = uc.owner and ucc.constraint_name = uc.constraint_name");
-        sb.AppendLine($"    where uc.constraint_type = 'P' and uc.owner = {TableOwner} and uc.table_name = upper(:TableName)");
+        sb.AppendLine($"    where uc.constraint_type = 'P' and uc.owner = {TableOwner} and uc.table_name = :TableName");
         sb.AppendLine(") pk on pk.owner = c.owner and pk.table_name = c.table_name and pk.column_name = c.column_name");
-        sb.AppendLine($"where c.owner = {TableOwner} and c.table_name = upper(:TableName)");
+        sb.AppendLine($"where c.owner = {TableOwner} and c.table_name = :TableName");
         sb.AppendLine("order by c.column_id");
 
         return sb.ToString();
@@ -210,7 +212,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                    in_out as "Mode",
                    position as "Position"
                from user_arguments
-               where object_name = upper(:SpecificName)
+               where object_name = :SpecificName
                  and package_name is null
                  and argument_name is not null
                  and data_level = 0
@@ -227,7 +229,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 from all_constraints c
                 join all_cons_columns cc on cc.owner = c.owner and cc.constraint_name = c.constraint_name
                 where c.owner = {TableOwner}
-                  and c.table_name = upper(:TableName)
+                  and c.table_name = :TableName
                   and c.constraint_type = 'U'
                 order by c.constraint_name, cc.position
                 """;
@@ -242,7 +244,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 c.search_condition_vc as "Definition"
             from all_constraints c
             where c.owner = {TableOwner}
-              and c.table_name = upper(:TableName)
+              and c.table_name = :TableName
               and c.constraint_type = 'C'
               and not (c.generated = 'GENERATED NAME' and c.search_condition_vc like '"%" IS NOT NULL')
             order by c.constraint_name
@@ -270,7 +272,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 lower(replace(triggering_event, ' OR ', ', ')) as "Events"
             from all_triggers
             where table_owner = {TableOwner}
-              and table_name = upper(:TableName)
+              and table_name = :TableName
               and base_object_type = 'TABLE'
             order by trigger_name
             """);

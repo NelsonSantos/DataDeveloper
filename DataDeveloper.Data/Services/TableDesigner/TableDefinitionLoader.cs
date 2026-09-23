@@ -3,6 +3,7 @@ using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.TableDesigner;
 using DataDeveloper.Data.Services.Metadata;
+using DataDeveloper.Data.Services.SqlDialects;
 
 namespace DataDeveloper.Data.Services.TableDesigner;
 
@@ -43,10 +44,16 @@ public static class TableDefinitionLoader
         var foreignKeyRows = structure.ForeignKeyColumns;
         var indexRows = structure.IndexColumns;
 
+        // Names read from the database are stored names; the definition holds them in the form
+        // the DDL builder formats back to the same object (e.g. quoted when Oracle would
+        // otherwise upper-case them).
+        var dialect = SqlDialect.For(databaseType);
+        string Name(string? storedName) => string.IsNullOrEmpty(storedName) ? string.Empty : dialect.ToFormattableName(storedName);
+
         var table = new TableDefinition
         {
-            SchemaName = schemaName,
-            TableName = tableName
+            SchemaName = Name(schemaName),
+            TableName = Name(tableName)
         };
 
         var primaryKeyColumnNames = primaryKeyRows
@@ -59,8 +66,8 @@ public static class TableDefinitionLoader
 
             var columnDefinition = new TableColumnDefinition
             {
-                OriginalName = column.Name,
-                Name = column.Name,
+                OriginalName = Name(column.Name),
+                Name = Name(column.Name),
                 DataType = NormalizeDataType(databaseType, column.DataType),
                 Length = column.Length > 0 ? column.Length : null,
                 Precision = column.Precision > 0 ? column.Precision : null,
@@ -79,8 +86,8 @@ public static class TableDefinitionLoader
         var orderedPrimaryKeyRows = primaryKeyRows.OrderBy(row => row.OrdinalPosition).ToList();
         if (orderedPrimaryKeyRows.Count > 0)
         {
-            table.PrimaryKey.Name = orderedPrimaryKeyRows[0].ConstraintName ?? string.Empty;
-            table.PrimaryKey.ColumnNames.AddRange(orderedPrimaryKeyRows.Select(row => row.ColumnName));
+            table.PrimaryKey.Name = Name(orderedPrimaryKeyRows[0].ConstraintName);
+            table.PrimaryKey.ColumnNames.AddRange(orderedPrimaryKeyRows.Select(row => Name(row.ColumnName)));
         }
 
         foreach (var group in foreignKeyRows.GroupBy(row => row.ConstraintName, StringComparer.OrdinalIgnoreCase))
@@ -89,14 +96,14 @@ public static class TableDefinitionLoader
             var firstRow = orderedRows[0];
             var foreignKey = new TableForeignKeyDefinition
             {
-                Name = group.Key,
-                ReferencedSchemaName = firstRow.ReferencedSchemaName ?? string.Empty,
-                ReferencedTableName = firstRow.ReferencedTableName ?? string.Empty,
+                Name = Name(group.Key),
+                ReferencedSchemaName = Name(firstRow.ReferencedSchemaName),
+                ReferencedTableName = Name(firstRow.ReferencedTableName),
                 OnDeleteAction = firstRow.OnDeleteAction ?? string.Empty,
                 OnUpdateAction = firstRow.OnUpdateAction ?? string.Empty
             };
-            foreignKey.ColumnNames.AddRange(orderedRows.Select(row => row.ColumnName));
-            foreignKey.ReferencedColumnNames.AddRange(orderedRows.Select(row => row.ReferencedColumnName));
+            foreignKey.ColumnNames.AddRange(orderedRows.Select(row => Name(row.ColumnName)));
+            foreignKey.ReferencedColumnNames.AddRange(orderedRows.Select(row => Name(row.ReferencedColumnName)));
             table.ForeignKeys.Add(foreignKey);
         }
 
@@ -106,7 +113,7 @@ public static class TableDefinitionLoader
             var firstIndexRow = orderedRows[0];
             var index = new TableIndexDefinition
             {
-                Name = group.Key,
+                Name = Name(group.Key),
                 IsUnique = firstIndexRow.IsUnique
             };
 
@@ -126,7 +133,7 @@ public static class TableDefinitionLoader
             {
                 var indexColumn = new TableIndexColumnDefinition
                 {
-                    Name = row.ColumnName,
+                    Name = Name(row.ColumnName),
                     Descending = row.IsDescending
                 };
 

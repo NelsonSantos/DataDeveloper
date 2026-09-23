@@ -10,10 +10,34 @@ public sealed partial class OracleSqlDialect : SqlDialect
     public override string FormatIdentifier(string identifier)
     {
         var trimmedIdentifier = identifier.Trim();
-        if (OracleRegularIdentifierRegex().IsMatch(trimmedIdentifier) && !IsReservedWord(trimmedIdentifier))
+        if (IsDelimited(trimmedIdentifier))
+            return trimmedIdentifier;
+
+        if (IsRegularIdentifier(trimmedIdentifier))
             return trimmedIdentifier.ToUpperInvariant();
 
         return QuoteIdentifier(trimmedIdentifier);
+    }
+
+    // FormatIdentifier would upper-case a regular name, so one stored with lower-case letters
+    // must be passed already quoted.
+    public override string ToFormattableName(string storedName)
+    {
+        return IsRegularIdentifier(storedName) && storedName != storedName.ToUpperInvariant()
+            ? QuoteIdentifier(storedName)
+            : storedName;
+    }
+
+    protected override string FoldUnquotedIdentifier(string identifier) => identifier.ToUpperInvariant();
+
+    private static bool IsRegularIdentifier(string identifier)
+    {
+        return OracleRegularIdentifierRegex().IsMatch(identifier) && !IsReservedWord(identifier);
+    }
+
+    private static bool IsDelimited(string identifier)
+    {
+        return identifier.Length >= 2 && identifier[0] == '"' && identifier[^1] == '"';
     }
 
     public override string FormatParameterReference(string parameterName) => $":{parameterName}";

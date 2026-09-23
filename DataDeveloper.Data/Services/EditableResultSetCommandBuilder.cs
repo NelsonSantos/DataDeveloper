@@ -156,11 +156,11 @@ public static class EditableResultSetCommandBuilder
         return string.Join(".", dialect.SplitQualifiedName(tableName).Select(part => QuoteIdentifier(databaseType, part)));
     }
 
+    // Table and column names arrive as stored in the database (from the driver, the catalog or
+    // resolved from the query text), so they are quoted exactly.
     private static string QuoteIdentifier(DatabaseType databaseType, string identifier)
     {
-        // Oracle names typed in the query text are resolved upper-cased, so they are folded before quoting.
-        return SqlDialect.For(databaseType).QuoteIdentifier(
-            databaseType == DatabaseType.Oracle ? identifier.ToUpperInvariant() : identifier);
+        return SqlDialect.For(databaseType).QuoteIdentifier(identifier);
     }
 
     private static string FormatParameterReference(DatabaseType databaseType, string parameterName)
