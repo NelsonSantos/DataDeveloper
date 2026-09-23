@@ -24,8 +24,15 @@
   - **Consumers**: the schema tree "DDL Create" menu and Schema Compare (views and routines) both call the service.
   - **Removed**: `RoutineDdlRetriever`, the DDL SQL in `TabConnectionView`, and the column-based `CREATE TABLE` fallback in `DatabaseObjectScriptBuilder`. That fallback never ran, because every provider has a native query. `DatabaseObjectScriptBuilder` goes from ~790 to ~245 lines.
   - The query text sent to each provider is unchanged.
+- **#47 refactor: load table structure through the object catalog with schema filtering** (https://github.com/NelsonSantos/DataDeveloper/pull/47)
+  - Phase 3 of consolidating schema metadata access into a single per-provider point in `DataDeveloper.Data`.
+  - The column default, primary key, foreign key and index statements move from `IDatabaseProvider` into each provider's `IObjectCatalog` (`GetColumnDefaultsStatement`, `GetPrimaryKeyStatement`, `GetForeignKeysStatement`, `GetIndexesStatement`).
+  - `SchemaMetadataService.GetTableStructureAsync(table)` runs the four statements on one connection and returns a public `TableStructure` model. This replaces the loader's private row classes, and phase 5 will reuse it for the Keys/Indexes tree folders.
+  - `TableDefinitionLoader` (Edit Table, Schema Compare of tables) now uses the service. The `TableDefinition` is assembled in a pure `Build` method.
+  - `IDatabaseProvider` keeps only connection, object listing, columns and routine parameters. Columns and parameters move in phase 4.
 
 ## Included Commits
+- acf31dc Merge pull request #47 from NelsonSantos/feature/schema-metadata-table-structure
 - 20e68a2 Merge pull request #46 from NelsonSantos/feature/schema-metadata-ddl
 - ab6c278 Merge pull request #45 from NelsonSantos/feature/schema-metadata-foundation
 - c14c5a8 Merge pull request #44 from NelsonSantos/feature/splitter-case-end
