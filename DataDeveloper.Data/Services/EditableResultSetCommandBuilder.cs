@@ -1,5 +1,6 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services.SqlDialects;
 
 namespace DataDeveloper.Data.Services;
 
@@ -151,83 +152,20 @@ public static class EditableResultSetCommandBuilder
 
     private static string QuoteQualifiedName(DatabaseType databaseType, string tableName)
     {
-        return string.Join(".", SplitIdentifiers(tableName).Select(part => QuoteIdentifier(databaseType, part)));
+        var dialect = SqlDialect.For(databaseType);
+        return string.Join(".", dialect.SplitQualifiedName(tableName).Select(part => QuoteIdentifier(databaseType, part)));
     }
 
     private static string QuoteIdentifier(DatabaseType databaseType, string identifier)
     {
-        return databaseType switch
-        {
-            DatabaseType.SqlServer => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]",
-            DatabaseType.MySql => $"`{identifier.Replace("`", "``", StringComparison.Ordinal)}`",
-            DatabaseType.PostgresSql or DatabaseType.SqLite
-                => $"\"{identifier.Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
-            DatabaseType.Oracle
-                => $"\"{identifier.ToUpperInvariant().Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
-            _ => identifier
-        };
+        // Oracle names typed in the query text are resolved upper-cased, so they are folded before quoting.
+        return SqlDialect.For(databaseType).QuoteIdentifier(
+            databaseType == DatabaseType.Oracle ? identifier.ToUpperInvariant() : identifier);
     }
 
     private static string FormatParameterReference(DatabaseType databaseType, string parameterName)
     {
-        return databaseType == DatabaseType.Oracle
-            ? $":{parameterName}"
-            : $"@{parameterName}";
-    }
-
-    private static IReadOnlyList<string> SplitIdentifiers(string value)
-    {
-        var result = new List<string>();
-        var current = new System.Text.StringBuilder();
-        char? quote = null;
-
-        foreach (var ch in value)
-        {
-            if (quote is null)
-            {
-                if (ch == '.')
-                {
-                    FlushCurrent();
-                    continue;
-                }
-
-                if (ch is '[' or '"' or '`')
-                {
-                    quote = ch;
-                    continue;
-                }
-
-                current.Append(ch);
-                continue;
-            }
-
-            var isClosing = quote switch
-            {
-                '[' => ch == ']',
-                '"' => ch == '"',
-                '`' => ch == '`',
-                _ => false
-            };
-
-            if (isClosing)
-            {
-                quote = null;
-                continue;
-            }
-
-            current.Append(ch);
-        }
-
-        FlushCurrent();
-        return result;
-
-        void FlushCurrent()
-        {
-            var part = current.ToString().Trim();
-            current.Clear();
-            if (!string.IsNullOrWhiteSpace(part))
-                result.Add(part);
-        }
+        return SqlDialect.For(databaseType).FormatParameterReference(parameterName);
     }
 
     private static int FindColumnIndex(IReadOnlyList<string> gridHeaders, string columnName)

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services.SqlDialects;
 
 namespace DataDeveloper.Services;
 
@@ -194,22 +195,12 @@ public static class DatabaseObjectScriptBuilder
 
     private static string QuoteObjectName(IConnectionSettings connectionSettings, string objectName)
     {
-        var segments = objectName
-            .Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(segment => QuoteSingleIdentifier(connectionSettings, segment));
-
-        return string.Join(".", segments);
+        return SqlDialect.For(connectionSettings.DatabaseType).QuoteQualifiedName(objectName);
     }
 
     private static string QuoteSingleIdentifier(IConnectionSettings connectionSettings, string identifier)
     {
-        return connectionSettings.DatabaseType switch
-        {
-            DatabaseType.SqlServer => $"[{identifier.Replace("]", "]]", StringComparison.Ordinal)}]",
-            DatabaseType.Oracle or DatabaseType.SqLite or DatabaseType.PostgresSql => $"\"{identifier.Replace("\"", "\"\"", StringComparison.Ordinal)}\"",
-            DatabaseType.MySql => $"`{identifier.Replace("`", "``", StringComparison.Ordinal)}`",
-            _ => identifier
-        };
+        return SqlDialect.For(connectionSettings.DatabaseType).QuoteIdentifier(identifier);
     }
 
     private static IReadOnlyList<RoutineParameterModel> GetRoutineParameters(SchemaNode node)
@@ -737,8 +728,7 @@ public static class DatabaseObjectScriptBuilder
 
     private static string FormatValuePlaceholder(IConnectionSettings connectionSettings, string columnName)
     {
-        var prefix = connectionSettings.DatabaseType == DatabaseType.Oracle ? ":" : "@";
-        return $"{prefix}{NormalizeIdentifier(columnName)}";
+        return SqlDialect.For(connectionSettings.DatabaseType).FormatParameterReference(NormalizeIdentifier(columnName));
     }
 
     private static string BeautifyOracleTableDdl(SchemaNode node, string ddl)
