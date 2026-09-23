@@ -56,8 +56,21 @@
   - `EditableResultSetIntegrationTests` (insert, update, delete)
   - `FileImportEngineIntegrationTests` (insert)
   - On Oracle, DDL that adds an FK locks the parent table, and concurrent DML on that table deadlocks. The overlap could also skew `FileImportEngineIntegrationTests`, which counts the rows in `customers`.
+- **#52 feat: show table triggers with their DDL in the schema tree** (https://github.com/NelsonSantos/DataDeveloper/pull/52)
+  - Phase 5b of the schema metadata work: every table in the schema tree gets a **Triggers** folder, loaded on demand, for SQL Server, Oracle, PostgreSQL, MySQL and SQLite.
+  - ```
+  - orders
+  - ├── Columns · Keys · Constraints · Indexes
+  - └── Triggers    trg_orders_audit   after insert
+  - trg_orders_touch   before insert, update
+  - ```
+  - Each trigger shows its timing and events.
+  - Trigger nodes have **Copy name** and **DDL Create** (to a new query or to the clipboard).
+  - After `CREATE/ALTER/DROP TRIGGER`, the Triggers folders already opened reload without a manual refresh.
+  - The same targeted reload now applies to `CREATE/DROP INDEX` for the Keys and Indexes folders added in #50. Those statements used to fall into a full refresh that left opened folders stale.
 
 ## Included Commits
+- 86c4469 Merge pull request #52 from NelsonSantos/feature/schema-metadata-triggers
 - 0fbbe4b Merge pull request #51 from NelsonSantos/feature/sequential-db-integration-tests
 - 72983b9 Merge pull request #50 from NelsonSantos/feature/schema-metadata-table-objects
 - 5f500b6 Merge remote-tracking branch 'origin/main' into feature/schema-metadata-table-objects
