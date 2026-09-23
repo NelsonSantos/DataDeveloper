@@ -29,7 +29,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DataDeveloper.ViewModels;
 
-public class TabConnectionViewModel : BaseTabContent
+public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
 {
     private int _countQueryEditors = 0;
     private readonly IDialogService _dialogService;
@@ -488,6 +488,24 @@ public class TabConnectionViewModel : BaseTabContent
         AddQueryEditor();
         var queryEditor = QueryEditors[this.SelectedEditor];
         queryEditor.SqlStatement = sqlStatement;
+    }
+
+    /// <summary>
+    /// Loads an expanded schema tree folder. A failure (for example a dropped connection or a
+    /// missing privilege) is shown to the user, and the folder stays collapsed so expanding it
+    /// again retries.
+    /// </summary>
+    public async Task LoadSchemaNodeAsync(SchemaNode node)
+    {
+        try
+        {
+            await SchemaExplorer.LoadNodeAsync(node);
+        }
+        catch (Exception ex)
+        {
+            var target = node.Parent is null ? node.Name : $"{node.Name} of {node.Parent.Name}";
+            await _dialogService.ShowMessageAsync($"Could not load {target}.\n\n{ex.Message}", "Schema explorer");
+        }
     }
 
     private async Task LoadConnection()

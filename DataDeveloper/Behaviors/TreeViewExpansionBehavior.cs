@@ -2,8 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using DataDeveloper.Data.Enums;
-using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Interfaces;
 
 namespace DataDeveloper.Behaviors;
 
@@ -43,12 +43,13 @@ public static class TreeViewExpansionBehavior
 
         if (sender is TreeViewItem treeViewItem &&
             treeViewItem.DataContext is SchemaNode node &&
-            GetSchemaExplorer(treeViewItem) is ISchemaExplorer schemaExplorer)
+            GetNodeLoader(treeViewItem) is ISchemaNodeLoader nodeLoader)
         {
             node.IsExpanded = true;
             if (node.CanLoad && node.Next?.NodeType == NodeType.None)
             {
-                await schemaExplorer.LoadNodeAsync(node);
+                // The loader reports failures itself; an exception must not escape this async void handler.
+                await nodeLoader.LoadSchemaNodeAsync(node);
             }
         }
     }
@@ -65,14 +66,14 @@ public static class TreeViewExpansionBehavior
         }
     }
 
-    // Permite injetar a dependência do ISchemaExplorer
-    public static readonly AttachedProperty<ISchemaExplorer?> SchemaExplorerProperty =
-        AvaloniaProperty.RegisterAttached<TreeViewItem, ISchemaExplorer?>(
-            "SchemaExplorer", typeof(TreeViewExpansionBehavior));
+    // Permite injetar quem carrega os filhos de um nó expandido
+    public static readonly AttachedProperty<ISchemaNodeLoader?> NodeLoaderProperty =
+        AvaloniaProperty.RegisterAttached<TreeViewItem, ISchemaNodeLoader?>(
+            "NodeLoader", typeof(TreeViewExpansionBehavior));
 
-    public static void SetSchemaExplorer(TreeViewItem element, ISchemaExplorer? value) =>
-        element.SetValue(SchemaExplorerProperty, value);
+    public static void SetNodeLoader(TreeViewItem element, ISchemaNodeLoader? value) =>
+        element.SetValue(NodeLoaderProperty, value);
 
-    public static ISchemaExplorer? GetSchemaExplorer(TreeViewItem element) =>
-        element.GetValue(SchemaExplorerProperty);
+    public static ISchemaNodeLoader? GetNodeLoader(TreeViewItem element) =>
+        element.GetValue(NodeLoaderProperty);
 }

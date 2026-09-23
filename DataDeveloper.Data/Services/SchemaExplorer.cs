@@ -145,25 +145,38 @@ public class SchemaExplorer : ISchemaExplorer
         table.CanLoad = false;
     }
 
+    /// <summary>
+    /// Loads a lazily loaded folder's children. If the load fails, the folder is reset so that
+    /// expanding it again retries, and the exception is rethrown for the caller to report.
+    /// </summary>
     public async Task LoadNodeAsync(SchemaNode node)
     {
-        switch (node.NodeType)
+        try
         {
-            case NodeType.Columns:
-                await LoadTableColumnsAsync(node);
-                break;
-            case NodeType.Parameters:
-                await LoadRoutineParametersAsync(node);
-                break;
-            case NodeType.Keys:
-                await LoadKeysAsync(node);
-                break;
-            case NodeType.Constraints:
-                await LoadCheckConstraintsAsync(node);
-                break;
-            case NodeType.Indexes:
-                await LoadIndexesAsync(node);
-                break;
+            switch (node.NodeType)
+            {
+                case NodeType.Columns:
+                    await LoadTableColumnsAsync(node);
+                    break;
+                case NodeType.Parameters:
+                    await LoadRoutineParametersAsync(node);
+                    break;
+                case NodeType.Keys:
+                    await LoadKeysAsync(node);
+                    break;
+                case NodeType.Constraints:
+                    await LoadCheckConstraintsAsync(node);
+                    break;
+                case NodeType.Indexes:
+                    await LoadIndexesAsync(node);
+                    break;
+            }
+        }
+        catch
+        {
+            if (node.IsFolder)
+                node.ResetForReload();
+            throw;
         }
     }
 

@@ -38,4 +38,16 @@ public class SchemaNode : ReactiveObject
     /// </summary>
     public DbObjectRef? ObjectRef { get; internal set; }
     public ObservableCollection<SchemaNode> Children { get; }
+
+    /// <summary>
+    /// Puts a lazily loaded folder back in its unloaded, collapsed state, so expanding it again
+    /// retries the load.
+    /// </summary>
+    internal void ResetForReload()
+    {
+        Children.Clear();
+        Children.Add(new SchemaNode(NodeType.None, "", isFolder: false, this, canLoad: false));
+        CanLoad = true;
+        IsExpanded = false;
+    }
 }
