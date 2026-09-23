@@ -46,6 +46,50 @@ public class ObjectCatalogTests
         Assert.Equal(isOracle, retrieval.PostProcess is not null);
     }
 
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "@SchemaName")]
+    [InlineData(DatabaseType.Oracle, ":SchemaName")]
+    [InlineData(DatabaseType.PostgresSql, "@SchemaName")]
+    [InlineData(DatabaseType.MySql, "@SchemaName")]
+    public void TableStructureStatements_FilterByTheSchemaParameter(DatabaseType databaseType, string schemaParameter)
+    {
+        foreach (var statement in GetTableStructureStatements(databaseType))
+        {
+            Assert.Contains(schemaParameter, statement, StringComparison.Ordinal);
+            Assert.Contains(schemaParameter.Replace("SchemaName", "TableName", StringComparison.Ordinal), statement, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void SqLite_TableStructureStatements_UsePragmaFunctionsWithTableParameter()
+    {
+        foreach (var statement in GetTableStructureStatements(DatabaseType.SqLite))
+        {
+            Assert.Contains("pragma_", statement, StringComparison.Ordinal);
+            Assert.Contains("(@TableName)", statement, StringComparison.Ordinal);
+            Assert.DoesNotContain("__table_name__", statement, StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "coalesce(@SchemaName")]
+    [InlineData(DatabaseType.Oracle, "coalesce(upper(:SchemaName), user)")]
+    [InlineData(DatabaseType.PostgresSql, "coalesce(cast(@SchemaName as text), current_schema())")]
+    [InlineData(DatabaseType.MySql, "coalesce(@SchemaName, database())")]
+    public void TableStructureStatements_FallBackToTheDefaultSchema(DatabaseType databaseType, string fallback)
+    {
+        if (databaseType == DatabaseType.SqlServer)
+        {
+            // SQL Server resolves an unqualified name through OBJECT_ID's own default-schema lookup.
+            foreach (var statement in GetTableStructureStatements(databaseType))
+                Assert.Contains("case when @SchemaName is null then quotename(@TableName)", statement, StringComparison.Ordinal);
+            return;
+        }
+
+        foreach (var statement in GetTableStructureStatements(databaseType))
+            Assert.Contains(fallback, statement, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void SqlServer_TableDdl_BuildsDefinitionFromSystemCatalog()
     {
@@ -228,6 +272,18 @@ public class ObjectCatalogTests
         Assert.Contains("from sqlite_master", query, StringComparison.OrdinalIgnoreCase);
         Assert.Contains($"type = '{type}'", query, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("name = 'orders'", query, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static IEnumerable<string> GetTableStructureStatements(DatabaseType databaseType)
+    {
+        var catalog = ObjectCatalog.For(databaseType);
+        return
+        [
+            catalog.GetColumnDefaultsStatement(),
+            catalog.GetPrimaryKeyStatement(),
+            catalog.GetForeignKeysStatement(),
+            catalog.GetIndexesStatement()
+        ];
     }
 
     private static DdlRetrieval GetDdl(DatabaseType databaseType, DbObjectKind kind, string qualifiedName)

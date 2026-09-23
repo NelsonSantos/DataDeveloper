@@ -4,6 +4,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.TableDesigner;
+using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Data.Services.TableDesigner;
 using Xunit;
 
@@ -196,6 +197,115 @@ public class TableDesignerIntegrationTests
         finally
         {
             await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table {tableName}");
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_LoadsTableStructureOnlyFromTheRequestedSchema(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var tableName = $"td_{Guid.NewGuid().ToString("N")[..8]}";
+        await CreateTableAsync(connectionSettings, databaseType, BuildTableDefinition(databaseType, tableName));
+
+        try
+        {
+            var metadataService = new SchemaMetadataService(connectionSettings);
+            var defaultSchema = databaseType switch
+            {
+                DatabaseType.SqlServer => "dbo",
+                DatabaseType.MySql => "datadeveloper",
+                DatabaseType.PostgresSql => "public",
+                _ => "DATADEVELOPER"
+            };
+
+            var inDefaultSchema = await DatabaseIntegrationTestSupport.WithTimeout(
+                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, defaultSchema, tableName)),
+                TimeSpan.FromSeconds(30),
+                $"{databaseType} load structure from {defaultSchema}");
+
+            Assert.Equal("id", Assert.Single(inDefaultSchema.PrimaryKeyColumns).ColumnName, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("customer_id", Assert.Single(inDefaultSchema.ForeignKeyColumns).ColumnName, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("customer_id", Assert.Single(inDefaultSchema.IndexColumns).ColumnName, StringComparer.OrdinalIgnoreCase);
+            Assert.Contains(inDefaultSchema.ColumnDefaults, row => string.Equals(row.ColumnName, "customer_id", StringComparison.OrdinalIgnoreCase));
+
+            var inOtherSchema = await DatabaseIntegrationTestSupport.WithTimeout(
+                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, "no_such_schema", tableName)),
+                TimeSpan.FromSeconds(30),
+                $"{databaseType} load structure from a missing schema");
+
+            Assert.Empty(inOtherSchema.ColumnDefaults);
+            Assert.Empty(inOtherSchema.PrimaryKeyColumns);
+            Assert.Empty(inOtherSchema.ForeignKeyColumns);
+            Assert.Empty(inOtherSchema.IndexColumns);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table {tableName}");
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.PostgresSql)]
+    public async Task Provider_LoadsTableDefinitionFromNonDefaultSchema(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var token = Guid.NewGuid().ToString("N")[..8];
+        var schemaName = $"tds_{token}";
+        var tableName = $"td_{token}";
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create schema {schemaName}");
+        try
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"create table {schemaName}.{tableName} (id int not null, code varchar(10) not null, constraint pk_{tableName} primary key (id))");
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"create index ix_{tableName}_code on {schemaName}.{tableName} (code)");
+
+            var definition = await DatabaseIntegrationTestSupport.WithTimeout(
+                TableDefinitionLoader.LoadAsync(connectionSettings, schemaName, tableName, []),
+                IntegrationTimeout,
+                $"{databaseType} load table definition from {schemaName}");
+
+            Assert.Equal(schemaName, definition.SchemaName);
+            Assert.Equal($"pk_{tableName}", definition.PrimaryKey.Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("id", Assert.Single(definition.PrimaryKey.ColumnNames), StringComparer.OrdinalIgnoreCase);
+            Assert.Equal($"ix_{tableName}_code", Assert.Single(definition.Indexes).Name, StringComparer.OrdinalIgnoreCase);
+
+            // The same table name is not visible without its schema.
+            var unqualified = await DatabaseIntegrationTestSupport.WithTimeout(
+                TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, tableName, []),
+                IntegrationTimeout,
+                $"{databaseType} load table definition without schema");
+
+            Assert.Empty(unqualified.PrimaryKey.ColumnNames);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table if exists {schemaName}.{tableName}");
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop schema {schemaName}");
+        }
+    }
+
+    private static async Task CreateTableAsync(IConnectionSettings connectionSettings, DatabaseType databaseType, TableDefinition table)
+    {
+        foreach (var statement in connectionSettings.GetSqlAnalyzer().SplitStatements(TableDdlScriptBuilder.BuildCreateTableScript(databaseType, table)))
+        {
+            await DatabaseIntegrationTestSupport.WithTimeout(
+                DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, statement),
+                IntegrationTimeout,
+                $"{databaseType} create table statement");
         }
     }
 

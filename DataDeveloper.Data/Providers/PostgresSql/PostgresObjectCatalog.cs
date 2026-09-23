@@ -140,4 +140,95 @@ public sealed class PostgresObjectCatalog : ObjectCatalog
             "union all" + Environment.NewLine +
             "select definition as Definition from index_ddl;";
     }
+
+    public override string GetColumnDefaultsStatement()
+    {
+        return """
+               select
+                   column_name as "ColumnName",
+                   column_default as "DefaultValueExpression"
+               from information_schema.columns
+               where table_schema = coalesce(cast(@SchemaName as text), current_schema())
+                 and table_name = @TableName
+               order by ordinal_position;
+               """;
+    }
+
+    public override string GetPrimaryKeyStatement()
+    {
+        return """
+               select
+                   tc.constraint_name as "ConstraintName",
+                   kcu.column_name as "ColumnName",
+                   kcu.ordinal_position as "OrdinalPosition"
+               from information_schema.table_constraints tc
+               join information_schema.key_column_usage kcu
+                   on kcu.constraint_schema = tc.constraint_schema
+                  and kcu.constraint_name = tc.constraint_name
+               where tc.table_schema = coalesce(cast(@SchemaName as text), current_schema())
+                 and tc.table_name = @TableName
+                 and tc.constraint_type = 'PRIMARY KEY'
+               order by kcu.ordinal_position;
+               """;
+    }
+
+    public override string GetForeignKeysStatement()
+    {
+        return """
+               select
+                   con.conname as "ConstraintName",
+                   att2.attname as "ColumnName",
+                   ord.ordinality as "OrdinalPosition",
+                   rn.nspname as "ReferencedSchemaName",
+                   rc.relname as "ReferencedTableName",
+                   att1.attname as "ReferencedColumnName",
+                   case con.confdeltype
+                       when 'c' then 'cascade' when 'n' then 'set null'
+                       when 'd' then 'set default' when 'r' then 'restrict' else '' end as "OnDeleteAction",
+                   case con.confupdtype
+                       when 'c' then 'cascade' when 'n' then 'set null'
+                       when 'd' then 'set default' when 'r' then 'restrict' else '' end as "OnUpdateAction"
+               from pg_constraint con
+               join pg_class t on t.oid = con.conrelid
+               join pg_namespace n on n.oid = t.relnamespace
+               join pg_class rc on rc.oid = con.confrelid
+               join pg_namespace rn on rn.oid = rc.relnamespace
+               cross join lateral unnest(con.conkey, con.confkey) with ordinality as ord(local_attnum, ref_attnum, ordinality)
+               join pg_attribute att2 on att2.attrelid = con.conrelid and att2.attnum = ord.local_attnum
+               join pg_attribute att1 on att1.attrelid = con.confrelid and att1.attnum = ord.ref_attnum
+               where con.contype = 'f'
+                 and n.nspname = coalesce(cast(@SchemaName as text), current_schema())
+                 and t.relname = @TableName
+               order by con.conname, ord.ordinality;
+               """;
+    }
+
+    public override string GetIndexesStatement()
+    {
+        return """
+               select
+                   ic.relname as "IndexName",
+                   i.indisunique as "IsUnique",
+                   a.attname as "ColumnName",
+                   (o.option & 1) = 1 as "IsDescending",
+                   o.ordinality as "OrdinalPosition",
+                   am.amname as "UsingMethod",
+                   pg_get_expr(i.indpred, i.indrelid) as "WherePredicate"
+               from pg_index i
+               join pg_class t on t.oid = i.indrelid
+               join pg_namespace n on n.oid = t.relnamespace
+               join pg_class ic on ic.oid = i.indexrelid
+               join pg_am am on am.oid = ic.relam
+               cross join lateral unnest(i.indkey, i.indoption) with ordinality as o(attnum, option, ordinality)
+               join pg_attribute a on a.attrelid = t.oid and a.attnum = o.attnum
+               where n.nspname = coalesce(cast(@SchemaName as text), current_schema())
+                 and t.relname = @TableName
+                 and not i.indisprimary
+                 and not exists (
+                     select 1 from pg_constraint con
+                     where con.conrelid = t.oid and con.conindid = i.indexrelid
+                 )
+               order by ic.relname, o.ordinality;
+               """;
+    }
 }

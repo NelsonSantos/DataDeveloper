@@ -1,9 +1,8 @@
-using System.Data;
-using Dapper;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.TableDesigner;
+using DataDeveloper.Data.Services.Metadata;
 
 namespace DataDeveloper.Data.Services.TableDesigner;
 
@@ -22,22 +21,27 @@ public static class TableDefinitionLoader
         string tableName,
         IReadOnlyList<ColumnModel> loadedColumns)
     {
-        var databaseProvider = connectionSettings.GetDatabaseProvider();
-        await using var connection = databaseProvider.GetConnection();
-        await connection.OpenAsync();
+        var table = new DbObjectRef(DbObjectKind.Table, string.IsNullOrWhiteSpace(schemaName) ? null : schemaName, tableName);
+        var structure = await new SchemaMetadataService(connectionSettings).GetTableStructureAsync(table);
+        return Build(connectionSettings.DatabaseType, schemaName, tableName, loadedColumns, structure);
+    }
 
-        var defaultValues = await QueryAsync<ColumnDefaultValueRow>(
-            connection, databaseProvider.GetColumnDefaultValueStatement(), connectionSettings.DatabaseType, tableName);
-        var defaultValueRowByColumn = defaultValues
+    /// <summary>
+    /// Combines the explorer's loaded columns with the catalog's table structure.
+    /// </summary>
+    public static TableDefinition Build(
+        DatabaseType databaseType,
+        string schemaName,
+        string tableName,
+        IReadOnlyList<ColumnModel> loadedColumns,
+        TableStructure structure)
+    {
+        var defaultValueRowByColumn = structure.ColumnDefaults
             .Where(row => !string.IsNullOrWhiteSpace(row.ColumnName))
             .ToDictionary(row => row.ColumnName, row => row, StringComparer.OrdinalIgnoreCase);
-
-        var primaryKeyRows = await QueryAsync<PrimaryKeyColumnRow>(
-            connection, databaseProvider.GetPrimaryKeyStatement(), connectionSettings.DatabaseType, tableName);
-        var foreignKeyRows = await QueryAsync<ForeignKeyColumnRow>(
-            connection, databaseProvider.GetForeignKeyStatement(), connectionSettings.DatabaseType, tableName);
-        var indexRows = await QueryAsync<IndexColumnRow>(
-            connection, databaseProvider.GetIndexStatement(), connectionSettings.DatabaseType, tableName);
+        var primaryKeyRows = structure.PrimaryKeyColumns;
+        var foreignKeyRows = structure.ForeignKeyColumns;
+        var indexRows = structure.IndexColumns;
 
         var table = new TableDefinition
         {
@@ -57,7 +61,7 @@ public static class TableDefinitionLoader
             {
                 OriginalName = column.Name,
                 Name = column.Name,
-                DataType = NormalizeDataType(connectionSettings.DatabaseType, column.DataType),
+                DataType = NormalizeDataType(databaseType, column.DataType),
                 Length = column.Length > 0 ? column.Length : null,
                 Precision = column.Precision > 0 ? column.Precision : null,
                 Scale = column.Scale > 0 ? column.Scale : null,
@@ -151,58 +155,5 @@ public static class TableDefinitionLoader
             "time without time zone" => "time",
             _ => dataType
         };
-    }
-
-    private static async Task<IEnumerable<T>> QueryAsync<T>(
-        System.Data.Common.DbConnection connection, string statement, DatabaseType databaseType, string tableName)
-    {
-        if (databaseType == DatabaseType.SqLite)
-        {
-            var escapedTableName = tableName.Replace("'", "''", StringComparison.Ordinal);
-            statement = statement.Replace("__table_name__", $"'{escapedTableName}'", StringComparison.Ordinal);
-            return await connection.QueryAsync<T>(statement, commandType: CommandType.Text);
-        }
-
-        return await connection.QueryAsync<T>(statement, param: new { TableName = tableName }, commandType: CommandType.Text);
-    }
-
-    private sealed class ColumnDefaultValueRow
-    {
-        public string ColumnName { get; set; } = string.Empty;
-        public string? DefaultValueExpression { get; set; }
-        public string? DefaultConstraintName { get; set; }
-    }
-
-    private sealed class PrimaryKeyColumnRow
-    {
-        public string? ConstraintName { get; set; }
-        public string ColumnName { get; set; } = string.Empty;
-        public int OrdinalPosition { get; set; }
-    }
-
-    private sealed class ForeignKeyColumnRow
-    {
-        public string ConstraintName { get; set; } = string.Empty;
-        public string ColumnName { get; set; } = string.Empty;
-        public int OrdinalPosition { get; set; }
-        public string? ReferencedSchemaName { get; set; }
-        public string? ReferencedTableName { get; set; }
-        public string ReferencedColumnName { get; set; } = string.Empty;
-        public string? OnDeleteAction { get; set; }
-        public string? OnUpdateAction { get; set; }
-    }
-
-    private sealed class IndexColumnRow
-    {
-        public string IndexName { get; set; } = string.Empty;
-        public bool IsUnique { get; set; }
-        public string ColumnName { get; set; } = string.Empty;
-        public bool IsDescending { get; set; }
-        public int OrdinalPosition { get; set; }
-        public bool? IsClustered { get; set; }
-        public int? FillFactor { get; set; }
-        public string? UsingMethod { get; set; }
-        public string? WherePredicate { get; set; }
-        public int? PrefixLength { get; set; }
     }
 }
