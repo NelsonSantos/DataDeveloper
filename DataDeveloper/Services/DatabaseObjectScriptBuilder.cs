@@ -14,7 +14,7 @@ public static class DatabaseObjectScriptBuilder
     {
         return node.NodeType switch
         {
-            NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function =>
+            NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Sequence =>
                 QuoteObjectName(connectionSettings, node.Name),
             NodeType.Column => BuildQualifiedColumnName(connectionSettings, node),
             NodeType.Parameter => node.Name,
@@ -123,6 +123,18 @@ public static class DatabaseObjectScriptBuilder
         {
             DatabaseType.Oracle => $"select {qualifiedName}({argumentList}) from dual;",
             _ => $"select {qualifiedName}({argumentList});"
+        };
+    }
+
+    public static string BuildSelectNextValueScript(IConnectionSettings connectionSettings, SchemaNode node)
+    {
+        var qualifiedName = BuildQualifiedName(connectionSettings, node);
+        return connectionSettings.DatabaseType switch
+        {
+            DatabaseType.SqlServer => $"select next value for {qualifiedName} as NextValue;",
+            DatabaseType.Oracle => $"select {qualifiedName}.nextval as NextValue from dual;",
+            DatabaseType.PostgresSql => $"select nextval('{qualifiedName.Replace("'", "''", StringComparison.Ordinal)}') as NextValue;",
+            _ => qualifiedName
         };
     }
 

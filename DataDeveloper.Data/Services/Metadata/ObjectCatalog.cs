@@ -47,6 +47,7 @@ public abstract class ObjectCatalog : IObjectCatalog
             DbObjectKind.Procedure => GetRoutineDdlRetrieval(databaseObject, isFunction: false),
             DbObjectKind.Function => GetRoutineDdlRetrieval(databaseObject, isFunction: true),
             DbObjectKind.Trigger => GetTriggerDdlRetrieval(databaseObject),
+            DbObjectKind.Sequence => GetSequenceDdlRetrieval(databaseObject),
             _ => null
         };
     }
@@ -59,6 +60,11 @@ public abstract class ObjectCatalog : IObjectCatalog
 
     /// <param name="trigger">A trigger reference whose <see cref="DbObjectRef.Parent"/> is its table.</param>
     protected abstract DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger);
+
+    /// <summary>
+    /// How to read a sequence's DDL; null for providers without sequences.
+    /// </summary>
+    protected virtual DdlRetrieval? GetSequenceDdlRetrieval(DbObjectRef sequence) => null;
 
     public virtual IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
         [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function];

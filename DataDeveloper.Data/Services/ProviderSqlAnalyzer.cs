@@ -408,6 +408,12 @@ public class ProviderSqlAnalyzer : IProviderSqlAnalyzer
             return true;
         }
 
+        if (value?.Equals("sequence", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            objectType = SchemaObjectType.Sequence;
+            return true;
+        }
+
         objectType = SchemaObjectType.Unknown;
         return false;
     }

@@ -179,6 +179,63 @@ public class ObjectCatalogTests
         Assert.Contains("type = 'trigger' and name = 'trg_orders'", query, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, true)]
+    [InlineData(DatabaseType.Oracle, true)]
+    [InlineData(DatabaseType.PostgresSql, true)]
+    [InlineData(DatabaseType.MySql, false)]
+    [InlineData(DatabaseType.SqLite, false)]
+    public void Sequences_AreARootFolderWhereTheProviderHasThem(DatabaseType databaseType, bool hasSequences)
+    {
+        var catalog = ObjectCatalog.For(databaseType);
+        var sequence = new DbObjectRef(DbObjectKind.Sequence, "sales", "order_number");
+
+        Assert.Equal(hasSequences, catalog.RootObjectKinds.Contains(DbObjectKind.Sequence));
+        Assert.Equal(hasSequences, catalog.GetDdlRetrieval(sequence) is not null);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "from sys.sequences s")]
+    [InlineData(DatabaseType.Oracle, "from user_sequences")]
+    [InlineData(DatabaseType.PostgresSql, "from pg_sequences")]
+    public void Sequences_AreListedWithIncrementDetails(DatabaseType databaseType, string expectedSource)
+    {
+        var statement = ObjectCatalog.For(databaseType).GetObjectListStatement(DbObjectKind.Sequence);
+
+        Assert.Contains(expectedSource, statement, StringComparison.Ordinal);
+        Assert.Contains("'increment '", statement, StringComparison.Ordinal);
+        Assert.Contains("Details", statement, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SqlServer_SequenceDdl_IsAssembledFromSysSequences()
+    {
+        var query = ObjectCatalog.For(DatabaseType.SqlServer).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Sequence, "sales", "order_number"))!.Query;
+
+        Assert.Contains("'create sequence ' + quotename(schema_name(s.schema_id))", query, StringComparison.Ordinal);
+        Assert.Contains("'    increment by '", query, StringComparison.Ordinal);
+        Assert.Contains("where s.object_id = object_id(N'sales.order_number');", query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Oracle_SequenceDdl_UsesDbmsMetadata()
+    {
+        var retrieval = ObjectCatalog.For(DatabaseType.Oracle).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Sequence, "HR", "ORDER_SEQ"))!;
+
+        Assert.Equal("select dbms_metadata.get_ddl('SEQUENCE', 'ORDER_SEQ', 'HR') as Definition from dual;", retrieval.Query);
+        Assert.NotNull(retrieval.SessionSetup);
+    }
+
+    [Fact]
+    public void Postgres_SequenceDdl_IsAssembledFromPgSequences()
+    {
+        var query = ObjectCatalog.For(DatabaseType.PostgresSql).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Sequence, null, "order_number"))!.Query;
+
+        Assert.Contains("'create sequence ' || quote_ident(schemaname)", query, StringComparison.Ordinal);
+        Assert.Contains("where schemaname = 'public'", query, StringComparison.Ordinal);
+        Assert.Contains("and sequencename = 'order_number';", query, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Oracle_CheckConstraints_ExcludeSystemNotNullConstraints()
     {

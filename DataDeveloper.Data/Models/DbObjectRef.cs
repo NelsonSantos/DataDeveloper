@@ -39,6 +39,7 @@ public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name,
             NodeType.Procedure => DbObjectKind.Procedure,
             NodeType.Function => DbObjectKind.Function,
             NodeType.Trigger => DbObjectKind.Trigger,
+            NodeType.Sequence => DbObjectKind.Sequence,
             _ => null
         };
 

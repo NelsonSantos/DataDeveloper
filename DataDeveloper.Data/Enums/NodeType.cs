@@ -27,4 +27,6 @@ public enum NodeType
     Index,
     Triggers,
     Trigger,
+    Sequences,
+    Sequence,
 }

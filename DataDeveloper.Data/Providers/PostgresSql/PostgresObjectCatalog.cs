@@ -259,6 +259,15 @@ public sealed class PostgresObjectCatalog : ObjectCatalog
                 where specific_schema = current_schema()
                   and routine_type = '{(kind == DbObjectKind.Procedure ? "PROCEDURE" : "FUNCTION")}';
                 """,
+            DbObjectKind.Sequence => """
+                                     select
+                                         schemaname as "SchemaName",
+                                         sequencename as "Name",
+                                         true as "IsDefaultSchema",
+                                         'increment ' || increment_by || coalesce(', current ' || last_value, ', start ' || start_value) as "Details"
+                                     from pg_sequences
+                                     where schemaname = current_schema();
+                                     """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
@@ -388,5 +397,26 @@ public sealed class PostgresObjectCatalog : ObjectCatalog
             group by trigger_schema, trigger_name, action_timing
             order by trigger_name;
             """);
+    }
+
+    public override IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence];
+
+    // PostgreSQL has no function returning a sequence's DDL, so it is assembled from pg_sequences.
+    protected override DdlRetrieval GetSequenceDdlRetrieval(DbObjectRef sequence)
+    {
+        return new DdlRetrieval(
+            "select" + Environment.NewLine +
+            "    'create sequence ' || quote_ident(schemaname) || '.' || quote_ident(sequencename) || E'\\n' ||" + Environment.NewLine +
+            "    '    as ' || data_type || E'\\n' ||" + Environment.NewLine +
+            "    '    increment by ' || increment_by || E'\\n' ||" + Environment.NewLine +
+            "    '    minvalue ' || min_value || E'\\n' ||" + Environment.NewLine +
+            "    '    maxvalue ' || max_value || E'\\n' ||" + Environment.NewLine +
+            "    '    start with ' || start_value || E'\\n' ||" + Environment.NewLine +
+            "    '    cache ' || cache_size || E'\\n' ||" + Environment.NewLine +
+            "    '    ' || case when cycle then 'cycle' else 'no cycle' end || ';' as \"Definition\"" + Environment.NewLine +
+            "from pg_sequences" + Environment.NewLine +
+            $"where schemaname = '{EscapeSqlLiteral(sequence.Schema ?? DefaultSchema)}'" + Environment.NewLine +
+            $"  and sequencename = '{EscapeSqlLiteral(sequence.Name)}';");
     }
 }

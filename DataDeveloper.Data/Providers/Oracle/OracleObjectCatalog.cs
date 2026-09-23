@@ -163,6 +163,14 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                 from user_objects
                 where object_type = '{(kind == DbObjectKind.Procedure ? "PROCEDURE" : "FUNCTION")}'
                 """,
+            DbObjectKind.Sequence => """
+                                     select
+                                         user as "SchemaName",
+                                         sequence_name as "Name",
+                                         1 as "IsDefaultSchema",
+                                         'increment ' || increment_by || ', last number ' || last_number as "Details"
+                                     from user_sequences
+                                     """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
@@ -276,6 +284,20 @@ public sealed class OracleObjectCatalog : ObjectCatalog
               and base_object_type = 'TABLE'
             order by trigger_name
             """);
+    }
+
+    public override IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence];
+
+    protected override DdlRetrieval GetSequenceDdlRetrieval(DbObjectRef sequence)
+    {
+        var owner = sequence.Schema is null
+            ? "sys_context('USERENV', 'CURRENT_SCHEMA')"
+            : $"'{EscapeSqlLiteral(sequence.Schema)}'";
+
+        return new DdlRetrieval(
+            $"select dbms_metadata.get_ddl('SEQUENCE', '{EscapeSqlLiteral(sequence.Name)}', {owner}) as Definition from dual;",
+            MetadataSessionSetup);
     }
 
 

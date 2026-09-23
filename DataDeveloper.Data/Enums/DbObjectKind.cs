@@ -6,5 +6,6 @@ public enum DbObjectKind
     View,
     Procedure,
     Function,
-    Trigger
+    Trigger,
+    Sequence
 }

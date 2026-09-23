@@ -127,6 +127,9 @@ public class ProviderSqlAnalyzerTests
     [InlineData(DatabaseType.Oracle, "create bitmap index ix_status on orders (status)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ix_status")]
     [InlineData(DatabaseType.PostgresSql, "drop index if exists public.ix_orders_code", SchemaRefreshAction.Drop, SchemaObjectType.Index, "public.ix_orders_code")]
     [InlineData(DatabaseType.SqLite, "create unique index ux_code on orders (code)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ux_code")]
+    [InlineData(DatabaseType.SqlServer, "create sequence dbo.order_number as bigint start with 1", SchemaRefreshAction.Create, SchemaObjectType.Sequence, "dbo.order_number")]
+    [InlineData(DatabaseType.Oracle, "alter sequence hr.order_seq increment by 5", SchemaRefreshAction.Alter, SchemaObjectType.Sequence, "hr.order_seq")]
+    [InlineData(DatabaseType.PostgresSql, "drop sequence if exists public.order_number", SchemaRefreshAction.Drop, SchemaObjectType.Sequence, "public.order_number")]
     public void ParseSchemaRefreshTarget_HandlesProviderDdlForms(
         DatabaseType databaseType,
         string statement,

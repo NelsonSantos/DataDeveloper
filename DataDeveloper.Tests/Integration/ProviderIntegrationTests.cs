@@ -404,6 +404,56 @@ public class ProviderIntegrationTests
         }
     }
 
+    [Theory]
+    [Trait("Category", "Integration")]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.PostgresSql)]
+    [InlineData(DatabaseType.Oracle)]
+    public async Task Provider_SchemaTreeShowsSequencesWithDdlAndRefresh(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var typedName = $"seq_{Guid.NewGuid().ToString("N")[..8]}";
+        var storedName = Data.Services.SqlDialects.SqlDialect.For(databaseType).ResolveQualifiedName(typedName).Single();
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create sequence {typedName} start with 10 increment by 5");
+        try
+        {
+            var explorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), IntegrationTimeout, $"{databaseType} schema initialization");
+            var sequences = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Sequences);
+            var sequence = Assert.Single(sequences.Children, node => node.Name == storedName);
+            Assert.Equal(NodeType.Sequence, sequence.NodeType);
+            Assert.StartsWith("increment 5", sequence.Details, StringComparison.Ordinal);
+
+            var nextValueScript = Services.DatabaseObjectScriptBuilder.BuildSelectNextValueScript(connectionSettings, sequence).TrimEnd(';');
+            Assert.Equal(10, await DatabaseIntegrationTestSupport.ExecuteScalarIntAsync(connectionSettings, nextValueScript));
+
+            var ddl = await DatabaseIntegrationTestSupport.WithTimeout(
+                new SchemaMetadataService(connectionSettings).GetDdlAsync(sequence), IntegrationTimeout, $"{databaseType} sequence DDL");
+            Assert.Contains("sequence", ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(storedName, ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("increment by 5", ddl, StringComparison.OrdinalIgnoreCase);
+
+            var alterStatement = $"alter sequence {typedName} increment by 7";
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, alterStatement);
+            await explorer.RefreshSchemaObjectAsync(alterStatement);
+            Assert.StartsWith("increment 7", Assert.Single(sequences.Children, node => node.Name == storedName).Details, StringComparison.Ordinal);
+
+            var dropStatement = $"drop sequence {typedName}";
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, dropStatement);
+            await explorer.RefreshSchemaObjectAsync(dropStatement);
+            Assert.DoesNotContain(sequences.Children, node => node.Name == storedName);
+        }
+        catch
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop sequence {typedName}");
+            throw;
+        }
+    }
+
     private static bool NameMatches(string actualName, string expectedName)
     {
         return string.Equals(actualName, expectedName, StringComparison.OrdinalIgnoreCase) ||

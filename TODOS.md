@@ -27,3 +27,18 @@
 - [x] Colocar um botão de stop para interromper o load de pagina de registros
 - [x] Validar o botão do stop da query para rodar assincrono e poder ser clicado
 - [x] Trocar fontAwesome por material-icons
+
+# Débitos técnicos
+
+Objetos específicos de cada banco para a árvore de conexão. Cada item entra só nos bancos que o suportam, com listagem, "DDL Create" e testes desses bancos.
+
+- [x] Sequences (SQL Server, Oracle, PostgreSQL)
+- [ ] Sequences no MariaDB 10.3+ (conexão MySQL; a pasta depende da versão do servidor)
+- [ ] Materialized Views, com Columns e script de refresh (Oracle, PostgreSQL)
+- [ ] Packages, com as procedures e functions internas e seus parâmetros (Oracle)
+- [ ] Synonyms (SQL Server, Oracle)
+- [ ] Triggers em views, `INSTEAD OF` (SQL Server, Oracle, PostgreSQL, SQLite)
+- [ ] Enums, Domains e Extensions (PostgreSQL)
+- [ ] Events (MySQL, MariaDB)
+- [ ] Tipos definidos pelo usuário (SQL Server, Oracle, PostgreSQL)
+- [ ] Jobs e Linked Servers (SQL Server; objetos do servidor, não do banco)

@@ -20,7 +20,8 @@ public interface IObjectCatalog
 
     /// <summary>
     /// One row per object of the given kind: Name, SchemaName, IsDefaultSchema and, for routines,
-    /// SpecificName and (functions) DataType. See <see cref="DatabaseObjectModel"/>.
+    /// SpecificName and (functions) DataType, or Details for kinds that show extra information.
+    /// See <see cref="DatabaseObjectModel"/>.
     /// </summary>
     string GetObjectListStatement(DbObjectKind kind);
 
