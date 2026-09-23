@@ -68,8 +68,18 @@
   - Trigger nodes have **Copy name** and **DDL Create** (to a new query or to the clipboard).
   - After `CREATE/ALTER/DROP TRIGGER`, the Triggers folders already opened reload without a manual refresh.
   - The same targeted reload now applies to `CREATE/DROP INDEX` for the Keys and Indexes folders added in #50. Those statements used to fall into a full refresh that left opened folders stale.
+- **#53 fix: keep case-sensitive Oracle and PostgreSQL names intact in the tree, grid and designer** (https://github.com/NelsonSantos/DataDeveloper/pull/53)
+  - This fixes tables whose names only exist in one specific case.
+  - | Case | Before | After |
+  - |---|---|---|
+  - | Oracle `"MinhaTabela"` (created quoted), schema tree | Columns and Keys empty | Columns and keys load |
+  - | Oracle `"MinhaTabela"`, grid | Not editable ("no primary key") | Editable; `update "MinhaTabela" ...` |
+  - | Oracle `"MinhaTabela"`, Edit Table | No columns; `ALTER` would target `MINHATABELA`, a different object | Loads; `alter table DATADEVELOPER."MinhaTabela" add ...` |
+  - | PostgreSQL `select * from Probe_Lower` (table is `probe_lower`) | Not editable | Editable; `update "probe_lower" ...` |
+  - The originally tracked bug was that the grid command builder upper-cased Oracle names. In practice it never showed, because the Oracle catalog also upper-cased names (`table_name = upper(:TableName)`), which made those tables look empty and non-editable first.
 
 ## Included Commits
+- c4d66f4 Merge pull request #53 from NelsonSantos/feature/oracle-grid-edit-identifier-case
 - 86c4469 Merge pull request #52 from NelsonSantos/feature/schema-metadata-triggers
 - 0fbbe4b Merge pull request #51 from NelsonSantos/feature/sequential-db-integration-tests
 - 72983b9 Merge pull request #50 from NelsonSantos/feature/schema-metadata-table-objects
