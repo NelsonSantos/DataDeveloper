@@ -10,6 +10,7 @@ using Xunit;
 
 namespace DataDeveloper.Tests.Integration;
 
+[Collection(DatabaseIntegrationCollection.Name)]
 public class TableDesignerIntegrationTests
 {
     private static readonly TimeSpan IntegrationTimeout = TimeSpan.FromSeconds(15);

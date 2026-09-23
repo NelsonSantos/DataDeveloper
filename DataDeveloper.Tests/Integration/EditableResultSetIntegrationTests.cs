@@ -5,6 +5,7 @@ using Xunit;
 
 namespace DataDeveloper.Tests.Integration;
 
+[Collection(DatabaseIntegrationCollection.Name)]
 public class EditableResultSetIntegrationTests
 {
     private static readonly TimeSpan IntegrationTimeout = TimeSpan.FromSeconds(15);
