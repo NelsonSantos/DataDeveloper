@@ -75,4 +75,9 @@ public interface IObjectCatalog
     /// </summary>
     /// <param name="serverVersion">The connection's <see cref="System.Data.Common.DbConnection.ServerVersion"/>.</param>
     CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion);
+
+    /// <summary>
+    /// How to list the triggers defined on a table (SchemaName, TableName parameters).
+    /// </summary>
+    TriggersQuery GetTriggersQuery();
 }

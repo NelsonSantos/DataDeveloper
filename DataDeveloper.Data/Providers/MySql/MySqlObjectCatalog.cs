@@ -213,6 +213,26 @@ public sealed partial class MySqlObjectCatalog : ObjectCatalog
             order by tc.constraint_name;
             """);
     }
+    protected override DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger)
+    {
+        return new DdlRetrieval($"show create trigger {QuoteQualifiedName(trigger)};");
+    }
+
+    public override TriggersQuery GetTriggersQuery()
+    {
+        return new TriggersQuery("""
+            select
+                trigger_schema as SchemaName,
+                trigger_name as Name,
+                lower(action_timing) as Timing,
+                lower(event_manipulation) as Events
+            from information_schema.triggers
+            where event_object_schema = coalesce(@SchemaName, database())
+              and event_object_table = @TableName
+            order by trigger_name;
+            """);
+    }
+
 
     /// <summary>
     /// Whether the server stores check constraints: MySQL 8.0.16 or later, MariaDB 10.2 or later.

@@ -117,6 +117,16 @@ public class ProviderSqlAnalyzerTests
     [InlineData(DatabaseType.PostgresSql, "create materialized view public.customer_totals as select 1", SchemaRefreshAction.Create, SchemaObjectType.View, "public.customer_totals")]
     [InlineData(DatabaseType.Oracle, "create or replace editionable procedure app.sync_customer as begin null; end;", SchemaRefreshAction.Create, SchemaObjectType.Procedure, "app.sync_customer")]
     [InlineData(DatabaseType.SqLite, "create temp table cache_items(id integer)", SchemaRefreshAction.Create, SchemaObjectType.Table, "cache_items")]
+    [InlineData(DatabaseType.SqlServer, "create or alter trigger dbo.trg_orders on dbo.orders after insert as select 1", SchemaRefreshAction.Create, SchemaObjectType.Trigger, "dbo.trg_orders")]
+    [InlineData(DatabaseType.Oracle, "create or replace editionable trigger app.trg_orders before insert on orders begin null; end;", SchemaRefreshAction.Create, SchemaObjectType.Trigger, "app.trg_orders")]
+    [InlineData(DatabaseType.PostgresSql, "create constraint trigger trg_orders after insert on orders for each row execute function f()", SchemaRefreshAction.Create, SchemaObjectType.Trigger, "trg_orders")]
+    [InlineData(DatabaseType.MySql, "drop trigger if exists trg_orders", SchemaRefreshAction.Drop, SchemaObjectType.Trigger, "trg_orders")]
+    [InlineData(DatabaseType.SqLite, "drop trigger trg_orders", SchemaRefreshAction.Drop, SchemaObjectType.Trigger, "trg_orders")]
+    [InlineData(DatabaseType.SqlServer, "create unique nonclustered index ix_orders_code on dbo.orders (code)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ix_orders_code")]
+    [InlineData(DatabaseType.MySql, "create fulltext index ix_notes on orders (notes)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ix_notes")]
+    [InlineData(DatabaseType.Oracle, "create bitmap index ix_status on orders (status)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ix_status")]
+    [InlineData(DatabaseType.PostgresSql, "drop index if exists public.ix_orders_code", SchemaRefreshAction.Drop, SchemaObjectType.Index, "public.ix_orders_code")]
+    [InlineData(DatabaseType.SqLite, "create unique index ux_code on orders (code)", SchemaRefreshAction.Create, SchemaObjectType.Index, "ux_code")]
     public void ParseSchemaRefreshTarget_HandlesProviderDdlForms(
         DatabaseType databaseType,
         string statement,

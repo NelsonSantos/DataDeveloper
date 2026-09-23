@@ -354,4 +354,39 @@ public sealed class PostgresObjectCatalog : ObjectCatalog
             order by con.conname;
             """);
     }
+
+    // Trigger names are unique per table, not per schema, so the table narrows the lookup.
+    protected override DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger)
+    {
+        var schemaName = trigger.Parent?.Schema ?? trigger.Schema ?? DefaultSchema;
+        var tablePredicate = trigger.Parent is null
+            ? string.Empty
+            : $"{Environment.NewLine}  and c.relname = '{EscapeSqlLiteral(trigger.Parent.Name)}'";
+
+        return new DdlRetrieval(
+            "select pg_get_triggerdef(t.oid, true) || ';' as Definition" + Environment.NewLine +
+            "from pg_trigger t" + Environment.NewLine +
+            "join pg_class c on c.oid = t.tgrelid" + Environment.NewLine +
+            "join pg_namespace n on n.oid = c.relnamespace" + Environment.NewLine +
+            "where not t.tgisinternal" + Environment.NewLine +
+            $"  and n.nspname = '{EscapeSqlLiteral(schemaName)}'" +
+            tablePredicate + Environment.NewLine +
+            $"  and t.tgname = '{EscapeSqlLiteral(trigger.Name)}';");
+    }
+
+    public override TriggersQuery GetTriggersQuery()
+    {
+        return new TriggersQuery("""
+            select
+                trigger_schema as "SchemaName",
+                trigger_name as "Name",
+                lower(action_timing) as "Timing",
+                string_agg(lower(event_manipulation), ', ' order by event_manipulation) as "Events"
+            from information_schema.triggers
+            where event_object_schema = coalesce(cast(@SchemaName as text), current_schema())
+              and event_object_table = @TableName
+            group by trigger_schema, trigger_name, action_timing
+            order by trigger_name;
+            """);
+    }
 }

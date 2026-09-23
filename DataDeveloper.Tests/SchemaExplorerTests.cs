@@ -118,7 +118,7 @@ public class SchemaExplorerTests
             var tables = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children;
             var orders = tables.Single(node => node.Name == "orders");
             Assert.Equal(
-                [NodeType.Columns, NodeType.Keys, NodeType.Constraints, NodeType.Indexes],
+                [NodeType.Columns, NodeType.Keys, NodeType.Constraints, NodeType.Indexes, NodeType.Triggers],
                 orders.Children.Select(node => node.NodeType));
 
             var keys = await LoadFolderAsync(explorer, orders, NodeType.Keys);
@@ -193,6 +193,90 @@ public class SchemaExplorerTests
             SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
+    }
+
+    [Fact]
+    public async Task Triggers_AreListedWithTheirDdlAndReloadedAfterTriggerDdl()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"datadeveloper-explorer-{Guid.NewGuid():N}.db");
+        try
+        {
+            var settings = new SqLiteConnectionSettings { Name = "Local", DatabaseType = DatabaseType.SqLite, Database = databasePath };
+            Execute(databasePath, """
+                                  create table orders (id integer primary key, total real, updated_at text);
+                                  create table audit (order_id integer);
+                                  create trigger trg_orders_audit after insert on orders begin insert into audit values (new.id); end;
+                                  create trigger trg_orders_touch update of total on orders begin update orders set updated_at = 'now' where id = new.id; end;
+                                  """);
+
+            var explorer = new SchemaExplorer(new SqLiteDatabaseProvider(settings), settings);
+            await explorer.InitializeSchemaNode();
+            var orders = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables)
+                .Children.Single(node => node.Name == "orders");
+
+            var triggers = await LoadFolderAsync(explorer, orders, NodeType.Triggers);
+            Assert.Collection(
+                triggers,
+                node => { Assert.Equal(NodeType.Trigger, node.NodeType); Assert.Equal("trg_orders_audit", node.Name); Assert.Equal("after insert", node.Details); },
+                node => { Assert.Equal("trg_orders_touch", node.Name); Assert.Equal("before update", node.Details); });
+            Assert.Equal(
+                new DbObjectRef(DbObjectKind.Trigger, "main", "trg_orders_audit", new DbObjectRef(DbObjectKind.Table, "main", "orders")),
+                triggers[0].ObjectRef);
+
+            var ddl = await new Data.Services.Metadata.SchemaMetadataService(settings, new SqLiteDatabaseProvider(settings), catalog: null).GetDdlAsync(triggers[0]);
+            Assert.StartsWith("CREATE TRIGGER trg_orders_audit after insert on orders", ddl, StringComparison.OrdinalIgnoreCase);
+
+            // DROP TRIGGER does not name the table, so every opened Triggers folder is reloaded.
+            const string dropStatement = "drop trigger trg_orders_audit";
+            Execute(databasePath, dropStatement);
+            await explorer.RefreshSchemaObjectAsync(dropStatement);
+
+            var reloaded = orders.Children.Single(node => node.NodeType == NodeType.Triggers).Children;
+            Assert.Equal("trg_orders_touch", Assert.Single(reloaded).Name);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    [Fact]
+    public async Task RefreshSchemaObjectAsync_AfterCreateIndex_ReloadsOpenedKeysAndIndexesFolders()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"datadeveloper-explorer-{Guid.NewGuid():N}.db");
+        try
+        {
+            var settings = new SqLiteConnectionSettings { Name = "Local", DatabaseType = DatabaseType.SqLite, Database = databasePath };
+            Execute(databasePath, "create table orders (id integer primary key, code text)");
+
+            var explorer = new SchemaExplorer(new SqLiteDatabaseProvider(settings), settings);
+            await explorer.InitializeSchemaNode();
+            var orders = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children.Single();
+            Assert.Empty(await LoadFolderAsync(explorer, orders, NodeType.Indexes));
+
+            const string createStatement = "create unique index ux_orders_code on orders (code)";
+            Execute(databasePath, createStatement);
+            await explorer.RefreshSchemaObjectAsync(createStatement);
+
+            var indexes = orders.Children.Single(node => node.NodeType == NodeType.Indexes).Children;
+            Assert.Equal("ux_orders_code", Assert.Single(indexes).Name);
+            Assert.True(orders.Children.Single(node => node.NodeType == NodeType.Triggers).CanLoad);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    private static void Execute(string databasePath, string sql)
+    {
+        using var connection = new SqliteConnection($"Data Source={databasePath}");
+        connection.Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.ExecuteNonQuery();
     }
 
     private static async Task<IReadOnlyList<SchemaNode>> LoadFolderAsync(SchemaExplorer explorer, SchemaNode table, NodeType folderType)

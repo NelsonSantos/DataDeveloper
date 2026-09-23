@@ -133,6 +133,52 @@ public class ObjectCatalogTests
         Assert.NotNull(ObjectCatalog.For(databaseType).GetCheckConstraintsQuery("1.0.0"));
     }
 
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "from sys.triggers t")]
+    [InlineData(DatabaseType.Oracle, "from all_triggers")]
+    [InlineData(DatabaseType.PostgresSql, "from information_schema.triggers")]
+    [InlineData(DatabaseType.MySql, "from information_schema.triggers")]
+    [InlineData(DatabaseType.SqLite, "type = 'trigger' and tbl_name = @TableName")]
+    public void Triggers_AreListedPerTable(DatabaseType databaseType, string expectedSource)
+    {
+        var query = ObjectCatalog.For(databaseType).GetTriggersQuery();
+
+        Assert.Contains(expectedSource, query.Statement, StringComparison.Ordinal);
+        Assert.Equal(databaseType == DatabaseType.SqLite, query.CompleteFromDefinition is not null);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "select object_definition(object_id(N'sales.trg_orders')) as Definition;")]
+    [InlineData(DatabaseType.MySql, "show create trigger `sales`.`trg_orders`;")]
+    [InlineData(DatabaseType.Oracle, "select dbms_metadata.get_ddl('TRIGGER', 'trg_orders', 'sales') as Definition from dual;")]
+    public void TriggerDdl_UsesTheProviderSource(DatabaseType databaseType, string expectedQuery)
+    {
+        var trigger = new DbObjectRef(DbObjectKind.Trigger, "sales", "trg_orders", new DbObjectRef(DbObjectKind.Table, "sales", "orders"));
+
+        Assert.Equal(expectedQuery, ObjectCatalog.For(databaseType).GetDdlRetrieval(trigger)!.Query);
+    }
+
+    [Fact]
+    public void Postgres_TriggerDdl_IsLookedUpOnItsTable()
+    {
+        var trigger = new DbObjectRef(DbObjectKind.Trigger, "sales", "trg_orders", new DbObjectRef(DbObjectKind.Table, "sales", "orders"));
+
+        var query = ObjectCatalog.For(DatabaseType.PostgresSql).GetDdlRetrieval(trigger)!.Query;
+
+        Assert.Contains("pg_get_triggerdef(t.oid, true)", query, StringComparison.Ordinal);
+        Assert.Contains("and n.nspname = 'sales'", query, StringComparison.Ordinal);
+        Assert.Contains("and c.relname = 'orders'", query, StringComparison.Ordinal);
+        Assert.Contains("and t.tgname = 'trg_orders'", query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SqLite_TriggerDdl_UsesSqliteMaster()
+    {
+        var query = ObjectCatalog.For(DatabaseType.SqLite).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Trigger, "main", "trg_orders"))!.Query;
+
+        Assert.Contains("type = 'trigger' and name = 'trg_orders'", query, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Oracle_CheckConstraints_ExcludeSystemNotNullConstraints()
     {
@@ -357,7 +403,8 @@ public class ObjectCatalogTests
             catalog.GetForeignKeysStatement(),
             catalog.GetIndexesStatement(),
             catalog.GetUniqueConstraintsStatement(),
-            catalog.GetCheckConstraintsQuery(RecentServerVersion)!.Statement
+            catalog.GetCheckConstraintsQuery(RecentServerVersion)!.Statement,
+            catalog.GetTriggersQuery().Statement
         ];
     }
 

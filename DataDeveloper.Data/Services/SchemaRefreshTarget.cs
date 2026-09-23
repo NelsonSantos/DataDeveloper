@@ -15,6 +15,8 @@ public enum SchemaObjectType
     View,
     Procedure,
     Function,
+    Trigger,
+    Index,
 }
 
 public record SchemaRefreshTarget(SchemaRefreshAction Action, SchemaObjectType ObjectType, string? ObjectName);

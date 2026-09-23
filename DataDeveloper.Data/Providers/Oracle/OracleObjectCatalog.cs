@@ -249,6 +249,33 @@ public sealed class OracleObjectCatalog : ObjectCatalog
             """);
     }
 
+    protected override DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger)
+    {
+        var owner = trigger.Schema is null
+            ? "sys_context('USERENV', 'CURRENT_SCHEMA')"
+            : $"'{EscapeSqlLiteral(trigger.Schema)}'";
+
+        return new DdlRetrieval(
+            $"select dbms_metadata.get_ddl('TRIGGER', '{EscapeSqlLiteral(trigger.Name)}', {owner}) as Definition from dual;",
+            MetadataSessionSetup);
+    }
+
+    public override TriggersQuery GetTriggersQuery()
+    {
+        return new TriggersQuery($"""
+            select
+                owner as "SchemaName",
+                trigger_name as "Name",
+                lower(trigger_type) as "Timing",
+                lower(replace(triggering_event, ' OR ', ', ')) as "Events"
+            from all_triggers
+            where table_owner = {TableOwner}
+              and table_name = upper(:TableName)
+              and base_object_type = 'TABLE'
+            order by trigger_name
+            """);
+    }
+
 
     private static string BeautifyTableDdl(DbObjectRef table, string ddl)
     {

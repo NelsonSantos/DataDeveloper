@@ -116,7 +116,7 @@ public partial class TabConnectionView : UserControl
                 await CopyToClipboardAsync(DatabaseObjectScriptBuilder.BuildQualifiedName(viewModel.ConnectionSettings, node))));
         }
 
-        if (node.NodeType is NodeType.PrimaryKey or NodeType.UniqueKey or NodeType.ForeignKey or NodeType.CheckConstraint or NodeType.Index)
+        if (node.NodeType is NodeType.PrimaryKey or NodeType.UniqueKey or NodeType.ForeignKey or NodeType.CheckConstraint or NodeType.Index or NodeType.Trigger)
             items.Add(CreateMenuItem("Copy name", async () => await CopyToClipboardAsync(node.Name)));
 
         if (node.NodeType is NodeType.Table or NodeType.View)
@@ -167,7 +167,7 @@ public partial class TabConnectionView : UserControl
             }));
         }
 
-        if (node.NodeType == NodeType.View)
+        if (node.NodeType is NodeType.View or NodeType.Trigger)
         {
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>
@@ -220,6 +220,9 @@ public partial class TabConnectionView : UserControl
                 await OpenDdlAsync(node, viewModel, openInEditor: false);
             }));
         }
+
+        while (sqlScriptItems.Count > 0 && sqlScriptItems[0] is Separator)
+            sqlScriptItems.RemoveAt(0);
 
         while (sqlScriptItems.Count > 0 && sqlScriptItems[^1] is Separator)
             sqlScriptItems.RemoveAt(sqlScriptItems.Count - 1);

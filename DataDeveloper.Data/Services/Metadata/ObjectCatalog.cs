@@ -46,6 +46,7 @@ public abstract class ObjectCatalog : IObjectCatalog
             DbObjectKind.View => GetViewDdlRetrieval(databaseObject),
             DbObjectKind.Procedure => GetRoutineDdlRetrieval(databaseObject, isFunction: false),
             DbObjectKind.Function => GetRoutineDdlRetrieval(databaseObject, isFunction: true),
+            DbObjectKind.Trigger => GetTriggerDdlRetrieval(databaseObject),
             _ => null
         };
     }
@@ -55,6 +56,9 @@ public abstract class ObjectCatalog : IObjectCatalog
     protected abstract DdlRetrieval? GetViewDdlRetrieval(DbObjectRef view);
 
     protected abstract DdlRetrieval? GetRoutineDdlRetrieval(DbObjectRef routine, bool isFunction);
+
+    /// <param name="trigger">A trigger reference whose <see cref="DbObjectRef.Parent"/> is its table.</param>
+    protected abstract DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger);
 
     public virtual IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
         [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function];
@@ -76,6 +80,8 @@ public abstract class ObjectCatalog : IObjectCatalog
     public abstract string GetUniqueConstraintsStatement();
 
     public abstract CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion);
+
+    public abstract TriggersQuery GetTriggersQuery();
 
     protected string QuoteQualifiedName(DbObjectRef databaseObject)
     {
