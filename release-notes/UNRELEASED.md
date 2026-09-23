@@ -40,8 +40,20 @@
   - a dropped connection
   - a missing privilege
   - a catalog view the server version doesn't have
+- **#50 feat: show keys, check constraints and indexes under each table in the schema tree** (https://github.com/NelsonSantos/DataDeveloper/pull/50)
+  - This is phase 5a of the schema metadata work. Every table in the schema tree now has three new folders, loaded on demand, for SQL Server, Oracle, PostgreSQL, MySQL and SQLite:
+  - ```
+  - orders
+  - ├── Columns
+  - ├── Keys          pk_orders (id) · uq_orders_code (code) · fk_orders_customer (customer_id) → customers (customer_id)
+  - ├── Constraints   ck_orders_qty  qty > 0
+  - └── Indexes       ix_orders_customer (customer_id) · ux_orders_code unique (code)
+  - ```
+  - Views keep only Columns. Triggers are left for phase 5b.
 
 ## Included Commits
+- 72983b9 Merge pull request #50 from NelsonSantos/feature/schema-metadata-table-objects
+- 5f500b6 Merge remote-tracking branch 'origin/main' into feature/schema-metadata-table-objects
 - b10c708 Merge pull request #49 from NelsonSantos/feature/tree-node-load-errors
 - dc17ff8 Merge pull request #48 from NelsonSantos/feature/schema-metadata-tree
 - acf31dc Merge pull request #47 from NelsonSantos/feature/schema-metadata-table-structure
