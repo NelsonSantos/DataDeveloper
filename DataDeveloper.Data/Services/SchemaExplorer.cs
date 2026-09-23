@@ -1,20 +1,36 @@
 using System.Collections.ObjectModel;
-using System.Data;
-using Dapper;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services.Metadata;
+using DataDeveloper.Data.Services.SqlDialects;
 
 namespace DataDeveloper.Data.Services;
 
 public class SchemaExplorer : ISchemaExplorer
 {
-    private readonly IDatabaseProvider _databaseProvider;
+    private static readonly IReadOnlyDictionary<DbObjectKind, (NodeType Folder, string Label, NodeType Item)> FolderLayout =
+        new Dictionary<DbObjectKind, (NodeType, string, NodeType)>
+        {
+            [DbObjectKind.Table] = (NodeType.Tables, "Tables", NodeType.Table),
+            [DbObjectKind.View] = (NodeType.Views, "Views", NodeType.View),
+            [DbObjectKind.Procedure] = (NodeType.Procedures, "Procedures", NodeType.Procedure),
+            [DbObjectKind.Function] = (NodeType.Functions, "Functions", NodeType.Function)
+        };
+
+    private readonly SchemaMetadataService _metadata;
     private readonly IProviderSqlAnalyzer _sqlAnalyzer;
+
     public SchemaExplorer(IDatabaseProvider databaseProvider, IConnectionSettings connectionSettings)
+        : this(databaseProvider, connectionSettings, catalog: null)
+    {
+    }
+
+    /// <param name="catalog">Metadata SQL; defaults to the catalog of the settings' database type.</param>
+    public SchemaExplorer(IDatabaseProvider databaseProvider, IConnectionSettings connectionSettings, IObjectCatalog? catalog)
     {
         ConnectionSettings = connectionSettings;
-        _databaseProvider = databaseProvider;
+        _metadata = new SchemaMetadataService(connectionSettings, databaseProvider, catalog);
         _sqlAnalyzer = ProviderSqlAnalyzer.Create(connectionSettings.DatabaseType);
     }
 
@@ -30,24 +46,17 @@ public class SchemaExplorer : ISchemaExplorer
                 IsExpanded = true
             };
 
-            connection.Children.Add(new SchemaNode(NodeType.Tables, "Tables", isFolder: true, parent: connection));
-            connection.Children.Add(new SchemaNode(NodeType.Views, "Views", isFolder: true, parent: connection));
-            if (ConnectionSettings.DatabaseType != DatabaseType.SqLite)
+            foreach (var kind in _metadata.RootObjectKinds)
             {
-                connection.Children.Add(new SchemaNode(NodeType.Procedures, "Procedures", isFolder: true, parent: connection));
-                connection.Children.Add(new SchemaNode(NodeType.Functions, "Functions", isFolder: true, parent: connection));
+                var layout = FolderLayout[kind];
+                connection.Children.Add(new SchemaNode(layout.Folder, layout.Label, isFolder: true, parent: connection));
             }
 
             RootConnections = new ObservableCollection<SchemaNode> { connection };
         }
 
-        await RefreshFolderAsync(NodeType.Tables);
-        await RefreshFolderAsync(NodeType.Views);
-        if (ConnectionSettings.DatabaseType != DatabaseType.SqLite)
-        {
-            await RefreshFolderAsync(NodeType.Procedures);
-            await RefreshFolderAsync(NodeType.Functions);
-        }
+        foreach (var kind in _metadata.RootObjectKinds)
+            await RefreshFolderAsync(kind);
     }
 
     public async Task RefreshSchemaAsync()
@@ -64,16 +73,16 @@ public class SchemaExplorer : ISchemaExplorer
             return;
         }
 
-        var folderType = target.ObjectType switch
+        DbObjectKind? kind = target.ObjectType switch
         {
-            SchemaObjectType.Table => NodeType.Tables,
-            SchemaObjectType.View => NodeType.Views,
-            SchemaObjectType.Procedure => NodeType.Procedures,
-            SchemaObjectType.Function => NodeType.Functions,
-            _ => NodeType.None
+            SchemaObjectType.Table => DbObjectKind.Table,
+            SchemaObjectType.View => DbObjectKind.View,
+            SchemaObjectType.Procedure => DbObjectKind.Procedure,
+            SchemaObjectType.Function => DbObjectKind.Function,
+            _ => null
         };
 
-        if (folderType == NodeType.None)
+        if (kind is null)
         {
             await RefreshSchemaAsync();
             return;
@@ -81,57 +90,22 @@ public class SchemaExplorer : ISchemaExplorer
 
         if (target.Action is SchemaRefreshAction.Create or SchemaRefreshAction.Drop || string.IsNullOrWhiteSpace(target.ObjectName))
         {
-            await RefreshFolderAsync(folderType);
+            await RefreshFolderAsync(kind.Value);
             return;
         }
 
-        await RefreshObjectAsync(folderType, target.ObjectName!);
+        await RefreshObjectAsync(kind.Value, target.ObjectName!);
     }
 
-    private async Task<IEnumerable<string>> GetTablesAsync()
-    {
-         await using var connection = _databaseProvider.GetConnection();
-         var tables = await connection.QueryAsync<string>(_databaseProvider.GetTableStatement(), commandType: CommandType.Text);
-         return tables.OrderBy(t => t);
-    }
-
-    private async Task<IEnumerable<string>> GetViewsAsync()
-    {
-        await using var connection = _databaseProvider.GetConnection();
-        var views = await connection.QueryAsync<string>(_databaseProvider.GetViewStatement(), commandType: CommandType.Text);
-        return views.OrderBy(v => v);
-    }
-
-    private async Task<IEnumerable<DatabaseObjectModel>> GetProceduresAsync()
-    {
-        await using var connection = _databaseProvider.GetConnection();
-        var procedures = await connection.QueryAsync<DatabaseObjectModel>(_databaseProvider.GetProcedureStatement(), commandType: CommandType.Text);
-        return procedures.OrderBy(p => p.Name);
-    }
-
-    private async Task<IEnumerable<DatabaseObjectModel>> GetFunctionsAsync()
-    {
-        await using var connection = _databaseProvider.GetConnection();
-        var functions = await connection.QueryAsync<DatabaseObjectModel>(_databaseProvider.GetFunctionStatement(), commandType: CommandType.Text);
-        return functions.OrderBy(f => f.Name);
-    }
-    
     public async Task LoadTableColumnsAsync(SchemaNode table)
     {
-        var tableName = table.NodeType == NodeType.Columns ? table.Parent?.Name : table.Name;
-        var columnStatement = _databaseProvider.GetColumnStatement();
-        object? parameters = new { tableName = tableName };
+        var owner = table.NodeType == NodeType.Columns ? table.Parent : table;
+        var dialect = SqlDialect.For(ConnectionSettings.DatabaseType);
+        var tableRef = owner is null
+            ? null
+            : DbObjectRef.FromSchemaNode(owner, dialect) ?? DbObjectRef.Parse(DbObjectKind.Table, owner.Name, dialect);
+        IReadOnlyList<ColumnModel> columns = tableRef is null ? [] : await _metadata.GetColumnsAsync(tableRef);
 
-        if (ConnectionSettings.DatabaseType == DatabaseType.SqLite && !string.IsNullOrWhiteSpace(tableName))
-        {
-            var escapedTableName = tableName.Replace("'", "''", StringComparison.Ordinal);
-            columnStatement = columnStatement.Replace("__table_name__", $"'{escapedTableName}'", StringComparison.Ordinal);
-            parameters = null;
-        }
-
-        await using var connection = _databaseProvider.GetConnection();
-        var columns = await connection.QueryAsync<ColumnModel>(columnStatement, param: parameters, commandType: CommandType.Text);
-        
         table.Children.Clear();
         foreach (var column in columns)
         {
@@ -190,9 +164,7 @@ public class SchemaExplorer : ISchemaExplorer
         if (routineNode?.Tag is not DatabaseObjectModel routine)
             return;
 
-        var parameters = new { SpecificName = routine.SpecificName ?? routine.Name };
-        await using var connection = _databaseProvider.GetConnection();
-        var routineParameters = await connection.QueryAsync<RoutineParameterModel>(_databaseProvider.GetRoutineParameterStatement(), param: parameters, commandType: CommandType.Text);
+        var routineParameters = await _metadata.GetRoutineParametersAsync(routine);
 
         node.Children.Clear();
         foreach (var parameter in routineParameters)
@@ -204,44 +176,30 @@ public class SchemaExplorer : ISchemaExplorer
         node.CanLoad = false;
     }
 
-    private async Task RefreshFolderAsync(NodeType folderType)
+    private async Task RefreshFolderAsync(DbObjectKind kind)
     {
-        var folder = FindFolder(folderType);
+        var layout = FolderLayout[kind];
+        var folder = FindFolder(layout.Folder);
         if (folder is null)
             return;
 
-        switch (folderType)
-        {
-            case NodeType.Tables:
-                await SyncObjectFolderAsync(folder, await GetTablesAsync(), NodeType.Table, null);
-                break;
-            case NodeType.Views:
-                await SyncObjectFolderAsync(folder, await GetViewsAsync(), NodeType.View, null);
-                break;
-            case NodeType.Procedures:
-                await SyncRoutineFolderAsync(folder, await GetProceduresAsync(), NodeType.Procedure);
-                break;
-            case NodeType.Functions:
-                await SyncRoutineFolderAsync(folder, await GetFunctionsAsync(), NodeType.Function);
-                break;
-        }
+        var objects = await _metadata.ListObjectsAsync(kind);
+        SyncObjectFolder(folder, kind, layout.Item, objects);
     }
 
-    private async Task RefreshObjectAsync(NodeType folderType, string objectName)
+    private async Task RefreshObjectAsync(DbObjectKind kind, string objectName)
     {
-        var folder = FindFolder(folderType);
+        var folder = FindFolder(FolderLayout[kind].Folder);
         if (folder is null)
         {
             await RefreshSchemaAsync();
             return;
         }
 
+        await RefreshFolderAsync(kind);
+
         var normalizedTarget = NormalizeObjectName(objectName);
-        var existingNode = folder.Children.FirstOrDefault(child => NormalizeObjectName(child.Name) == normalizedTarget);
-
-        await RefreshFolderAsync(folderType);
-
-        existingNode = folder.Children.FirstOrDefault(child => NormalizeObjectName(child.Name) == normalizedTarget);
+        var existingNode = folder.Children.FirstOrDefault(child => MatchesObjectName(child, normalizedTarget));
         if (existingNode is null)
             return;
 
@@ -260,6 +218,13 @@ public class SchemaExplorer : ISchemaExplorer
                     await LoadNodeAsync(parametersFolder);
                 break;
         }
+    }
+
+    // DDL may name an object with its schema even when the tree shows it unqualified.
+    private static bool MatchesObjectName(SchemaNode node, string normalizedName)
+    {
+        return NormalizeObjectName(node.Name) == normalizedName ||
+               (node.ObjectRef is not null && NormalizeObjectName(node.ObjectRef.QualifiedName) == normalizedName);
     }
 
     private SchemaNode? FindFolder(NodeType folderType)
@@ -285,56 +250,41 @@ public class SchemaExplorer : ISchemaExplorer
             : $"{ConnectionSettings.Name} ({databaseName})";
     }
 
-    private async Task SyncObjectFolderAsync(SchemaNode folder, IEnumerable<string> objectNames, NodeType nodeType, Func<string, string?>? detailsFactory)
+    private static void SyncObjectFolder(SchemaNode folder, DbObjectKind kind, NodeType nodeType, IEnumerable<DatabaseObjectModel> objects)
     {
         var existing = folder.Children.ToDictionary(child => NormalizeObjectName(child.Name), child => child);
-        var orderedNames = objectNames.OrderBy(name => name).ToList();
+        var isRoutine = kind is DbObjectKind.Procedure or DbObjectKind.Function;
         var refreshedChildren = new List<SchemaNode>();
 
-        foreach (var objectName in orderedNames)
+        // Objects in the default schema first, then the other schemas' objects grouped by schema.
+        var orderedObjects = objects
+            .OrderBy(item => item.IsDefaultSchema ? 0 : 1)
+            .ThenBy(item => item.SchemaName)
+            .ThenBy(item => item.Name);
+
+        foreach (var item in orderedObjects)
         {
-            var key = NormalizeObjectName(objectName);
-            if (existing.TryGetValue(key, out var currentNode))
+            var objectRef = new DbObjectRef(kind, string.IsNullOrWhiteSpace(item.SchemaName) ? null : item.SchemaName, item.Name);
+            if (existing.TryGetValue(NormalizeObjectName(item.DisplayName), out var currentNode))
             {
+                currentNode.ObjectRef = objectRef;
                 refreshedChildren.Add(currentNode);
                 EnsureObjectChildren(currentNode);
                 continue;
             }
 
-            var node = new SchemaNode(nodeType, objectName, isFolder: false, parent: folder, details: detailsFactory?.Invoke(objectName));
-            EnsureObjectChildren(node);
-            refreshedChildren.Add(node);
-        }
-
-        ReplaceChildren(folder, refreshedChildren);
-        await Task.CompletedTask;
-    }
-
-    private async Task SyncRoutineFolderAsync(SchemaNode folder, IEnumerable<DatabaseObjectModel> routines, NodeType nodeType)
-    {
-        var existing = folder.Children.ToDictionary(child => NormalizeObjectName(child.Name), child => child);
-        var refreshedChildren = new List<SchemaNode>();
-
-        foreach (var routine in routines.OrderBy(item => item.Name))
-        {
-            var key = NormalizeObjectName(routine.Name);
-            if (existing.TryGetValue(key, out var currentNode))
-            {
-                refreshedChildren.Add(currentNode);
-                EnsureObjectChildren(currentNode);
-                continue;
-            }
-
-            var details = nodeType == NodeType.Function && !string.IsNullOrWhiteSpace(routine.DataType)
-                ? routine.DataType
+            var details = nodeType == NodeType.Function && !string.IsNullOrWhiteSpace(item.DataType)
+                ? item.DataType
                 : null;
-            var node = new SchemaNode(nodeType, routine.Name, isFolder: false, parent: folder, details: details, tag: routine);
+            var node = new SchemaNode(nodeType, item.DisplayName, isFolder: false, parent: folder, details: details, tag: isRoutine ? item : null)
+            {
+                ObjectRef = objectRef
+            };
             EnsureObjectChildren(node);
             refreshedChildren.Add(node);
         }
 
         ReplaceChildren(folder, refreshedChildren);
-        await Task.CompletedTask;
     }
 
     private static void EnsureObjectChildren(SchemaNode node)

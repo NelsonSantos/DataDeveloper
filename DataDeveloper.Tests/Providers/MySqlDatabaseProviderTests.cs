@@ -1,3 +1,5 @@
+using DataDeveloper.Data.Services.Metadata;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Providers.MySql;
 using MySqlConnector;
 using Xunit;
@@ -33,9 +35,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetTableStatement_UsesInformationSchemaTables()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetTableStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Table);
 
         Assert.Contains("information_schema.tables", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_schema = database()", sql, StringComparison.OrdinalIgnoreCase);
@@ -44,9 +46,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetColumnStatement_UsesInformationSchemaColumns()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetColumnStatement();
+        var sql = catalog.GetColumnsStatement();
 
         Assert.Contains("information_schema.columns", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("information_schema.key_column_usage", sql, StringComparison.OrdinalIgnoreCase);
@@ -58,9 +60,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetViewStatement_UsesInformationSchemaViews()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetViewStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.View);
 
         Assert.Contains("information_schema.views", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_schema = database()", sql, StringComparison.OrdinalIgnoreCase);
@@ -69,9 +71,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetProcedureStatement_UsesInformationSchemaRoutines()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetProcedureStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Procedure);
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'PROCEDURE'", sql, StringComparison.OrdinalIgnoreCase);
@@ -80,9 +82,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetFunctionStatement_UsesInformationSchemaRoutines()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetFunctionStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Function);
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'FUNCTION'", sql, StringComparison.OrdinalIgnoreCase);
@@ -91,9 +93,9 @@ public class MySqlDatabaseProviderTests
     [Fact]
     public void GetRoutineParameterStatement_UsesInformationSchemaParameters()
     {
-        var provider = new MySqlDatabaseProvider(new MySqlConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.MySql);
 
-        var sql = provider.GetRoutineParameterStatement();
+        var sql = catalog.GetRoutineParametersStatement();
 
         Assert.Contains("information_schema.parameters", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("specific_name = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);

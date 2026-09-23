@@ -28,6 +28,9 @@ public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name)
 
     public static DbObjectRef? FromSchemaNode(SchemaNode node, ISqlDialect dialect)
     {
+        if (node.ObjectRef is not null)
+            return node.ObjectRef;
+
         DbObjectKind? kind = node.NodeType switch
         {
             NodeType.Table => DbObjectKind.Table,

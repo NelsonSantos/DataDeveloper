@@ -307,6 +307,102 @@ public class ProviderIntegrationTests
         }
     }
 
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_TreeNodesCarryTheirSchemaAndLoadColumns(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var schemaExplorer = connectionSettings.GetSchemaExplorer();
+        await DatabaseIntegrationTestSupport.WithTimeout(
+            schemaExplorer.InitializeSchemaNode(),
+            IntegrationTimeout,
+            $"{databaseType} schema initialization");
+
+        var root = Assert.Single(schemaExplorer.RootConnections);
+        var defaultSchema = databaseType switch
+        {
+            DatabaseType.SqlServer => "dbo",
+            DatabaseType.MySql => "datadeveloper",
+            DatabaseType.PostgresSql => "public",
+            _ => "DATADEVELOPER"
+        };
+
+        // Objects in the default schema are shown unqualified, routines included.
+        var ordersNode = root.Children.Single(node => node.NodeType == NodeType.Tables).Children
+            .Single(node => string.Equals(node.Name, "orders", StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(ordersNode.ObjectRef);
+        Assert.Equal(DbObjectKind.Table, ordersNode.ObjectRef!.Kind);
+        Assert.Equal(defaultSchema, ordersNode.ObjectRef.Schema);
+
+        var procedureNode = root.Children.Single(node => node.NodeType == NodeType.Procedures).Children
+            .Single(node => NameMatches(node.Name, "mark_order_shipped"));
+        Assert.Equal("mark_order_shipped", procedureNode.Name, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(defaultSchema, procedureNode.ObjectRef!.Schema);
+
+        var columnsFolder = ordersNode.Children.Single(node => node.NodeType == NodeType.Columns);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(columnsFolder), IntegrationTimeout, $"{databaseType} orders columns");
+        Assert.Contains(columnsFolder.Children, node => string.Equals(node.Name, "order_total", StringComparison.OrdinalIgnoreCase));
+
+        var parametersFolder = procedureNode.Children.Single(node => node.NodeType == NodeType.Parameters);
+        await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(parametersFolder), IntegrationTimeout, $"{databaseType} procedure parameters");
+        Assert.NotEmpty(parametersFolder.Children);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task SqlServer_TableOutsideDefaultSchema_IsQualifiedInTreeAndUsableEverywhere()
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(DatabaseType.SqlServer);
+        var token = Guid.NewGuid().ToString("N")[..8];
+        var schemaName = $"tds_{token}";
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create schema {schemaName}");
+        try
+        {
+            // Same table name as the seeded dbo.orders, so an unqualified lookup would find the wrong one.
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"create table {schemaName}.orders (other_id int not null constraint pk_{schemaName}_orders primary key, note varchar(20) null)");
+
+            var schemaExplorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.InitializeSchemaNode(), IntegrationTimeout, "SQL Server schema initialization");
+
+            var tables = Assert.Single(schemaExplorer.RootConnections).Children.Single(node => node.NodeType == NodeType.Tables).Children;
+            Assert.Contains(tables, node => node.Name == "orders");
+            var otherOrders = Assert.Single(tables, node => node.Name == $"{schemaName}.orders");
+            Assert.Equal(new DbObjectRef(DbObjectKind.Table, schemaName, "orders"), otherOrders.ObjectRef);
+
+            var columnsFolder = otherOrders.Children.Single(node => node.NodeType == NodeType.Columns);
+            await DatabaseIntegrationTestSupport.WithTimeout(schemaExplorer.LoadNodeAsync(columnsFolder), IntegrationTimeout, "SQL Server columns");
+            Assert.Equal(["other_id", "note"], columnsFolder.Children.Select(node => node.Name));
+
+            var definition = await DatabaseIntegrationTestSupport.WithTimeout(
+                Data.Services.TableDesigner.TableDefinitionLoader.LoadAsync(connectionSettings, schemaName, "orders", []),
+                IntegrationTimeout,
+                "SQL Server table definition");
+            Assert.Equal("other_id", Assert.Single(definition.PrimaryKey.ColumnNames));
+
+            var ddl = await DatabaseIntegrationTestSupport.WithTimeout(
+                new SchemaMetadataService(connectionSettings).GetDdlAsync(otherOrders),
+                IntegrationTimeout,
+                "SQL Server DDL");
+            Assert.Contains($"create table [{schemaName}].[orders]", ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("[other_id]", ddl, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table if exists {schemaName}.orders");
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop schema {schemaName}");
+        }
+    }
+
     private static bool NameMatches(string actualName, string expectedName)
     {
         return string.Equals(actualName, expectedName, StringComparison.OrdinalIgnoreCase) ||
