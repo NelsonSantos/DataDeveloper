@@ -1,4 +1,6 @@
+using System.Data.Common;
 using Dapper;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Services.SqlDialects;
@@ -11,12 +13,53 @@ namespace DataDeveloper.Data.Services.Metadata;
 public sealed class SchemaMetadataService
 {
     private readonly IConnectionSettings _connectionSettings;
+    private readonly IDatabaseProvider? _databaseProvider;
     private readonly IObjectCatalog _catalog;
 
     public SchemaMetadataService(IConnectionSettings connectionSettings)
+        : this(connectionSettings, databaseProvider: null, catalog: null)
+    {
+    }
+
+    /// <param name="databaseProvider">Connection source; defaults to the registered provider for the settings.</param>
+    /// <param name="catalog">Metadata SQL; defaults to the catalog of the settings' database type.</param>
+    public SchemaMetadataService(IConnectionSettings connectionSettings, IDatabaseProvider? databaseProvider, IObjectCatalog? catalog)
     {
         _connectionSettings = connectionSettings;
-        _catalog = ObjectCatalog.For(connectionSettings.DatabaseType);
+        _databaseProvider = databaseProvider;
+        _catalog = catalog ?? ObjectCatalog.For(connectionSettings.DatabaseType);
+    }
+
+    public IReadOnlyList<DbObjectKind> RootObjectKinds => _catalog.RootObjectKinds;
+
+    public async Task<IReadOnlyList<DatabaseObjectModel>> ListObjectsAsync(DbObjectKind kind, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        var command = new CommandDefinition(_catalog.GetObjectListStatement(kind), cancellationToken: cancellationToken);
+        return (await connection.QueryAsync<DatabaseObjectModel>(command)).ToList();
+    }
+
+    /// <summary>
+    /// Reads the columns of a table or view. Without a schema, the default schema is used.
+    /// </summary>
+    public async Task<IReadOnlyList<ColumnModel>> GetColumnsAsync(DbObjectRef tableOrView, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        var command = new CommandDefinition(
+            _catalog.GetColumnsStatement(),
+            new { SchemaName = tableOrView.Schema, TableName = tableOrView.Name },
+            cancellationToken: cancellationToken);
+        return (await connection.QueryAsync<ColumnModel>(command)).ToList();
+    }
+
+    public async Task<IReadOnlyList<RoutineParameterModel>> GetRoutineParametersAsync(DatabaseObjectModel routine, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        var command = new CommandDefinition(
+            _catalog.GetRoutineParametersStatement(),
+            new { SpecificName = routine.SpecificName ?? routine.Name },
+            cancellationToken: cancellationToken);
+        return (await connection.QueryAsync<RoutineParameterModel>(command)).ToList();
     }
 
     /// <summary>
@@ -29,7 +72,7 @@ public sealed class SchemaMetadataService
         if (retrieval is null)
             return string.Empty;
 
-        await using var connection = _connectionSettings.GetDatabaseProvider().GetConnection();
+        await using var connection = CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
         if (retrieval.SessionSetup is not null)
@@ -56,7 +99,7 @@ public sealed class SchemaMetadataService
     /// </summary>
     public async Task<TableStructure> GetTableStructureAsync(DbObjectRef table, CancellationToken cancellationToken = default)
     {
-        await using var connection = _connectionSettings.GetDatabaseProvider().GetConnection();
+        await using var connection = CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
         var parameters = new { SchemaName = table.Schema, TableName = table.Name };
@@ -86,5 +129,10 @@ public sealed class SchemaMetadataService
         return databaseObject is null
             ? Task.FromResult(string.Empty)
             : GetDdlAsync(databaseObject, cancellationToken);
+    }
+
+    private DbConnection CreateConnection()
+    {
+        return (_databaseProvider ?? _connectionSettings.GetDatabaseProvider()).GetConnection();
     }
 }

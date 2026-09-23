@@ -473,15 +473,14 @@ public class TableDesignerViewModelTests
     [Fact]
     public async Task CreateForEdit_ForeignKeyWithNonEmptyReferencedSchema_PreselectsReferencedTable()
     {
-        // Regression test: every provider's schema-tree table catalog returns unqualified names
-        // (see LoadReferenceTables/SplitObjectName), so matching a loaded FK's non-empty
-        // ReferencedSchemaName (e.g. SQL Server "dbo") against the catalog's schema used to
-        // always fail and leave the "referenced table" combo empty.
+        // Regression test: tables in the default schema are listed unqualified, so matching a loaded
+        // FK's non-empty ReferencedSchemaName (e.g. SQL Server "dbo") against the option's schema
+        // used to always fail and leave the "referenced table" combo empty.
         var original = BuildOriginalOrdersDefinition();
         original.ForeignKeys[0].ReferencedSchemaName = "dbo";
 
         var connectionSettings = new ConnectionSettings { Id = Guid.NewGuid(), Name = "Test", DatabaseType = DatabaseType.SqlServer };
-        var schemaExplorer = new SchemaExplorer(new FakeTableCatalogDatabaseProvider("Customers"), connectionSettings);
+        var schemaExplorer = new SchemaExplorer(new InMemoryDatabaseProvider(), connectionSettings, new FakeObjectCatalog("Customers"));
         await schemaExplorer.InitializeSchemaNode();
 
         var viewModel = TableDesignerViewModel.CreateForEdit(
@@ -494,6 +493,27 @@ public class TableDesignerViewModelTests
         var foreignKey = Assert.Single(viewModel.ForeignKeys);
         Assert.NotNull(foreignKey.SelectedReferencedTable);
         Assert.Equal("Customers", foreignKey.SelectedReferencedTable!.TableName);
+    }
+
+    [Fact]
+    public async Task CreateForEdit_ForeignKeyToSameNamedTableInAnotherSchema_PreselectsThatSchemasTable()
+    {
+        var original = BuildOriginalOrdersDefinition();
+        original.ForeignKeys[0].ReferencedSchemaName = "sales";
+
+        var connectionSettings = new ConnectionSettings { Id = Guid.NewGuid(), Name = "Test", DatabaseType = DatabaseType.SqlServer };
+        var schemaExplorer = new SchemaExplorer(new InMemoryDatabaseProvider(), connectionSettings, new FakeObjectCatalog("Customers", "sales.Customers"));
+        await schemaExplorer.InitializeSchemaNode();
+
+        var viewModel = TableDesignerViewModel.CreateForEdit(
+            connectionSettings,
+            original,
+            _ => Task.FromResult(true),
+            new NoOpDialogService(),
+            schemaExplorer);
+
+        var foreignKey = Assert.Single(viewModel.ForeignKeys);
+        Assert.Equal("sales.Customers", foreignKey.SelectedReferencedTable!.DisplayName);
     }
 
     [Fact]
@@ -807,15 +827,8 @@ public class TableDesignerViewModelTests
         }
     }
 
-    private sealed class FakeTableCatalogDatabaseProvider : IDatabaseProvider
+    private sealed class InMemoryDatabaseProvider : IDatabaseProvider
     {
-        private readonly string[] _tableNames;
-
-        public FakeTableCatalogDatabaseProvider(params string[] tableNames)
-        {
-            _tableNames = tableNames;
-        }
-
         public DbConnection GetConnection()
         {
             var connection = new SqliteConnection("Data Source=:memory:");
@@ -825,14 +838,5 @@ public class TableDesignerViewModelTests
 
         public TestConnectionResult TestConnection() => new(true, "ok");
         public IReadOnlyList<string> GetAvailableDatabaseNames() => [];
-
-        public string GetTableStatement() =>
-            "select value as Name from json_each('[" + string.Join(",", _tableNames.Select(name => $"\"{name}\"")) + "]')";
-
-        public string GetViewStatement() => "select cast(null as text) as Name where 1 = 0";
-        public string GetColumnStatement() => "select cast(null as text) as Name where 1 = 0";
-        public string GetProcedureStatement() => "select cast(null as text) as Name, cast(null as text) as SpecificName where 1 = 0";
-        public string GetFunctionStatement() => "select cast(null as text) as Name, cast(null as text) as SpecificName, cast(null as text) as DataType where 1 = 0";
-        public string GetRoutineParameterStatement() => "select cast(null as text) as Name where 1 = 0";
     }
 }

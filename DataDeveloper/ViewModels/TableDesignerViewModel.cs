@@ -169,13 +169,16 @@ public sealed class TableDesignerViewModel : ViewModelBase
                 OnUpdateAction = foreignKey.OnUpdateAction
             };
 
-            // Match by table name only: every provider's GetTableStatement() returns unqualified
-            // names for the reference-table catalog (see SplitObjectName/LoadReferenceTables),
-            // so option.SchemaName is always empty even when the loaded FK's ReferencedSchemaName
-            // (from the live database) is populated (e.g. SQL Server "dbo", Postgres "public").
-            // Requiring schema equality here would never match and leave the combo empty.
-            var referencedTable = AvailableReferenceTables.FirstOrDefault(option =>
-                string.Equals(option.TableName, foreignKey.ReferencedTableName, StringComparison.OrdinalIgnoreCase));
+            // Tables in the connection's default schema are listed unqualified, so option.SchemaName
+            // is empty for them even though the loaded FK's ReferencedSchemaName is populated (e.g.
+            // SQL Server "dbo", Postgres "public"). Match on the tree node's actual schema first, so
+            // same-named tables in different schemas resolve correctly, then fall back to the name.
+            var sameNameTables = AvailableReferenceTables
+                .Where(option => string.Equals(option.TableName, foreignKey.ReferencedTableName, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var referencedTable = sameNameTables.FirstOrDefault(option =>
+                                      string.Equals(option.Node.ObjectRef?.Schema, foreignKey.ReferencedSchemaName, StringComparison.OrdinalIgnoreCase))
+                                  ?? sameNameTables.FirstOrDefault();
 
             if (referencedTable is not null)
                 foreignKeyViewModel.SelectedReferencedTable = referencedTable;

@@ -1,3 +1,5 @@
+using DataDeveloper.Data.Services.Metadata;
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Providers.PostgresSql;
 using Npgsql;
 using Xunit;
@@ -34,9 +36,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetTableStatement_UsesInformationSchemaTables()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetTableStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Table);
 
         Assert.Contains("information_schema.tables", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_schema = current_schema()", sql, StringComparison.OrdinalIgnoreCase);
@@ -46,9 +48,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetColumnStatement_UsesInformationSchemaColumns()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetColumnStatement();
+        var sql = catalog.GetColumnsStatement();
 
         Assert.Contains("information_schema.columns", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("information_schema.key_column_usage", sql, StringComparison.OrdinalIgnoreCase);
@@ -61,9 +63,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetViewStatement_UsesInformationSchemaViews()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetViewStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.View);
 
         Assert.Contains("information_schema.views", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("table_schema = current_schema()", sql, StringComparison.OrdinalIgnoreCase);
@@ -72,9 +74,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetProcedureStatement_UsesInformationSchemaRoutines()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetProcedureStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Procedure);
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'PROCEDURE'", sql, StringComparison.OrdinalIgnoreCase);
@@ -84,9 +86,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetFunctionStatement_UsesInformationSchemaRoutines()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetFunctionStatement();
+        var sql = catalog.GetObjectListStatement(DbObjectKind.Function);
 
         Assert.Contains("information_schema.routines", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("routine_type = 'FUNCTION'", sql, StringComparison.OrdinalIgnoreCase);
@@ -96,9 +98,9 @@ public class PostgresDatabaseProviderTests
     [Fact]
     public void GetRoutineParameterStatement_UsesInformationSchemaParameters()
     {
-        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings());
+        var catalog = ObjectCatalog.For(DatabaseType.PostgresSql);
 
-        var sql = provider.GetRoutineParameterStatement();
+        var sql = catalog.GetRoutineParametersStatement();
 
         Assert.Contains("information_schema.parameters", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("specific_name = @SpecificName", sql, StringComparison.OrdinalIgnoreCase);

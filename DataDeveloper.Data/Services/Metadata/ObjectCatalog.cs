@@ -56,6 +56,15 @@ public abstract class ObjectCatalog : IObjectCatalog
 
     protected abstract DdlRetrieval? GetRoutineDdlRetrieval(DbObjectRef routine, bool isFunction);
 
+    public virtual IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function];
+
+    public abstract string GetObjectListStatement(DbObjectKind kind);
+
+    public abstract string GetColumnsStatement();
+
+    public abstract string GetRoutineParametersStatement();
+
     public abstract string GetColumnDefaultsStatement();
 
     public abstract string GetPrimaryKeyStatement();

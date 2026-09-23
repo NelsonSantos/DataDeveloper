@@ -1,3 +1,4 @@
+using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 
 namespace DataDeveloper.Data.Interfaces;
@@ -6,12 +7,35 @@ namespace DataDeveloper.Data.Interfaces;
 /// Provider-specific SQL for reading database object metadata.
 /// </summary>
 /// <remarks>
-/// Table structure statements take a <c>SchemaName</c> and a <c>TableName</c> parameter. A null
+/// Column and table structure statements take a <c>SchemaName</c> and a <c>TableName</c> parameter. A null
 /// <c>SchemaName</c> means the connection's default schema. Each returns rows shaped like the
 /// matching <see cref="TableStructure"/> model.
 /// </remarks>
 public interface IObjectCatalog
 {
+    /// <summary>
+    /// Object kinds shown as folders under the connection, in display order.
+    /// </summary>
+    IReadOnlyList<DbObjectKind> RootObjectKinds { get; }
+
+    /// <summary>
+    /// One row per object of the given kind: Name, SchemaName, IsDefaultSchema and, for routines,
+    /// SpecificName and (functions) DataType. See <see cref="DatabaseObjectModel"/>.
+    /// </summary>
+    string GetObjectListStatement(DbObjectKind kind);
+
+    /// <summary>
+    /// One row per column of a table or view (SchemaName, TableName parameters), shaped like
+    /// <see cref="ColumnModel"/>.
+    /// </summary>
+    string GetColumnsStatement();
+
+    /// <summary>
+    /// One row per routine parameter for the routine's SpecificName parameter, shaped like
+    /// <see cref="RoutineParameterModel"/>.
+    /// </summary>
+    string GetRoutineParametersStatement();
+
     /// <summary>
     /// Returns how to read the object's native DDL, or null when the provider has no such object.
     /// </summary>

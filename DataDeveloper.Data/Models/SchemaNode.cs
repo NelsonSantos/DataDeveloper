@@ -32,5 +32,10 @@ public class SchemaNode : ReactiveObject
     [Reactive] public bool IsExpanded { get; set; }
     public string? Details { get; }
     public object? Tag { get; }
+
+    /// <summary>
+    /// The database object a table, view, procedure or function node represents.
+    /// </summary>
+    public DbObjectRef? ObjectRef { get; internal set; }
     public ObservableCollection<SchemaNode> Children { get; }
 }

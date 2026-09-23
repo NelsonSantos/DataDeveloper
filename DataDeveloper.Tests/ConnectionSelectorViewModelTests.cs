@@ -177,12 +177,6 @@ public class ConnectionSelectorViewModelTests
         public DbConnection GetConnection() => throw new NotSupportedException();
         public TestConnectionResult TestConnection() => new(true, "ok");
         public IReadOnlyList<string> GetAvailableDatabaseNames() => _databaseNames;
-        public string GetTableStatement() => string.Empty;
-        public string GetViewStatement() => string.Empty;
-        public string GetColumnStatement() => string.Empty;
-        public string GetProcedureStatement() => string.Empty;
-        public string GetFunctionStatement() => string.Empty;
-        public string GetRoutineParameterStatement() => string.Empty;
     }
 
     private sealed class FakeDatabaseProviderFactoryService : DatabaseProviderFactoryService
