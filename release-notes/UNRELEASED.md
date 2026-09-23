@@ -50,8 +50,15 @@
   - └── Indexes       ix_orders_customer (customer_id) · ux_orders_code unique (code)
   - ```
   - Views keep only Columns. Triggers are left for phase 5b.
+- **#51 test: run database integration test classes one at a time** (https://github.com/NelsonSantos/DataDeveloper/pull/51)
+  - `TableDesignerIntegrationTests.Provider_AppliesGeneratedCreateTableScript_WithPrimaryKeyForeignKeyAndIndex(Oracle)` failed intermittently with `ORA-00060: deadlock detected`. Over the last few PRs it failed in 3 of 8 integration runs.
+  - **Cause:** the test creates and drops tables with a foreign key to the seeded `customers` table. At the same time, two other integration classes write to `customers` in parallel:
+  - `EditableResultSetIntegrationTests` (insert, update, delete)
+  - `FileImportEngineIntegrationTests` (insert)
+  - On Oracle, DDL that adds an FK locks the parent table, and concurrent DML on that table deadlocks. The overlap could also skew `FileImportEngineIntegrationTests`, which counts the rows in `customers`.
 
 ## Included Commits
+- 0fbbe4b Merge pull request #51 from NelsonSantos/feature/sequential-db-integration-tests
 - 72983b9 Merge pull request #50 from NelsonSantos/feature/schema-metadata-table-objects
 - 5f500b6 Merge remote-tracking branch 'origin/main' into feature/schema-metadata-table-objects
 - b10c708 Merge pull request #49 from NelsonSantos/feature/tree-node-load-errors
