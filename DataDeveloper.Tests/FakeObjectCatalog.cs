@@ -42,4 +42,6 @@ internal sealed class FakeObjectCatalog(params string[] tableNames) : IObjectCat
     public string GetPrimaryKeyStatement() => NoObjects;
     public string GetForeignKeysStatement() => NoObjects;
     public string GetIndexesStatement() => NoObjects;
+    public string GetUniqueConstraintsStatement() => NoObjects;
+    public CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion) => new(NoObjects);
 }

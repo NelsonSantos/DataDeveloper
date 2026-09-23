@@ -385,4 +385,31 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
                order by p.ordinal_position;
                """;
     }
+
+    public override string GetUniqueConstraintsStatement()
+    {
+        return $"""
+                select
+                    kc.name as ConstraintName,
+                    c.name as ColumnName,
+                    ic.key_ordinal as OrdinalPosition
+                from sys.key_constraints kc
+                join sys.index_columns ic on ic.object_id = kc.parent_object_id and ic.index_id = kc.unique_index_id and ic.key_ordinal > 0
+                join sys.columns c on c.object_id = ic.object_id and c.column_id = ic.column_id
+                where kc.parent_object_id = {TableObjectId} and kc.type = 'UQ'
+                order by kc.name, ic.key_ordinal;
+                """;
+    }
+
+    public override CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion)
+    {
+        return new CheckConstraintsQuery($"""
+            select
+                cc.name as ConstraintName,
+                cc.definition as Definition
+            from sys.check_constraints cc
+            where cc.parent_object_id = {TableObjectId}
+            order by cc.name;
+            """);
+    }
 }

@@ -17,4 +17,12 @@ public enum NodeType
     Columns,
     Parameter,
     Parameters,
+    Keys,
+    PrimaryKey,
+    UniqueKey,
+    ForeignKey,
+    Constraints,
+    CheckConstraint,
+    Indexes,
+    Index,
 }

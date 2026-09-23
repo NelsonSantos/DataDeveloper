@@ -161,6 +161,15 @@ public class SchemaExplorer : ISchemaExplorer
                 case NodeType.Parameters:
                     await LoadRoutineParametersAsync(node);
                     break;
+                case NodeType.Keys:
+                    await LoadKeysAsync(node);
+                    break;
+                case NodeType.Constraints:
+                    await LoadCheckConstraintsAsync(node);
+                    break;
+                case NodeType.Indexes:
+                    await LoadIndexesAsync(node);
+                    break;
             }
         }
         catch
@@ -169,6 +178,96 @@ public class SchemaExplorer : ISchemaExplorer
                 node.ResetForReload();
             throw;
         }
+    }
+
+    private async Task LoadKeysAsync(SchemaNode folder)
+    {
+        if (GetOwnerTableRef(folder) is not { } table)
+            return;
+
+        var keys = await _metadata.GetTableKeysAsync(table);
+        var children = new List<SchemaNode>();
+
+        foreach (var primaryKey in keys.PrimaryKeyColumns.GroupBy(row => row.ConstraintName ?? string.Empty))
+        {
+            var columns = primaryKey.OrderBy(row => row.OrdinalPosition).Select(row => row.ColumnName);
+            var name = string.IsNullOrWhiteSpace(primaryKey.Key) ? "PRIMARY KEY" : primaryKey.Key;
+            children.Add(new SchemaNode(NodeType.PrimaryKey, name, isFolder: false, parent: folder, details: FormatColumnList(columns)));
+        }
+
+        foreach (var uniqueKey in keys.UniqueConstraintColumns.GroupBy(row => row.ConstraintName).OrderBy(group => group.Key))
+        {
+            var columns = uniqueKey.OrderBy(row => row.OrdinalPosition).Select(row => row.ColumnName);
+            children.Add(new SchemaNode(NodeType.UniqueKey, uniqueKey.Key, isFolder: false, parent: folder, details: FormatColumnList(columns)));
+        }
+
+        foreach (var foreignKey in keys.ForeignKeyColumns.GroupBy(row => row.ConstraintName).OrderBy(group => group.Key))
+        {
+            var rows = foreignKey.OrderBy(row => row.OrdinalPosition).ToList();
+            var referencedSchema = rows[0].ReferencedSchemaName;
+            var referencedTable = string.IsNullOrWhiteSpace(referencedSchema) ||
+                                  string.Equals(referencedSchema, table.Schema, StringComparison.OrdinalIgnoreCase)
+                ? rows[0].ReferencedTableName
+                : $"{referencedSchema}.{rows[0].ReferencedTableName}";
+            var details = $"{FormatColumnList(rows.Select(row => row.ColumnName))} → {referencedTable} {FormatColumnList(rows.Select(row => row.ReferencedColumnName))}";
+            children.Add(new SchemaNode(NodeType.ForeignKey, foreignKey.Key, isFolder: false, parent: folder, details: details));
+        }
+
+        ReplaceChildren(folder, children);
+        folder.CanLoad = false;
+    }
+
+    private async Task LoadCheckConstraintsAsync(SchemaNode folder)
+    {
+        if (GetOwnerTableRef(folder) is not { } table)
+            return;
+
+        var checks = await _metadata.GetCheckConstraintsAsync(table);
+        var children = checks
+            .Select(check => new SchemaNode(
+                NodeType.CheckConstraint,
+                string.IsNullOrWhiteSpace(check.ConstraintName) ? "CHECK" : check.ConstraintName,
+                isFolder: false,
+                parent: folder,
+                details: check.Definition))
+            .ToList();
+
+        ReplaceChildren(folder, children);
+        folder.CanLoad = false;
+    }
+
+    private async Task LoadIndexesAsync(SchemaNode folder)
+    {
+        if (GetOwnerTableRef(folder) is not { } table)
+            return;
+
+        var indexColumns = await _metadata.GetIndexesAsync(table);
+        var children = indexColumns
+            .GroupBy(row => row.IndexName)
+            .OrderBy(group => group.Key)
+            .Select(index =>
+            {
+                var rows = index.OrderBy(row => row.OrdinalPosition).ToList();
+                var columns = FormatColumnList(rows.Select(row => row.IsDescending ? $"{row.ColumnName} desc" : row.ColumnName));
+                var details = rows[0].IsUnique ? $"unique {columns}" : columns;
+                return new SchemaNode(NodeType.Index, index.Key, isFolder: false, parent: folder, details: details);
+            })
+            .ToList();
+
+        ReplaceChildren(folder, children);
+        folder.CanLoad = false;
+    }
+
+    private DbObjectRef? GetOwnerTableRef(SchemaNode folder)
+    {
+        return folder.Parent is null
+            ? null
+            : DbObjectRef.FromSchemaNode(folder.Parent, SqlDialect.For(ConnectionSettings.DatabaseType));
+    }
+
+    private static string FormatColumnList(IEnumerable<string> columns)
+    {
+        return $"({string.Join(", ", columns)})";
     }
 
     private async Task LoadRoutineParametersAsync(SchemaNode node)
@@ -220,9 +319,9 @@ public class SchemaExplorer : ISchemaExplorer
         {
             case NodeType.Table:
             case NodeType.View:
-                var columnsFolder = existingNode.Children.FirstOrDefault(child => child.NodeType == NodeType.Columns);
-                if (columnsFolder is not null && !columnsFolder.CanLoad)
-                    await LoadTableColumnsAsync(columnsFolder);
+                // Reload only the detail folders the user already opened.
+                foreach (var detailFolder in existingNode.Children.Where(child => child.IsFolder && !child.CanLoad).ToList())
+                    await LoadNodeAsync(detailFolder);
                 break;
             case NodeType.Procedure:
             case NodeType.Function:
@@ -305,16 +404,25 @@ public class SchemaExplorer : ISchemaExplorer
         switch (node.NodeType)
         {
             case NodeType.Table:
+                AddFolderIfMissing(node, NodeType.Columns, "Columns");
+                AddFolderIfMissing(node, NodeType.Keys, "Keys");
+                AddFolderIfMissing(node, NodeType.Constraints, "Constraints");
+                AddFolderIfMissing(node, NodeType.Indexes, "Indexes");
+                break;
             case NodeType.View:
-                if (!node.Children.Any(child => child.NodeType == NodeType.Columns))
-                    node.Children.Add(new SchemaNode(NodeType.Columns, "Columns", isFolder: true, parent: node, canLoad: true));
+                AddFolderIfMissing(node, NodeType.Columns, "Columns");
                 break;
             case NodeType.Procedure:
             case NodeType.Function:
-                if (!node.Children.Any(child => child.NodeType == NodeType.Parameters))
-                    node.Children.Add(new SchemaNode(NodeType.Parameters, "Parameters", isFolder: true, parent: node, canLoad: true));
+                AddFolderIfMissing(node, NodeType.Parameters, "Parameters");
                 break;
         }
+    }
+
+    private static void AddFolderIfMissing(SchemaNode node, NodeType folderType, string label)
+    {
+        if (!node.Children.Any(child => child.NodeType == folderType))
+            node.Children.Add(new SchemaNode(folderType, label, isFolder: true, parent: node, canLoad: true));
     }
 
     private static void ReplaceChildren(SchemaNode folder, IReadOnlyList<SchemaNode> nodes)

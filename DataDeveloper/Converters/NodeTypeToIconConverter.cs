@@ -21,6 +21,11 @@ public class NodeTypeToIconConverter : IValueConverter
             NodeType.Function => "\U000F0295",
             NodeType.Column => "\U000F08DF",
             NodeType.Parameter => "\U000F062E",
+            NodeType.PrimaryKey => "\U000F0306",
+            NodeType.UniqueKey => "\U000F030B",
+            NodeType.ForeignKey => "\U000F119F",
+            NodeType.CheckConstraint => "\U000F0565",
+            NodeType.Index => "\U000F04BC",
             _ => "\U000F024B"
         };
     }

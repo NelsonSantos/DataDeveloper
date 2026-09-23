@@ -45,11 +45,7 @@ public sealed class SchemaMetadataService
     public async Task<IReadOnlyList<ColumnModel>> GetColumnsAsync(DbObjectRef tableOrView, CancellationToken cancellationToken = default)
     {
         await using var connection = CreateConnection();
-        var command = new CommandDefinition(
-            _catalog.GetColumnsStatement(),
-            new { SchemaName = tableOrView.Schema, TableName = tableOrView.Name },
-            cancellationToken: cancellationToken);
-        return (await connection.QueryAsync<ColumnModel>(command)).ToList();
+        return await QueryTableAsync<ColumnModel>(connection, _catalog.GetColumnsStatement(), tableOrView, cancellationToken);
     }
 
     public async Task<IReadOnlyList<RoutineParameterModel>> GetRoutineParametersAsync(DatabaseObjectModel routine, CancellationToken cancellationToken = default)
@@ -102,21 +98,76 @@ public sealed class SchemaMetadataService
         await using var connection = CreateConnection();
         await connection.OpenAsync(cancellationToken);
 
-        var parameters = new { SchemaName = table.Schema, TableName = table.Name };
-
         return new TableStructure
         {
-            ColumnDefaults = await QueryAsync<ColumnDefaultValueModel>(_catalog.GetColumnDefaultsStatement()),
-            PrimaryKeyColumns = await QueryAsync<PrimaryKeyColumnModel>(_catalog.GetPrimaryKeyStatement()),
-            ForeignKeyColumns = await QueryAsync<ForeignKeyColumnModel>(_catalog.GetForeignKeysStatement()),
-            IndexColumns = await QueryAsync<IndexColumnModel>(_catalog.GetIndexesStatement())
+            ColumnDefaults = await QueryTableAsync<ColumnDefaultValueModel>(connection, _catalog.GetColumnDefaultsStatement(), table, cancellationToken),
+            PrimaryKeyColumns = await QueryTableAsync<PrimaryKeyColumnModel>(connection, _catalog.GetPrimaryKeyStatement(), table, cancellationToken),
+            ForeignKeyColumns = await QueryTableAsync<ForeignKeyColumnModel>(connection, _catalog.GetForeignKeysStatement(), table, cancellationToken),
+            IndexColumns = await QueryTableAsync<IndexColumnModel>(connection, _catalog.GetIndexesStatement(), table, cancellationToken)
         };
+    }
 
-        async Task<IReadOnlyList<T>> QueryAsync<T>(string statement)
+    /// <summary>
+    /// Reads the table's primary key, unique constraints and foreign keys.
+    /// </summary>
+    public async Task<TableKeys> GetTableKeysAsync(DbObjectRef table, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        return new TableKeys
         {
-            var command = new CommandDefinition(statement, parameters, cancellationToken: cancellationToken);
-            return (await connection.QueryAsync<T>(command)).ToList();
-        }
+            PrimaryKeyColumns = await QueryTableAsync<PrimaryKeyColumnModel>(connection, _catalog.GetPrimaryKeyStatement(), table, cancellationToken),
+            UniqueConstraintColumns = await QueryTableAsync<UniqueConstraintColumnModel>(connection, _catalog.GetUniqueConstraintsStatement(), table, cancellationToken),
+            ForeignKeyColumns = await QueryTableAsync<ForeignKeyColumnModel>(connection, _catalog.GetForeignKeysStatement(), table, cancellationToken)
+        };
+    }
+
+    /// <summary>
+    /// Reads the table's indexes, excluding the ones backing primary key or unique constraints.
+    /// </summary>
+    public async Task<IReadOnlyList<IndexColumnModel>> GetIndexesAsync(DbObjectRef table, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var indexColumns = await QueryTableAsync<IndexColumnModel>(connection, _catalog.GetIndexesStatement(), table, cancellationToken);
+        var uniqueConstraintNames = (await QueryTableAsync<UniqueConstraintColumnModel>(connection, _catalog.GetUniqueConstraintsStatement(), table, cancellationToken))
+            .Select(row => row.ConstraintName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // MySQL and Oracle list the index backing a unique constraint, which is already shown as a key.
+        return indexColumns.Where(row => !uniqueConstraintNames.Contains(row.IndexName)).ToList();
+    }
+
+    /// <summary>
+    /// Reads the table's check constraints, excluding NOT NULL constraints. Empty on server
+    /// versions that do not store check constraints.
+    /// </summary>
+    public async Task<IReadOnlyList<CheckConstraintModel>> GetCheckConstraintsAsync(DbObjectRef table, CancellationToken cancellationToken = default)
+    {
+        await using var connection = CreateConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var query = _catalog.GetCheckConstraintsQuery(connection.ServerVersion);
+        if (query is null)
+            return [];
+
+        if (query.ParseTableDdl is null)
+            return await QueryTableAsync<CheckConstraintModel>(connection, query.Statement, table, cancellationToken);
+
+        var tableDdl = await QueryTableAsync<string>(connection, query.Statement, table, cancellationToken);
+        return tableDdl.SelectMany(ddl => query.ParseTableDdl(ddl)).ToList();
+    }
+
+    private static async Task<IReadOnlyList<T>> QueryTableAsync<T>(
+        DbConnection connection, string statement, DbObjectRef table, CancellationToken cancellationToken)
+    {
+        var command = new CommandDefinition(
+            statement,
+            new { SchemaName = table.Schema, TableName = table.Name },
+            cancellationToken: cancellationToken);
+        return (await connection.QueryAsync<T>(command)).ToList();
     }
 
     /// <summary>

@@ -116,6 +116,9 @@ public partial class TabConnectionView : UserControl
                 await CopyToClipboardAsync(DatabaseObjectScriptBuilder.BuildQualifiedName(viewModel.ConnectionSettings, node))));
         }
 
+        if (node.NodeType is NodeType.PrimaryKey or NodeType.UniqueKey or NodeType.ForeignKey or NodeType.CheckConstraint or NodeType.Index)
+            items.Add(CreateMenuItem("Copy name", async () => await CopyToClipboardAsync(node.Name)));
+
         if (node.NodeType is NodeType.Table or NodeType.View)
         {
             sqlScriptItems.Add(CreateMenuItem("Select rows", () =>

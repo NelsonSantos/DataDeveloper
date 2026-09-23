@@ -16,6 +16,16 @@ public sealed class TableStructure
     public IReadOnlyList<IndexColumnModel> IndexColumns { get; init; } = [];
 }
 
+/// <summary>
+/// Catalog rows for a table's keys, one row per constraint column.
+/// </summary>
+public sealed class TableKeys
+{
+    public IReadOnlyList<PrimaryKeyColumnModel> PrimaryKeyColumns { get; init; } = [];
+    public IReadOnlyList<UniqueConstraintColumnModel> UniqueConstraintColumns { get; init; } = [];
+    public IReadOnlyList<ForeignKeyColumnModel> ForeignKeyColumns { get; init; } = [];
+}
+
 public sealed class ColumnDefaultValueModel
 {
     public string ColumnName { get; set; } = string.Empty;
@@ -57,4 +67,27 @@ public sealed class IndexColumnModel
     public string? UsingMethod { get; set; }
     public string? WherePredicate { get; set; }
     public int? PrefixLength { get; set; }
+}
+
+public sealed class UniqueConstraintColumnModel
+{
+    /// <summary>
+    /// On SQLite, the name of the index backing the constraint.
+    /// </summary>
+    public string ConstraintName { get; set; } = string.Empty;
+    public string ColumnName { get; set; } = string.Empty;
+    public int OrdinalPosition { get; set; }
+}
+
+public sealed class CheckConstraintModel
+{
+    /// <summary>
+    /// Empty for an unnamed SQLite check constraint.
+    /// </summary>
+    public string ConstraintName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The check expression, without the CHECK keyword.
+    /// </summary>
+    public string Definition { get; set; } = string.Empty;
 }
