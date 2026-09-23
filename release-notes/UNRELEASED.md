@@ -77,8 +77,25 @@
   - | Oracle `"MinhaTabela"`, Edit Table | No columns; `ALTER` would target `MINHATABELA`, a different object | Loads; `alter table DATADEVELOPER."MinhaTabela" add ...` |
   - | PostgreSQL `select * from Probe_Lower` (table is `probe_lower`) | Not editable | Editable; `update "probe_lower" ...` |
   - The originally tracked bug was that the grid command builder upper-cased Oracle names. In practice it never showed, because the Oracle catalog also upper-cased names (`table_name = upper(:TableName)`), which made those tables look empty and non-editable first.
+- **#54 feat: browse sequences in the schema tree with their DDL** (https://github.com/NelsonSantos/DataDeveloper/pull/54)
+  - This is the first provider-specific object in the schema tree (phase 6).
+  - SQL Server, Oracle and PostgreSQL connections get a **Sequences** folder at the tree root. MySQL and SQLite have no sequences, so the folder does not appear there. Each catalog declares its own root folders through `RootObjectKinds`, and the other providers are unchanged.
+  - ```
+  - Sequences
+  - └── seq_order   increment 5, current 10
+  - ```
+  - **Details:**
+  - SQL Server and PostgreSQL: `increment N, current N`. PostgreSQL shows `start N` for a sequence that has not been used yet.
+  - Oracle: `increment N, last number N`, which is Oracle's own term and accounts for the cache.
+  - **Menu:** Copy name, Copy qualified name, **Select next value** (`next value for`, `.nextval from dual`, `nextval('...')`) and **DDL Create**.
+  - **DDL:**
+  - Oracle: `dbms_metadata.get_ddl('SEQUENCE')`.
+  - SQL Server and PostgreSQL have no function that returns a sequence's DDL, so it is assembled from `sys.sequences` and `pg_sequences`.
+  - **Refresh:** `CREATE/ALTER/DROP SEQUENCE` refresh the folder.
+  - **Refresh fix:** the explorer used to reuse an existing node on refresh even when its details had changed, which left an altered sequence's increment stale. Such nodes are now replaced.
 
 ## Included Commits
+- 228ede3 Merge pull request #54 from NelsonSantos/feature/schema-tree-sequences
 - c4d66f4 Merge pull request #53 from NelsonSantos/feature/oracle-grid-edit-identifier-case
 - 86c4469 Merge pull request #52 from NelsonSantos/feature/schema-metadata-triggers
 - 0fbbe4b Merge pull request #51 from NelsonSantos/feature/sequential-db-integration-tests
