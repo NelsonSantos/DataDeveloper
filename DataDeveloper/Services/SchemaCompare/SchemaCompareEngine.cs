@@ -10,6 +10,7 @@ using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.SchemaCompare;
 using DataDeveloper.Data.Models.TableDesigner;
+using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Data.Services.SchemaCompare;
 using DataDeveloper.Data.Services.TableDesigner;
 
@@ -298,6 +299,11 @@ public static class SchemaCompareEngine
         }
     }
 
+    // An empty definition usually means the connection user may not read it (for example MySQL
+    // routines owned by another definer, or SQL Server without VIEW DEFINITION).
+    private static string UnreadableDefinitionMessage(string side) =>
+        $"Could not read the object definition on the {side} connection. The connection user may lack permission to view it.";
+
     private static async Task<SchemaCompareObjectResult> CompareRoutineAsync(
         IConnectionSettings sourceConnectionSettings,
         IConnectionSettings destinationConnectionSettings,
@@ -309,7 +315,9 @@ public static class SchemaCompareEngine
         if (!TryGetNode(sourceLookup, objectRef.ObjectType, normalizedName, out var sourceNode))
             return BuildErrorResult(objectRef, "Object no longer exists on the source connection.");
 
-        var sourceDdl = await RoutineDdlRetriever.GetDdlAsync(sourceConnectionSettings, sourceNode!);
+        var sourceDdl = await new SchemaMetadataService(sourceConnectionSettings).GetDdlAsync(sourceNode!);
+        if (string.IsNullOrWhiteSpace(sourceDdl))
+            return BuildErrorResult(objectRef, UnreadableDefinitionMessage("source"));
 
         if (!TryGetNode(destinationLookup, objectRef.ObjectType, normalizedName, out var destinationNode))
         {
@@ -323,7 +331,9 @@ public static class SchemaCompareEngine
             };
         }
 
-        var destinationDdl = await RoutineDdlRetriever.GetDdlAsync(destinationConnectionSettings, destinationNode!);
+        var destinationDdl = await new SchemaMetadataService(destinationConnectionSettings).GetDdlAsync(destinationNode!);
+        if (string.IsNullOrWhiteSpace(destinationDdl))
+            return BuildErrorResult(objectRef, UnreadableDefinitionMessage("destination"));
 
         if (NormalizeWhitespace(sourceDdl) == NormalizeWhitespace(destinationDdl))
             return new SchemaCompareObjectResult { ObjectType = objectRef.ObjectType, Name = objectRef.Name, Status = SchemaCompareResultStatus.Unchanged, IsIncludedByDefault = false };

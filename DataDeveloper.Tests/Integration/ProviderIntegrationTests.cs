@@ -3,6 +3,10 @@ using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Models.SchemaCompare;
+using DataDeveloper.Data.Services.Metadata;
+using DataDeveloper.Data.Services.SchemaCompare;
+using DataDeveloper.Services.SchemaCompare;
 using Xunit;
 
 namespace DataDeveloper.Tests.Integration;
@@ -213,6 +217,93 @@ public class ProviderIntegrationTests
         finally
         {
             await result.CloseDataReader();
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_ReadsNativeDdlForSeededObjects(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var schemaExplorer = connectionSettings.GetSchemaExplorer();
+        await DatabaseIntegrationTestSupport.WithTimeout(
+            schemaExplorer.InitializeSchemaNode(),
+            IntegrationTimeout,
+            $"{databaseType} DDL object initialization");
+
+        var root = Assert.Single(schemaExplorer.RootConnections);
+        var metadataService = new SchemaMetadataService(connectionSettings);
+
+        foreach (var (folderType, objectName) in new[]
+                 {
+                     (NodeType.Tables, "orders"),
+                     (NodeType.Views, "open_orders"),
+                     (NodeType.Procedures, "mark_order_shipped"),
+                     (NodeType.Functions, "get_customer_total")
+                 })
+        {
+            var folder = root.Children.Single(node => node.NodeType == folderType);
+            var objectNode = folder.Children.Single(node => NameMatches(node.Name, objectName));
+
+            var ddl = await DatabaseIntegrationTestSupport.WithTimeout(
+                metadataService.GetDdlAsync(objectNode),
+                IntegrationTimeout,
+                $"{databaseType} {objectName} DDL");
+
+            // The seeded MySQL routines are defined by root, and the integration account cannot
+            // see their bodies, so SHOW CREATE returns no DDL for them.
+            if (databaseType == DatabaseType.MySql && folderType is NodeType.Procedures or NodeType.Functions)
+            {
+                Assert.Equal(string.Empty, ddl);
+                continue;
+            }
+
+            Assert.Contains(objectName, ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("create", ddl, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_SchemaCompareOfViewsAndRoutinesAgainstItself(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var objects = await DatabaseIntegrationTestSupport.WithTimeout(
+            SchemaCompareObjectEnumerator.EnumerateAsync(connectionSettings),
+            IntegrationTimeout,
+            $"{databaseType} compare object enumeration");
+        var selected = objects
+            .Where(item => NameMatches(item.Name, "open_orders") ||
+                           NameMatches(item.Name, "mark_order_shipped") ||
+                           NameMatches(item.Name, "get_customer_total"))
+            .ToList();
+        Assert.Equal(3, selected.Count);
+
+        var results = await DatabaseIntegrationTestSupport.WithTimeout(
+            SchemaCompareEngine.CompareAsync(connectionSettings, connectionSettings, selected),
+            IntegrationTimeout,
+            $"{databaseType} schema compare");
+
+        foreach (var result in results.Where(item => selected.Any(objectRef => objectRef.Name == item.Name)))
+        {
+            // The integration account cannot read the bodies of the root-owned MySQL routines,
+            // which must be reported instead of silently comparing as unchanged.
+            if (databaseType == DatabaseType.MySql && result.ObjectType != SchemaCompareObjectType.View)
+            {
+                Assert.Equal(SchemaCompareResultStatus.Error, result.Status);
+                Assert.Contains("permission", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+                continue;
+            }
+
+            Assert.Equal(SchemaCompareResultStatus.Unchanged, result.Status);
         }
     }
 
