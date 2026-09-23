@@ -517,6 +517,31 @@ public class TableDesignerViewModelTests
     }
 
     [Fact]
+    public async Task CreateForEdit_OracleForeignKeyToMixedCaseTable_PreselectsThatTableNotItsUpperCaseNamesake()
+    {
+        // As TableDefinitionLoader holds Oracle names stored with lower-case letters: quoted.
+        var original = BuildOriginalOrdersDefinition(DatabaseType.Oracle);
+        original.ForeignKeys[0].ReferencedSchemaName = "DATADEVELOPER";
+        original.ForeignKeys[0].ReferencedTableName = "\"Clientes\"";
+
+        var connectionSettings = new ConnectionSettings { Id = Guid.NewGuid(), Name = "Test", DatabaseType = DatabaseType.Oracle };
+        var schemaExplorer = new SchemaExplorer(new InMemoryDatabaseProvider(), connectionSettings, new FakeObjectCatalog("CLIENTES", "Clientes"));
+        await schemaExplorer.InitializeSchemaNode();
+
+        var viewModel = TableDesignerViewModel.CreateForEdit(
+            connectionSettings,
+            original,
+            _ => Task.FromResult(true),
+            new NoOpDialogService(),
+            schemaExplorer);
+
+        var referencedTable = Assert.Single(viewModel.ForeignKeys).SelectedReferencedTable;
+        Assert.NotNull(referencedTable);
+        Assert.Equal("Clientes", referencedTable!.DisplayName);
+        Assert.Equal("\"Clientes\"", referencedTable.TableName);
+    }
+
+    [Fact]
     public void CreateForEdit_PrePopulatesColumnsForeignKeysAndIndexesFromDefinition()
     {
         var original = BuildOriginalOrdersDefinition();

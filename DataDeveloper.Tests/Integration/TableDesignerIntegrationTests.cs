@@ -225,7 +225,7 @@ public class TableDesignerIntegrationTests
             };
 
             var inDefaultSchema = await DatabaseIntegrationTestSupport.WithTimeout(
-                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, defaultSchema, tableName)),
+                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, defaultSchema, StoredName(databaseType, tableName))),
                 TimeSpan.FromSeconds(30),
                 $"{databaseType} load structure from {defaultSchema}");
 
@@ -235,7 +235,7 @@ public class TableDesignerIntegrationTests
             Assert.Contains(inDefaultSchema.ColumnDefaults, row => string.Equals(row.ColumnName, "customer_id", StringComparison.OrdinalIgnoreCase));
 
             var inOtherSchema = await DatabaseIntegrationTestSupport.WithTimeout(
-                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, "no_such_schema", tableName)),
+                metadataService.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, "no_such_schema", StoredName(databaseType, tableName))),
                 TimeSpan.FromSeconds(30),
                 $"{databaseType} load structure from a missing schema");
 
@@ -286,7 +286,7 @@ public class TableDesignerIntegrationTests
 
             // The same table name is not visible without its schema.
             var unqualified = await DatabaseIntegrationTestSupport.WithTimeout(
-                TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, tableName, []),
+                TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, StoredName(databaseType, tableName), []),
                 IntegrationTimeout,
                 $"{databaseType} load table definition without schema");
 
@@ -476,7 +476,7 @@ public class TableDesignerIntegrationTests
             var loadedColumns = await LoadColumnsAsync(connectionSettings, tableName);
             var loadTimeout = databaseType == DatabaseType.Oracle ? TimeSpan.FromSeconds(30) : IntegrationTimeout;
             var originalDefinition = await DatabaseIntegrationTestSupport.WithTimeout(
-                TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, tableName, loadedColumns),
+                TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, StoredName(databaseType, tableName), loadedColumns),
                 loadTimeout,
                 $"{databaseType} load table definition");
 
@@ -619,7 +619,7 @@ public class TableDesignerIntegrationTests
             // Step 1: add a plain "label" column, so step 2 can rename+retype an existing
             // column without touching the FK/index-bearing customer_id column.
             var loadedColumns = await LoadColumnsAsync(connectionSettings, tableName);
-            var originalDefinition = await TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, tableName, loadedColumns);
+            var originalDefinition = await TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, StoredName(databaseType, tableName), loadedColumns);
             var withLabelColumn = CloneDefinition(originalDefinition);
             withLabelColumn.Columns.Add(new TableColumnDefinition { Name = "label", DataType = BuildNoteColumnDataType(databaseType), Length = 50, IsNullable = true });
 
@@ -632,7 +632,7 @@ public class TableDesignerIntegrationTests
 
             // Step 2: rename "label" -> "note" and widen it, and rename the table.
             var reloadedColumns = await LoadColumnsAsync(connectionSettings, tableName);
-            var reloadedDefinition = await TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, tableName, reloadedColumns);
+            var reloadedDefinition = await TableDefinitionLoader.LoadAsync(connectionSettings, string.Empty, StoredName(databaseType, tableName), reloadedColumns);
             var renamedDefinition = CloneDefinition(reloadedDefinition);
             var labelColumn = renamedDefinition.Columns.Single(column => string.Equals(column.Name, "label", StringComparison.OrdinalIgnoreCase));
             labelColumn.Name = "note";
@@ -672,6 +672,13 @@ public class TableDesignerIntegrationTests
             DatabaseType.Oracle => "varchar2",
             _ => "text"
         };
+    }
+
+    // The app passes names as the database stores them (from the tree); these tests create
+    // tables with unquoted names, which Oracle stores upper-cased.
+    private static string StoredName(DatabaseType databaseType, string typedName)
+    {
+        return Data.Services.SqlDialects.SqlDialect.For(databaseType).ResolveQualifiedName(typedName).Single();
     }
 
     private static async Task<IReadOnlyList<ColumnModel>> LoadColumnsAsync(IConnectionSettings connectionSettings, string tableName)

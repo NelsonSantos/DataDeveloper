@@ -46,7 +46,7 @@ public class OracleDatabaseProviderTests
         var sql = catalog.GetColumnsStatement();
 
         Assert.Contains("from all_tab_columns", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("where c.owner = coalesce(upper(:SchemaName), user) and c.table_name = upper(:TableName)", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("where c.owner = coalesce(:SchemaName, user) and c.table_name = :TableName", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("from all_constraints", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("identity_column", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("HasDefaultValue", sql, StringComparison.OrdinalIgnoreCase);
@@ -93,7 +93,7 @@ public class OracleDatabaseProviderTests
         var sql = catalog.GetRoutineParametersStatement();
 
         Assert.Contains("from user_arguments", sql, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("object_name = upper(:SpecificName)", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("object_name = :SpecificName", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("':' || lower(argument_name) as \"Name\"", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("in_out as \"Mode\"", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("position as \"Position\"", sql, StringComparison.OrdinalIgnoreCase);

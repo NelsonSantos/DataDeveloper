@@ -20,7 +20,17 @@ public static class EditableResultSetMetadataResolver
         if (!basicAnalysis.IsEditable || string.IsNullOrWhiteSpace(targetTableName))
             return new EditableResultSetMetadata(basicAnalysis, []);
 
-        var tableColumns = await LoadColumnsAsync(connectionSettings, targetTableName);
+        // The driver's hint is the stored name; a name read from the query text is resolved the
+        // way the database would (e.g. Oracle upper-cases unquoted names) and kept quoted from
+        // here on, so the generated DML refers to exactly that table.
+        var dialect = SqlDialect.For(connectionSettings.DatabaseType);
+        var tableNameParts = tableNameHint is null
+            ? dialect.ResolveQualifiedName(targetTableName)
+            : dialect.SplitQualifiedName(targetTableName);
+        if (tableNameHint is null)
+            targetTableName = string.Join(".", tableNameParts.Select(dialect.QuoteIdentifier));
+
+        var tableColumns = await LoadColumnsAsync(connectionSettings, tableNameParts);
         if (tableColumns.Count == 0 && primaryKeyColumnsHint is not null)
         {
             tableColumns = resultColumns
@@ -40,9 +50,15 @@ public static class EditableResultSetMetadataResolver
         return new EditableResultSetMetadata(finalAnalysis, tableColumns);
     }
 
-    private static Task<IReadOnlyList<ColumnModel>> LoadColumnsAsync(IConnectionSettings connectionSettings, string tableName)
+    private static Task<IReadOnlyList<ColumnModel>> LoadColumnsAsync(IConnectionSettings connectionSettings, IReadOnlyList<string> tableNameParts)
     {
-        var table = DbObjectRef.Parse(DbObjectKind.Table, tableName, SqlDialect.For(connectionSettings.DatabaseType));
+        if (tableNameParts.Count == 0)
+            return Task.FromResult<IReadOnlyList<ColumnModel>>([]);
+
+        var table = new DbObjectRef(
+            DbObjectKind.Table,
+            tableNameParts.Count > 1 ? tableNameParts[^2] : null,
+            tableNameParts[^1]);
         return new SchemaMetadataService(connectionSettings).GetColumnsAsync(table);
     }
 }

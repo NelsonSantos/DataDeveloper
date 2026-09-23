@@ -129,17 +129,20 @@ public class EditableResultSetCommandBuilderTests
     }
 
     [Fact]
-    public void BuildInsert_NormalizesOracleIdentifiersToUpperCase()
+    public void BuildInsert_OracleQuotesStoredNamesExactly()
     {
+        // Regression test: Oracle names used to be upper-cased here, so a table created as
+        // "MinhaTabela" was written as "MINHATABELA", a different object. Names now arrive as
+        // stored (from the driver, the catalog, or resolved from the query text).
         var command = EditableResultSetCommandBuilder.BuildInsert(
             DatabaseType.Oracle,
-            "datadeveloper.customers",
-            ["customer_id", "name"],
-            [new ColumnModel { Name = "customer_id", IsPrimaryKey = true }, new ColumnModel { Name = "name" }],
+            "DATADEVELOPER.MinhaTabela",
+            ["Id", "NOME"],
+            [new ColumnModel { Name = "Id", IsPrimaryKey = true }, new ColumnModel { Name = "NOME" }],
             [1, "Alice"]);
 
         Assert.NotNull(command);
-        Assert.Equal("insert into \"DATADEVELOPER\".\"CUSTOMERS\" (\"CUSTOMER_ID\", \"NAME\") values (:p0, :p1);", command!.Sql);
+        Assert.Equal("insert into \"DATADEVELOPER\".\"MinhaTabela\" (\"Id\", \"NOME\") values (:p0, :p1);", command!.Sql);
     }
 
     [Fact]
