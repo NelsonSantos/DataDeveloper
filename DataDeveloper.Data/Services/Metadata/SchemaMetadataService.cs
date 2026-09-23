@@ -1,3 +1,4 @@
+using Dapper;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Services.SqlDialects;
@@ -47,6 +48,32 @@ public sealed class SchemaMetadataService
         return string.IsNullOrWhiteSpace(ddl) || retrieval.PostProcess is null
             ? ddl
             : retrieval.PostProcess(ddl);
+    }
+
+    /// <summary>
+    /// Reads the table's column defaults, primary key, foreign keys and indexes from the catalog.
+    /// A table without a schema is looked up in the connection's default schema.
+    /// </summary>
+    public async Task<TableStructure> GetTableStructureAsync(DbObjectRef table, CancellationToken cancellationToken = default)
+    {
+        await using var connection = _connectionSettings.GetDatabaseProvider().GetConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        var parameters = new { SchemaName = table.Schema, TableName = table.Name };
+
+        return new TableStructure
+        {
+            ColumnDefaults = await QueryAsync<ColumnDefaultValueModel>(_catalog.GetColumnDefaultsStatement()),
+            PrimaryKeyColumns = await QueryAsync<PrimaryKeyColumnModel>(_catalog.GetPrimaryKeyStatement()),
+            ForeignKeyColumns = await QueryAsync<ForeignKeyColumnModel>(_catalog.GetForeignKeysStatement()),
+            IndexColumns = await QueryAsync<IndexColumnModel>(_catalog.GetIndexesStatement())
+        };
+
+        async Task<IReadOnlyList<T>> QueryAsync<T>(string statement)
+        {
+            var command = new CommandDefinition(statement, parameters, cancellationToken: cancellationToken);
+            return (await connection.QueryAsync<T>(command)).ToList();
+        }
     }
 
     /// <summary>

@@ -56,6 +56,14 @@ public abstract class ObjectCatalog : IObjectCatalog
 
     protected abstract DdlRetrieval? GetRoutineDdlRetrieval(DbObjectRef routine, bool isFunction);
 
+    public abstract string GetColumnDefaultsStatement();
+
+    public abstract string GetPrimaryKeyStatement();
+
+    public abstract string GetForeignKeysStatement();
+
+    public abstract string GetIndexesStatement();
+
     protected string QuoteQualifiedName(DbObjectRef databaseObject)
     {
         return databaseObject.Schema is null

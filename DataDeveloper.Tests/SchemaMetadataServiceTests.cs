@@ -28,6 +28,12 @@ public sealed class SchemaMetadataServiceTests : IDisposable
             command.CommandText = """
                                   create table orders (id integer primary key, total real not null);
                                   create view open_orders as select id from orders where total > 0;
+                                  create table order_items (
+                                      order_id integer not null references orders (id) on delete cascade,
+                                      line_no integer not null,
+                                      quantity integer not null default 1,
+                                      primary key (order_id, line_no));
+                                  create index ix_order_items_quantity on order_items (quantity desc);
                                   """;
             command.ExecuteNonQuery();
         }
@@ -85,6 +91,37 @@ public sealed class SchemaMetadataServiceTests : IDisposable
         var node = CreateNode(NodeType.Tables, "Tables");
 
         Assert.Equal(string.Empty, await _service.GetDdlAsync(node));
+    }
+
+    [Fact]
+    public async Task GetTableStructureAsync_ReadsDefaultsKeysAndIndexes()
+    {
+        var structure = await _service.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, null, "order_items"));
+
+        Assert.Equal("1", Assert.Single(structure.ColumnDefaults, row => row.ColumnName == "quantity").DefaultValueExpression);
+        Assert.Equal(["order_id", "line_no"], structure.PrimaryKeyColumns.OrderBy(row => row.OrdinalPosition).Select(row => row.ColumnName));
+
+        var foreignKey = Assert.Single(structure.ForeignKeyColumns);
+        Assert.Equal("order_id", foreignKey.ColumnName);
+        Assert.Equal("orders", foreignKey.ReferencedTableName);
+        Assert.Equal("id", foreignKey.ReferencedColumnName);
+        Assert.Equal("cascade", foreignKey.OnDeleteAction);
+
+        var index = Assert.Single(structure.IndexColumns);
+        Assert.Equal("ix_order_items_quantity", index.IndexName);
+        Assert.Equal("quantity", index.ColumnName);
+        Assert.True(index.IsDescending);
+    }
+
+    [Fact]
+    public async Task GetTableStructureAsync_ReturnsEmptyForMissingTable()
+    {
+        var structure = await _service.GetTableStructureAsync(new DbObjectRef(DbObjectKind.Table, null, "missing"));
+
+        Assert.Empty(structure.ColumnDefaults);
+        Assert.Empty(structure.PrimaryKeyColumns);
+        Assert.Empty(structure.ForeignKeyColumns);
+        Assert.Empty(structure.IndexColumns);
     }
 
     public void Dispose()
