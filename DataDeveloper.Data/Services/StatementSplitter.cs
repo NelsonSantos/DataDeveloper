@@ -77,7 +77,10 @@ public class StatementSplitter
 
         int? startIndex = null;
         int? endIndex = null;
-        var blockLevel = 0;
+        // Every BEGIN and CASE is closed by an END, so both must be tracked; otherwise the END of a
+        // CASE expression inside a routine body would close the body and split it at the next ';'.
+        var openBlocks = 0;
+        var skipNextToken = false;
 
         for (var tokenIndex = 0; tokenIndex < allTokens.Count; tokenIndex++)
         {
@@ -85,17 +88,27 @@ public class StatementSplitter
             if (token.Type == TokenConstants.EOF || IsHiddenToken(token))
                 continue;
 
-            if (IsToken(token, "begin") && !IsBeginTransaction(allTokens, tokenIndex))
+            if (skipNextToken)
             {
-                blockLevel++;
+                // Keyword after END (END IF, END CASE, END LOOP, END TRY...) does not open a new block.
+                skipNextToken = false;
+            }
+            else if (IsToken(token, "case") ||
+                     (IsToken(token, "begin") && !IsBeginTransaction(allTokens, tokenIndex)))
+            {
+                openBlocks++;
             }
             else if (IsToken(token, "end"))
             {
-                if (blockLevel > 0)
-                    blockLevel--;
+                var nextToken = NextVisibleToken(allTokens, tokenIndex);
+                skipNextToken = IsCompoundStatementTerminator(nextToken);
+
+                // END IF / END LOOP / END WHILE / END REPEAT close statements that never opened a block.
+                if (openBlocks > 0 && !IsNonBlockCompoundTerminator(nextToken))
+                    openBlocks--;
             }
 
-            if ((IsBatchSeparator(token, databaseType) || IsToken(token, ";")) && blockLevel == 0)
+            if ((IsBatchSeparator(token, databaseType) || IsToken(token, ";")) && openBlocks == 0)
             {
                 FlushStatement(
                     sqlText,
@@ -117,11 +130,29 @@ public class StatementSplitter
         return statements;
     }
 
+    private static IToken? NextVisibleToken(IList<IToken> tokens, int tokenIndex)
+    {
+        return tokens
+            .Skip(tokenIndex + 1)
+            .FirstOrDefault(token => token.Type != TokenConstants.EOF && !IsHiddenToken(token));
+    }
+
+    private static bool IsCompoundStatementTerminator(IToken? token)
+    {
+        return IsToken(token, "case") || IsNonBlockCompoundTerminator(token);
+    }
+
+    private static bool IsNonBlockCompoundTerminator(IToken? token)
+    {
+        return IsToken(token, "if") ||
+               IsToken(token, "loop") ||
+               IsToken(token, "while") ||
+               IsToken(token, "repeat");
+    }
+
     private static bool IsBeginTransaction(IList<IToken> tokens, int beginTokenIndex)
     {
-        var nextToken = tokens
-            .Skip(beginTokenIndex + 1)
-            .FirstOrDefault(token => token.Type != TokenConstants.EOF && !IsHiddenToken(token));
+        var nextToken = NextVisibleToken(tokens, beginTokenIndex);
 
         return IsToken(nextToken, "transaction") ||
                IsToken(nextToken, "tran") ||
