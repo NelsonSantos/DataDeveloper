@@ -93,8 +93,27 @@
   - SQL Server and PostgreSQL have no function that returns a sequence's DDL, so it is assembled from `sys.sequences` and `pg_sequences`.
   - **Refresh:** `CREATE/ALTER/DROP SEQUENCE` refresh the folder.
   - **Refresh fix:** the explorer used to reuse an existing node on refresh even when its details had changed, which left an altered sequence's increment stale. Such nodes are now replaced.
+- **#55 feat: browse synonyms in the schema tree with their target and DDL** (https://github.com/NelsonSantos/DataDeveloper/pull/55)
+  - This is the second provider-specific object in the schema tree, and it ticks **Synonyms** in `TODOS.md`.
+  - SQL Server and Oracle connections get a **Synonyms** folder at the tree root. The other providers have no synonyms, so the folder does not appear there.
+  - ```
+  - Synonyms
+  - └── syn_orders   → [dbo].[orders]
+  - ```
+  - **Target shown next to each synonym:**
+  - SQL Server: `base_object_name`, exactly as the database stores it.
+  - Oracle: `owner.table`, followed by `@dblink` when the synonym points to a remote database.
+  - The arrow is built with `nchar(8594)` or `unistr('\2192')` rather than written as a literal character, to avoid code page and character set issues.
+  - **Menu:** Copy name, Copy qualified name and **DDL Create**.
+  - **DDL:**
+  - SQL Server: assembled from `sys.synonyms`.
+  - Oracle: `dbms_metadata.get_ddl('SYNONYM')`.
+  - **Scope:** only the connection user's own synonyms are listed. Oracle's public synonyms number in the thousands.
+  - **Refresh:** `CREATE/DROP SYNONYM` refresh the folder, including Oracle's `CREATE [OR REPLACE] PUBLIC SYNONYM` and `DROP PUBLIC SYNONYM`.
+  - A follow-up PR will cover SQL completion: synonyms and views as objects, the columns of synonyms and views, and sequence contexts.
 
 ## Included Commits
+- 9519738 Merge pull request #55 from NelsonSantos/feature/schema-tree-synonyms
 - 228ede3 Merge pull request #54 from NelsonSantos/feature/schema-tree-sequences
 - c4d66f4 Merge pull request #53 from NelsonSantos/feature/oracle-grid-edit-identifier-case
 - 86c4469 Merge pull request #52 from NelsonSantos/feature/schema-metadata-triggers
