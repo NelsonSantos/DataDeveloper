@@ -111,8 +111,20 @@
   - **Scope:** only the connection user's own synonyms are listed. Oracle's public synonyms number in the thousands.
   - **Refresh:** `CREATE/DROP SYNONYM` refresh the folder, including Oracle's `CREATE [OR REPLACE] PUBLIC SYNONYM` and `DROP PUBLIC SYNONYM`.
   - A follow-up PR will cover SQL completion: synonyms and views as objects, the columns of synonyms and views, and sequence contexts.
+- **#56 feat: complete views, synonyms and sequences with synonym columns** (https://github.com/NelsonSantos/DataDeveloper/pull/56)
+  - **Objects in completion**: after `FROM`/`JOIN`/`UPDATE`/`INTO`, the CompletionWindow lists tables, **views** and **synonyms**, each with its own icon and kind.
+  - **Sequences**: `NEXT VALUE FOR ` (SQL Server), `nextval('` / `currval('` / `setval('` (PostgreSQL) list only sequences; on Oracle, `seq.` offers `NEXTVAL`/`CURRVAL`.
+  - **Synonym columns** (tree and `alias.`):
+  - target in the same database → catalog columns (with PK);
+  - target in **another database on the same server** (SQL Server) → read from that database's catalog;
+  - unreachable target (linked server / Oracle `db_link`) → described by `select * from <synonym> where 1 = 0`;
+  - synonym to a procedure etc. → empty Columns folder.
+  - **Completion cache**: it was built once per connection and never discarded (objects created during the session never appeared in completion). `ISchemaExplorer.SchemaRefreshed` now discards the connection's cache on every tree refresh.
+  - README updated.
 
 ## Included Commits
+- f312e4a Merge pull request #56 from NelsonSantos/feature/completion-views-synonyms-sequences
+- 0a370c0 Merge main into feature/completion-views-synonyms-sequences
 - 9519738 Merge pull request #55 from NelsonSantos/feature/schema-tree-synonyms
 - 228ede3 Merge pull request #54 from NelsonSantos/feature/schema-tree-sequences
 - c4d66f4 Merge pull request #53 from NelsonSantos/feature/oracle-grid-edit-identifier-case
