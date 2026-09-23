@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using System.Text;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
@@ -5,7 +6,7 @@ using DataDeveloper.Data.Services.Metadata;
 
 namespace DataDeveloper.Data.Providers.MySql;
 
-public sealed class MySqlObjectCatalog : ObjectCatalog
+public sealed partial class MySqlObjectCatalog : ObjectCatalog
 {
     public MySqlObjectCatalog()
         : base(DatabaseType.MySql)
@@ -172,4 +173,69 @@ public sealed class MySqlObjectCatalog : ObjectCatalog
                order by ordinal_position;
                """;
     }
+
+    public override string GetUniqueConstraintsStatement()
+    {
+        return """
+               select
+                   k.constraint_name as ConstraintName,
+                   k.column_name as ColumnName,
+                   k.ordinal_position as OrdinalPosition
+               from information_schema.table_constraints tc
+               join information_schema.key_column_usage k
+                   on k.constraint_schema = tc.constraint_schema
+                  and k.constraint_name = tc.constraint_name
+                  and k.table_name = tc.table_name
+               where tc.table_schema = coalesce(@SchemaName, database())
+                 and tc.table_name = @TableName
+                 and tc.constraint_type = 'UNIQUE'
+               order by k.constraint_name, k.ordinal_position;
+               """;
+    }
+
+    // Older servers parse CHECK clauses but discard them, and have no information_schema.check_constraints.
+    public override CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion)
+    {
+        if (!SupportsCheckConstraints(serverVersion))
+            return null;
+
+        return new CheckConstraintsQuery("""
+            select
+                tc.constraint_name as ConstraintName,
+                cc.check_clause as Definition
+            from information_schema.table_constraints tc
+            join information_schema.check_constraints cc
+                on cc.constraint_schema = tc.constraint_schema
+               and cc.constraint_name = tc.constraint_name
+            where tc.table_schema = coalesce(@SchemaName, database())
+              and tc.table_name = @TableName
+              and tc.constraint_type = 'CHECK'
+            order by tc.constraint_name;
+            """);
+    }
+
+    /// <summary>
+    /// Whether the server stores check constraints: MySQL 8.0.16 or later, MariaDB 10.2 or later.
+    /// An unrecognized version is assumed to be recent.
+    /// </summary>
+    public static bool SupportsCheckConstraints(string serverVersion)
+    {
+        // MariaDB may report itself behind a "5.5.5-" compatibility prefix, e.g. "5.5.5-10.11.2-MariaDB".
+        var mariaDb = MariaDbVersionRegex().Match(serverVersion);
+        if (mariaDb.Success)
+            return new Version(int.Parse(mariaDb.Groups[1].Value), int.Parse(mariaDb.Groups[2].Value)) >= new Version(10, 2);
+
+        var mySql = MySqlVersionRegex().Match(serverVersion);
+        if (!mySql.Success)
+            return true;
+
+        var version = new Version(int.Parse(mySql.Groups[1].Value), int.Parse(mySql.Groups[2].Value), int.Parse(mySql.Groups[3].Value));
+        return version >= new Version(8, 0, 16);
+    }
+
+    [GeneratedRegex(@"(\d+)\.(\d+)(?:\.\d+)?-MariaDB", RegexOptions.IgnoreCase)]
+    private static partial Regex MariaDbVersionRegex();
+
+    [GeneratedRegex(@"^(\d+)\.(\d+)\.(\d+)")]
+    private static partial Regex MySqlVersionRegex();
 }

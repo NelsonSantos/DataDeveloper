@@ -298,6 +298,77 @@ public class TableDesignerIntegrationTests
         }
     }
 
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_SchemaTreeShowsKeysConstraintsAndIndexesOfATable(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var t = $"tk_{Guid.NewGuid().ToString("N")[..8]}";
+        var numberType = ProviderDataTypeCatalog.GetDefaultDataType(databaseType).Name;
+        var textType = databaseType == DatabaseType.Oracle ? "varchar2(20)" : "varchar(20)";
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"""
+            create table {t} (
+                id {numberType} not null,
+                customer_id {numberType} not null,
+                code {textType},
+                qty {numberType} not null,
+                constraint pk_{t} primary key (id),
+                constraint uq_{t}_code unique (code),
+                constraint fk_{t}_customer foreign key (customer_id) references customers (customer_id),
+                constraint ck_{t}_qty check (qty > 0)
+            )
+            """);
+        try
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create index ix_{t}_customer on {t} (customer_id)");
+
+            var explorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), TimeSpan.FromSeconds(30), $"{databaseType} schema initialization");
+            var table = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children
+                .Single(node => string.Equals(node.Name, t, StringComparison.OrdinalIgnoreCase));
+
+            var keys = await LoadTreeFolderAsync(explorer, table, NodeType.Keys, databaseType);
+            var primaryKey = Assert.Single(keys, node => node.NodeType == NodeType.PrimaryKey);
+            Assert.Equal("(id)", primaryKey.Details, StringComparer.OrdinalIgnoreCase);
+            var uniqueKey = Assert.Single(keys, node => node.NodeType == NodeType.UniqueKey);
+            Assert.Equal($"uq_{t}_code", uniqueKey.Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("(code)", uniqueKey.Details, StringComparer.OrdinalIgnoreCase);
+            var foreignKey = Assert.Single(keys, node => node.NodeType == NodeType.ForeignKey);
+            Assert.Equal($"fk_{t}_customer", foreignKey.Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("(customer_id) → customers (customer_id)", foreignKey.Details, StringComparer.OrdinalIgnoreCase);
+            if (databaseType != DatabaseType.MySql)
+                Assert.Equal($"pk_{t}", primaryKey.Name, StringComparer.OrdinalIgnoreCase);
+
+            // NOT NULL columns must not show up as check constraints (Oracle stores them as such).
+            var check = Assert.Single(await LoadTreeFolderAsync(explorer, table, NodeType.Constraints, databaseType));
+            Assert.Equal($"ck_{t}_qty", check.Name, StringComparer.OrdinalIgnoreCase);
+            // Each database normalizes the expression differently, e.g. SQL Server's "([qty]>(0))".
+            var normalizedCheck = new string(check.Details!.Where(ch => !char.IsWhiteSpace(ch) && ch is not ('(' or ')' or '[' or ']' or '"' or '`')).ToArray());
+            Assert.Equal("qty>0", normalizedCheck, StringComparer.OrdinalIgnoreCase);
+
+            // The unique constraint's backing index is a key, not an index.
+            var index = Assert.Single(await LoadTreeFolderAsync(explorer, table, NodeType.Indexes, databaseType));
+            Assert.Equal($"ix_{t}_customer", index.Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Equal("(customer_id)", index.Details, StringComparer.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table {t}");
+        }
+    }
+
+    private static async Task<IReadOnlyList<SchemaNode>> LoadTreeFolderAsync(ISchemaExplorer explorer, SchemaNode table, NodeType folderType, DatabaseType databaseType)
+    {
+        var folder = table.Children.Single(node => node.NodeType == folderType);
+        await DatabaseIntegrationTestSupport.WithTimeout(explorer.LoadNodeAsync(folder), TimeSpan.FromSeconds(30), $"{databaseType} {folderType} load");
+        return folder.Children.ToList();
+    }
+
     private static async Task CreateTableAsync(IConnectionSettings connectionSettings, DatabaseType databaseType, TableDefinition table)
     {
         foreach (var statement in connectionSettings.GetSqlAnalyzer().SplitStatements(TableDdlScriptBuilder.BuildCreateTableScript(databaseType, table)))

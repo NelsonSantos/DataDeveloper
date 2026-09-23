@@ -1,3 +1,4 @@
+using DataDeveloper.Data.Providers.MySql;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Services.Metadata;
@@ -8,6 +9,8 @@ namespace DataDeveloper.Tests.Providers;
 
 public class ObjectCatalogTests
 {
+    private const string RecentServerVersion = "8.4.0";
+
     public static IEnumerable<object[]> AllProviders() =>
         Enum.GetValues<DatabaseType>().Select(databaseType => new object[] { databaseType });
 
@@ -63,7 +66,8 @@ public class ObjectCatalogTests
     [Fact]
     public void SqLite_TableStructureStatements_UsePragmaFunctionsWithTableParameter()
     {
-        foreach (var statement in GetTableStructureStatements(DatabaseType.SqLite))
+        // Check constraints are the exception: they are parsed from the table DDL in sqlite_master.
+        foreach (var statement in GetTableStructureStatements(DatabaseType.SqLite).Where(sql => !sql.Contains("sqlite_master", StringComparison.Ordinal)))
         {
             Assert.Contains("pragma_", statement, StringComparison.Ordinal);
             Assert.Contains("(@TableName)", statement, StringComparison.Ordinal);
@@ -88,6 +92,74 @@ public class ObjectCatalogTests
 
         foreach (var statement in GetTableStructureStatements(databaseType))
             Assert.Contains(fallback, statement, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "sys.check_constraints")]
+    [InlineData(DatabaseType.Oracle, "constraint_type = 'C'")]
+    [InlineData(DatabaseType.PostgresSql, "con.contype = 'c'")]
+    [InlineData(DatabaseType.MySql, "information_schema.check_constraints")]
+    public void CheckConstraints_AreReadFromTheCatalog(DatabaseType databaseType, string expectedSource)
+    {
+        var query = ObjectCatalog.For(databaseType).GetCheckConstraintsQuery(RecentServerVersion)!;
+
+        Assert.Contains(expectedSource, query.Statement, StringComparison.Ordinal);
+        Assert.Null(query.ParseTableDdl);
+    }
+
+    [Theory]
+    [InlineData("8.4.0", true)]
+    [InlineData("8.0.16", true)]
+    [InlineData("8.0.15", false)]
+    [InlineData("5.7.44-log", false)]
+    [InlineData("10.2.1-MariaDB", true)]
+    [InlineData("5.5.5-10.11.2-MariaDB-1:10.11.2+maria~ubu2204", true)]
+    [InlineData("10.1.48-MariaDB", false)]
+    [InlineData("5.5.5-10.1.48-MariaDB", false)]
+    [InlineData("unrecognized", true)]
+    public void MySql_ReadsCheckConstraintsOnlyWhereTheServerStoresThem(string serverVersion, bool supported)
+    {
+        Assert.Equal(supported, MySqlObjectCatalog.SupportsCheckConstraints(serverVersion));
+        Assert.Equal(supported, ObjectCatalog.For(DatabaseType.MySql).GetCheckConstraintsQuery(serverVersion) is not null);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.Oracle)]
+    [InlineData(DatabaseType.PostgresSql)]
+    [InlineData(DatabaseType.SqLite)]
+    public void CheckConstraints_DoNotDependOnServerVersionOutsideMySql(DatabaseType databaseType)
+    {
+        Assert.NotNull(ObjectCatalog.For(databaseType).GetCheckConstraintsQuery("1.0.0"));
+    }
+
+    [Fact]
+    public void Oracle_CheckConstraints_ExcludeSystemNotNullConstraints()
+    {
+        var statement = ObjectCatalog.For(DatabaseType.Oracle).GetCheckConstraintsQuery(RecentServerVersion)!.Statement;
+
+        Assert.Contains("not (c.generated = 'GENERATED NAME' and c.search_condition_vc like '\"%\" IS NOT NULL')", statement, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SqLite_CheckConstraints_AreParsedFromTheTableDdl()
+    {
+        var query = ObjectCatalog.For(DatabaseType.SqLite).GetCheckConstraintsQuery(RecentServerVersion)!;
+
+        Assert.Contains("from sqlite_master", query.Statement, StringComparison.Ordinal);
+        Assert.NotNull(query.ParseTableDdl);
+        Assert.Equal("a > 1", Assert.Single(query.ParseTableDdl!("create table t (a int check (a > 1))")).Definition);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "kc.type = 'UQ'")]
+    [InlineData(DatabaseType.Oracle, "constraint_type = 'U'")]
+    [InlineData(DatabaseType.PostgresSql, "con.contype = 'u'")]
+    [InlineData(DatabaseType.MySql, "constraint_type = 'UNIQUE'")]
+    [InlineData(DatabaseType.SqLite, "il.origin = 'u'")]
+    public void UniqueConstraints_ExcludePrimaryKeysAndPlainIndexes(DatabaseType databaseType, string expectedFilter)
+    {
+        Assert.Contains(expectedFilter, ObjectCatalog.For(databaseType).GetUniqueConstraintsStatement(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -279,10 +351,13 @@ public class ObjectCatalogTests
         var catalog = ObjectCatalog.For(databaseType);
         return
         [
+            catalog.GetColumnsStatement(),
             catalog.GetColumnDefaultsStatement(),
             catalog.GetPrimaryKeyStatement(),
             catalog.GetForeignKeysStatement(),
-            catalog.GetIndexesStatement()
+            catalog.GetIndexesStatement(),
+            catalog.GetUniqueConstraintsStatement(),
+            catalog.GetCheckConstraintsQuery(RecentServerVersion)!.Statement
         ];
     }
 

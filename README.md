@@ -12,6 +12,8 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Store saved connections in a local app-state database
 - Store connection credentials using the operating system secure storage
 - Browse database schema from a dedicated explorer panel
+- See each table's columns, keys (primary, unique and foreign), check constraints, and indexes in the schema explorer
+- See objects outside the connection's default schema listed with their schema name (for example `sales.orders`)
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
 - Configure DML transaction mode per connection, using either auto commit or manual commit/rollback

@@ -217,6 +217,38 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                order by sequence
                """;
     }
+    public override string GetUniqueConstraintsStatement()
+    {
+        return $"""
+                select
+                    c.constraint_name as "ConstraintName",
+                    cc.column_name as "ColumnName",
+                    cc.position as "OrdinalPosition"
+                from all_constraints c
+                join all_cons_columns cc on cc.owner = c.owner and cc.constraint_name = c.constraint_name
+                where c.owner = {TableOwner}
+                  and c.table_name = upper(:TableName)
+                  and c.constraint_type = 'U'
+                order by c.constraint_name, cc.position
+                """;
+    }
+
+    // Oracle stores NOT NULL as system-named check constraints; those are column nullability, not checks.
+    public override CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion)
+    {
+        return new CheckConstraintsQuery($"""
+            select
+                c.constraint_name as "ConstraintName",
+                c.search_condition_vc as "Definition"
+            from all_constraints c
+            where c.owner = {TableOwner}
+              and c.table_name = upper(:TableName)
+              and c.constraint_type = 'C'
+              and not (c.generated = 'GENERATED NAME' and c.search_condition_vc like '"%" IS NOT NULL')
+            order by c.constraint_name
+            """);
+    }
+
 
     private static string BeautifyTableDdl(DbObjectRef table, string ddl)
     {

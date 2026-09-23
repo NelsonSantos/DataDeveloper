@@ -73,6 +73,10 @@ public abstract class ObjectCatalog : IObjectCatalog
 
     public abstract string GetIndexesStatement();
 
+    public abstract string GetUniqueConstraintsStatement();
+
+    public abstract CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion);
+
     protected string QuoteQualifiedName(DbObjectRef databaseObject)
     {
         return databaseObject.Schema is null

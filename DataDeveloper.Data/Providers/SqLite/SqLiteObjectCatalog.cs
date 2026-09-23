@@ -145,4 +145,31 @@ public sealed class SqLiteObjectCatalog : ObjectCatalog
                where 1 = 0
                """;
     }
+
+    // SQLite has no named unique constraints; the backing index (sqlite_autoindex_*) names them.
+    public override string GetUniqueConstraintsStatement()
+    {
+        return """
+               select
+                   il.name as ConstraintName,
+                   ii.name as ColumnName,
+                   ii.seqno as OrdinalPosition
+               from pragma_index_list(@TableName) il
+               join pragma_index_info(il.name) ii
+               where il.origin = 'u'
+               order by il.name, ii.seqno
+               """;
+    }
+
+    // SQLite keeps check constraints only in the table's CREATE TABLE text.
+    public override CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion)
+    {
+        return new CheckConstraintsQuery(
+            """
+            select sql
+            from sqlite_master
+            where type = 'table' and name = @TableName
+            """,
+            SqLiteCheckConstraintParser.Parse);
+    }
 }

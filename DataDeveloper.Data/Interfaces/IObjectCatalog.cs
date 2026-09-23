@@ -63,4 +63,16 @@ public interface IObjectCatalog
     /// optional provider options), excluding indexes backing primary key or unique constraints.
     /// </summary>
     string GetIndexesStatement();
+
+    /// <summary>
+    /// One row per unique constraint column: ConstraintName, ColumnName, OrdinalPosition.
+    /// </summary>
+    string GetUniqueConstraintsStatement();
+
+    /// <summary>
+    /// How to read the table's check constraints, excluding NOT NULL constraints, or null when
+    /// the server version does not store check constraints.
+    /// </summary>
+    /// <param name="serverVersion">The connection's <see cref="System.Data.Common.DbConnection.ServerVersion"/>.</param>
+    CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion);
 }

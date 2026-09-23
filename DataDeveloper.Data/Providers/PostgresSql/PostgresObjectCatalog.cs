@@ -319,4 +319,39 @@ public sealed class PostgresObjectCatalog : ObjectCatalog
                order by ordinal_position;
                """;
     }
+
+    public override string GetUniqueConstraintsStatement()
+    {
+        return """
+               select
+                   con.conname as "ConstraintName",
+                   a.attname as "ColumnName",
+                   ord.ordinality as "OrdinalPosition"
+               from pg_constraint con
+               join pg_class t on t.oid = con.conrelid
+               join pg_namespace n on n.oid = t.relnamespace
+               cross join lateral unnest(con.conkey) with ordinality as ord(attnum, ordinality)
+               join pg_attribute a on a.attrelid = con.conrelid and a.attnum = ord.attnum
+               where con.contype = 'u'
+                 and n.nspname = coalesce(cast(@SchemaName as text), current_schema())
+                 and t.relname = @TableName
+               order by con.conname, ord.ordinality;
+               """;
+    }
+
+    public override CheckConstraintsQuery? GetCheckConstraintsQuery(string serverVersion)
+    {
+        return new CheckConstraintsQuery("""
+            select
+                con.conname as "ConstraintName",
+                pg_get_expr(con.conbin, con.conrelid) as "Definition"
+            from pg_constraint con
+            join pg_class t on t.oid = con.conrelid
+            join pg_namespace n on n.oid = t.relnamespace
+            where con.contype = 'c'
+              and n.nspname = coalesce(cast(@SchemaName as text), current_schema())
+              and t.relname = @TableName
+            order by con.conname;
+            """);
+    }
 }

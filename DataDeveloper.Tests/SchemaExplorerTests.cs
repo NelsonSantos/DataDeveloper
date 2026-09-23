@@ -86,4 +86,120 @@ public class SchemaExplorerTests
             File.Delete(databasePath);
         }
     }
+
+    [Fact]
+    public async Task LoadNodeAsync_FillsKeysConstraintsAndIndexesOfATable()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"datadeveloper-explorer-{Guid.NewGuid():N}.db");
+        try
+        {
+            using (var setup = new SqliteConnection($"Data Source={databasePath}"))
+            {
+                setup.Open();
+                using var command = setup.CreateCommand();
+                command.CommandText = """
+                                      create table customers (id integer primary key, email text not null, unique (email));
+                                      create table orders (
+                                          id integer primary key,
+                                          customer_id integer not null references customers (id),
+                                          total real not null check (total >= 0),
+                                          code text,
+                                          constraint ck_code check (length(code) = 8));
+                                      create index ix_orders_customer on orders (customer_id, total desc);
+                                      create unique index ux_orders_code on orders (code);
+                                      """;
+                command.ExecuteNonQuery();
+            }
+
+            var settings = new SqLiteConnectionSettings { Name = "Local", DatabaseType = DatabaseType.SqLite, Database = databasePath };
+            var explorer = new SchemaExplorer(new SqLiteDatabaseProvider(settings), settings);
+            await explorer.InitializeSchemaNode();
+
+            var tables = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children;
+            var orders = tables.Single(node => node.Name == "orders");
+            Assert.Equal(
+                [NodeType.Columns, NodeType.Keys, NodeType.Constraints, NodeType.Indexes],
+                orders.Children.Select(node => node.NodeType));
+
+            var keys = await LoadFolderAsync(explorer, orders, NodeType.Keys);
+            Assert.Collection(
+                keys,
+                node => { Assert.Equal(NodeType.PrimaryKey, node.NodeType); Assert.Equal("PRIMARY KEY", node.Name); Assert.Equal("(id)", node.Details); },
+                node => { Assert.Equal(NodeType.ForeignKey, node.NodeType); Assert.Equal("(customer_id) → customers (id)", node.Details); });
+
+            var checks = await LoadFolderAsync(explorer, orders, NodeType.Constraints);
+            Assert.Collection(
+                checks,
+                node => { Assert.Equal(NodeType.CheckConstraint, node.NodeType); Assert.Equal("CHECK", node.Name); Assert.Equal("total >= 0", node.Details); },
+                node => { Assert.Equal("ck_code", node.Name); Assert.Equal("length(code) = 8", node.Details); });
+
+            var indexes = await LoadFolderAsync(explorer, orders, NodeType.Indexes);
+            Assert.Collection(
+                indexes,
+                node => { Assert.Equal(NodeType.Index, node.NodeType); Assert.Equal("ix_orders_customer", node.Name); Assert.Equal("(customer_id, total desc)", node.Details); },
+                node => { Assert.Equal("ux_orders_code", node.Name); Assert.Equal("unique (code)", node.Details); });
+
+            // A UNIQUE constraint is a key, not an index.
+            var customers = tables.Single(node => node.Name == "customers");
+            var customerKeys = await LoadFolderAsync(explorer, customers, NodeType.Keys);
+            var uniqueKey = Assert.Single(customerKeys, node => node.NodeType == NodeType.UniqueKey);
+            Assert.Equal("(email)", uniqueKey.Details);
+            Assert.Empty(await LoadFolderAsync(explorer, customers, NodeType.Indexes));
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    [Fact]
+    public async Task RefreshSchemaObjectAsync_AfterAlterTable_ReloadsOnlyTheOpenedFolders()
+    {
+        var databasePath = Path.Combine(Path.GetTempPath(), $"datadeveloper-explorer-{Guid.NewGuid():N}.db");
+        try
+        {
+            var settings = new SqLiteConnectionSettings { Name = "Local", DatabaseType = DatabaseType.SqLite, Database = databasePath };
+            var alterStatement = "alter table orders add column note text check (length(note) < 10)";
+            using (var setup = new SqliteConnection($"Data Source={databasePath}"))
+            {
+                setup.Open();
+                using var command = setup.CreateCommand();
+                command.CommandText = "create table orders (id integer primary key)";
+                command.ExecuteNonQuery();
+            }
+
+            var explorer = new SchemaExplorer(new SqLiteDatabaseProvider(settings), settings);
+            await explorer.InitializeSchemaNode();
+            var orders = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children.Single();
+            Assert.Empty(await LoadFolderAsync(explorer, orders, NodeType.Constraints));
+
+            using (var alter = new SqliteConnection($"Data Source={databasePath}"))
+            {
+                alter.Open();
+                using var command = alter.CreateCommand();
+                command.CommandText = alterStatement;
+                command.ExecuteNonQuery();
+            }
+
+            await explorer.RefreshSchemaObjectAsync(alterStatement);
+
+            var constraints = orders.Children.Single(node => node.NodeType == NodeType.Constraints);
+            Assert.Equal("length(note) < 10", Assert.Single(constraints.Children).Details);
+            Assert.True(orders.Children.Single(node => node.NodeType == NodeType.Indexes).CanLoad);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    private static async Task<IReadOnlyList<SchemaNode>> LoadFolderAsync(SchemaExplorer explorer, SchemaNode table, NodeType folderType)
+    {
+        var folder = table.Children.Single(node => node.NodeType == folderType);
+        await explorer.LoadNodeAsync(folder);
+        Assert.False(folder.CanLoad);
+        return folder.Children.ToList();
+    }
 }
