@@ -16,7 +16,8 @@ public class SchemaExplorer : ISchemaExplorer
             [DbObjectKind.View] = (NodeType.Views, "Views", NodeType.View),
             [DbObjectKind.Procedure] = (NodeType.Procedures, "Procedures", NodeType.Procedure),
             [DbObjectKind.Function] = (NodeType.Functions, "Functions", NodeType.Function),
-            [DbObjectKind.Sequence] = (NodeType.Sequences, "Sequences", NodeType.Sequence)
+            [DbObjectKind.Sequence] = (NodeType.Sequences, "Sequences", NodeType.Sequence),
+            [DbObjectKind.Synonym] = (NodeType.Synonyms, "Synonyms", NodeType.Synonym)
         };
 
     private readonly SchemaMetadataService _metadata;
@@ -91,6 +92,7 @@ public class SchemaExplorer : ISchemaExplorer
             SchemaObjectType.Procedure => DbObjectKind.Procedure,
             SchemaObjectType.Function => DbObjectKind.Function,
             SchemaObjectType.Sequence => DbObjectKind.Sequence,
+            SchemaObjectType.Synonym => DbObjectKind.Synonym,
             _ => null
         };
 

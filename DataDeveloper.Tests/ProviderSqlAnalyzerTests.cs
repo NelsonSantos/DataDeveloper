@@ -130,6 +130,11 @@ public class ProviderSqlAnalyzerTests
     [InlineData(DatabaseType.SqlServer, "create sequence dbo.order_number as bigint start with 1", SchemaRefreshAction.Create, SchemaObjectType.Sequence, "dbo.order_number")]
     [InlineData(DatabaseType.Oracle, "alter sequence hr.order_seq increment by 5", SchemaRefreshAction.Alter, SchemaObjectType.Sequence, "hr.order_seq")]
     [InlineData(DatabaseType.PostgresSql, "drop sequence if exists public.order_number", SchemaRefreshAction.Drop, SchemaObjectType.Sequence, "public.order_number")]
+    [InlineData(DatabaseType.SqlServer, "create synonym dbo.orders_alias for dbo.orders", SchemaRefreshAction.Create, SchemaObjectType.Synonym, "dbo.orders_alias")]
+    [InlineData(DatabaseType.SqlServer, "drop synonym if exists dbo.orders_alias", SchemaRefreshAction.Drop, SchemaObjectType.Synonym, "dbo.orders_alias")]
+    [InlineData(DatabaseType.Oracle, "create or replace public synonym emp for hr.employees", SchemaRefreshAction.Create, SchemaObjectType.Synonym, "emp")]
+    [InlineData(DatabaseType.Oracle, "drop public synonym emp", SchemaRefreshAction.Drop, SchemaObjectType.Synonym, "emp")]
+    [InlineData(DatabaseType.Oracle, "create synonym emp for hr.employees", SchemaRefreshAction.Create, SchemaObjectType.Synonym, "emp")]
     public void ParseSchemaRefreshTarget_HandlesProviderDdlForms(
         DatabaseType databaseType,
         string statement,

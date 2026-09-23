@@ -48,6 +48,7 @@ public abstract class ObjectCatalog : IObjectCatalog
             DbObjectKind.Function => GetRoutineDdlRetrieval(databaseObject, isFunction: true),
             DbObjectKind.Trigger => GetTriggerDdlRetrieval(databaseObject),
             DbObjectKind.Sequence => GetSequenceDdlRetrieval(databaseObject),
+            DbObjectKind.Synonym => GetSynonymDdlRetrieval(databaseObject),
             _ => null
         };
     }
@@ -65,6 +66,11 @@ public abstract class ObjectCatalog : IObjectCatalog
     /// How to read a sequence's DDL; null for providers without sequences.
     /// </summary>
     protected virtual DdlRetrieval? GetSequenceDdlRetrieval(DbObjectRef sequence) => null;
+
+    /// <summary>
+    /// How to read a synonym's DDL; null for providers without synonyms.
+    /// </summary>
+    protected virtual DdlRetrieval? GetSynonymDdlRetrieval(DbObjectRef synonym) => null;
 
     public virtual IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
         [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function];

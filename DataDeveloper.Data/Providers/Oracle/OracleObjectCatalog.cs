@@ -171,6 +171,16 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                                          'increment ' || increment_by || ', last number ' || last_number as "Details"
                                      from user_sequences
                                      """,
+            // unistr('\2192') is "→", kept out of the literal to avoid character set issues.
+            DbObjectKind.Synonym => """
+                                    select
+                                        user as "SchemaName",
+                                        synonym_name as "Name",
+                                        1 as "IsDefaultSchema",
+                                        unistr('\2192') || ' ' || table_owner || '.' || table_name
+                                            || case when db_link is not null then '@' || db_link end as "Details"
+                                    from user_synonyms
+                                    """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
@@ -287,7 +297,7 @@ public sealed class OracleObjectCatalog : ObjectCatalog
     }
 
     public override IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
-        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence];
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence, DbObjectKind.Synonym];
 
     protected override DdlRetrieval GetSequenceDdlRetrieval(DbObjectRef sequence)
     {
@@ -297,6 +307,17 @@ public sealed class OracleObjectCatalog : ObjectCatalog
 
         return new DdlRetrieval(
             $"select dbms_metadata.get_ddl('SEQUENCE', '{EscapeSqlLiteral(sequence.Name)}', {owner}) as Definition from dual;",
+            MetadataSessionSetup);
+    }
+
+    protected override DdlRetrieval GetSynonymDdlRetrieval(DbObjectRef synonym)
+    {
+        var owner = synonym.Schema is null
+            ? "sys_context('USERENV', 'CURRENT_SCHEMA')"
+            : $"'{EscapeSqlLiteral(synonym.Schema)}'";
+
+        return new DdlRetrieval(
+            $"select dbms_metadata.get_ddl('SYNONYM', '{EscapeSqlLiteral(synonym.Name)}', {owner}) as Definition from dual;",
             MetadataSessionSetup);
     }
 

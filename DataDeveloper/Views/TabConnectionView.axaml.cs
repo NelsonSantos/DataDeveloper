@@ -109,7 +109,7 @@ public partial class TabConnectionView : UserControl
         var items = new List<object>();
         var sqlScriptItems = new List<object>();
 
-        if (node.NodeType is NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Sequence or NodeType.Column or NodeType.Parameter)
+        if (node.NodeType is NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Sequence or NodeType.Synonym or NodeType.Column or NodeType.Parameter)
         {
             items.Add(CreateMenuItem("Copy name", async () => await CopyToClipboardAsync(node.Name)));
             items.Add(CreateMenuItem("Copy qualified name", async () =>
@@ -176,7 +176,7 @@ public partial class TabConnectionView : UserControl
             }));
         }
 
-        if (node.NodeType is NodeType.View or NodeType.Trigger or NodeType.Sequence)
+        if (node.NodeType is NodeType.View or NodeType.Trigger or NodeType.Sequence or NodeType.Synonym)
         {
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>

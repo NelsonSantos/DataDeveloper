@@ -40,6 +40,7 @@ public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name,
             NodeType.Function => DbObjectKind.Function,
             NodeType.Trigger => DbObjectKind.Trigger,
             NodeType.Sequence => DbObjectKind.Sequence,
+            NodeType.Synonym => DbObjectKind.Synonym,
             _ => null
         };
 

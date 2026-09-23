@@ -207,6 +207,48 @@ public class ObjectCatalogTests
         Assert.Contains("Details", statement, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, true)]
+    [InlineData(DatabaseType.Oracle, true)]
+    [InlineData(DatabaseType.PostgresSql, false)]
+    [InlineData(DatabaseType.MySql, false)]
+    [InlineData(DatabaseType.SqLite, false)]
+    public void Synonyms_AreARootFolderWhereTheProviderHasThem(DatabaseType databaseType, bool hasSynonyms)
+    {
+        var catalog = ObjectCatalog.For(databaseType);
+
+        Assert.Equal(hasSynonyms, catalog.RootObjectKinds.Contains(DbObjectKind.Synonym));
+        Assert.Equal(hasSynonyms, catalog.GetDdlRetrieval(new DbObjectRef(DbObjectKind.Synonym, "sales", "orders_alias")) is not null);
+    }
+
+    [Theory]
+    [InlineData(DatabaseType.SqlServer, "from sys.synonyms s", "s.base_object_name")]
+    [InlineData(DatabaseType.Oracle, "from user_synonyms", "table_owner || '.' || table_name")]
+    public void Synonyms_AreListedWithTheirTarget(DatabaseType databaseType, string expectedSource, string expectedTarget)
+    {
+        var statement = ObjectCatalog.For(databaseType).GetObjectListStatement(DbObjectKind.Synonym);
+
+        Assert.Contains(expectedSource, statement, StringComparison.Ordinal);
+        Assert.Contains(expectedTarget, statement, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SqlServer_SynonymDdl_IsAssembledFromSysSynonyms()
+    {
+        var query = ObjectCatalog.For(DatabaseType.SqlServer).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Synonym, "sales", "orders_alias"))!.Query;
+
+        Assert.Contains("'create synonym ' + quotename(schema_name(s.schema_id)) + '.' + quotename(s.name) + ' for ' + s.base_object_name", query, StringComparison.Ordinal);
+        Assert.Contains("where s.object_id = object_id(N'sales.orders_alias');", query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Oracle_SynonymDdl_UsesDbmsMetadata()
+    {
+        var query = ObjectCatalog.For(DatabaseType.Oracle).GetDdlRetrieval(new DbObjectRef(DbObjectKind.Synonym, "HR", "EMP"))!.Query;
+
+        Assert.Equal("select dbms_metadata.get_ddl('SYNONYM', 'EMP', 'HR') as Definition from dual;", query);
+    }
+
     [Fact]
     public void SqlServer_SequenceDdl_IsAssembledFromSysSequences()
     {
