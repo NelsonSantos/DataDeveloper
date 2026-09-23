@@ -172,4 +172,22 @@ public sealed class SqLiteObjectCatalog : ObjectCatalog
             """,
             SqLiteCheckConstraintParser.Parse);
     }
+
+    protected override DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger)
+    {
+        return new DdlRetrieval(BuildSqliteMasterQuery("trigger", trigger.Name));
+    }
+
+    // SQLite keeps a trigger's timing and events only in its CREATE TRIGGER text.
+    public override TriggersQuery GetTriggersQuery()
+    {
+        return new TriggersQuery(
+            """
+            select 'main' as SchemaName, name as Name, sql as Definition
+            from sqlite_master
+            where type = 'trigger' and tbl_name = @TableName
+            order by name
+            """,
+            SqLiteTriggerParser.CompleteFromDefinition);
+    }
 }

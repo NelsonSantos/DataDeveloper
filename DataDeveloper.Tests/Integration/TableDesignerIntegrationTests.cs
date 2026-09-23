@@ -363,6 +363,81 @@ public class TableDesignerIntegrationTests
         }
     }
 
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_SchemaTreeShowsTableTriggersWithDdl(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var t = $"tt_{Guid.NewGuid().ToString("N")[..8]}";
+        var trigger = $"{t}_trg";
+        var numberType = ProviderDataTypeCatalog.GetDefaultDataType(databaseType).Name;
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create table {t} (id {numberType} not null, qty {numberType})");
+        try
+        {
+            // Each provider's own CREATE TRIGGER form, firing on insert and update where supported.
+            var createTriggerStatements = databaseType switch
+            {
+                DatabaseType.SqlServer => new[] { $"create trigger {trigger} on {t} after insert, update as begin set nocount on; end" },
+                DatabaseType.MySql => new[] { $"create trigger {trigger} before insert on {t} for each row set new.qty = coalesce(new.qty, 1)" },
+                DatabaseType.PostgresSql => new[]
+                {
+                    $"create function {t}_fn() returns trigger language plpgsql as $$ begin return new; end $$",
+                    $"create trigger {trigger} before insert or update on {t} for each row execute function {t}_fn()"
+                },
+                _ => new[] { $"create trigger {trigger} before insert or update on {t} for each row begin null; end;" }
+            };
+            // With binary logging on, MySQL only lets SUPER create or drop triggers, so the test's DDL
+            // runs as root; the tree and DDL are still read as the regular integration user.
+            var triggerDdlSettings = databaseType == DatabaseType.MySql
+                ? CreateMySqlRootConnectionSettings()
+                : connectionSettings;
+            foreach (var statement in createTriggerStatements)
+                await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(triggerDdlSettings, statement);
+
+            var explorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), TimeSpan.FromSeconds(30), $"{databaseType} schema initialization");
+            var table = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Tables).Children
+                .Single(node => string.Equals(node.Name, t, StringComparison.OrdinalIgnoreCase));
+
+            var triggerNode = Assert.Single(await LoadTreeFolderAsync(explorer, table, NodeType.Triggers, databaseType));
+            Assert.Equal(trigger, triggerNode.Name, StringComparer.OrdinalIgnoreCase);
+            Assert.Contains("insert", triggerNode.Details, StringComparison.Ordinal);
+            Assert.StartsWith(databaseType == DatabaseType.SqlServer ? "after" : "before", triggerNode.Details, StringComparison.Ordinal);
+            Assert.Equal(table.ObjectRef, triggerNode.ObjectRef!.Parent);
+
+            var ddl = await DatabaseIntegrationTestSupport.WithTimeout(
+                new SchemaMetadataService(connectionSettings).GetDdlAsync(triggerNode),
+                TimeSpan.FromSeconds(30),
+                $"{databaseType} trigger DDL");
+            Assert.Contains("trigger", ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(trigger, ddl, StringComparison.OrdinalIgnoreCase);
+
+            var dropStatement = databaseType == DatabaseType.PostgresSql ? $"drop trigger {trigger} on {t}" : $"drop trigger {trigger}";
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(triggerDdlSettings, dropStatement);
+            await explorer.RefreshSchemaObjectAsync(dropStatement);
+            Assert.Empty(table.Children.Single(node => node.NodeType == NodeType.Triggers).Children);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop table {t}");
+            if (databaseType == DatabaseType.PostgresSql)
+                await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop function if exists {t}_fn()");
+        }
+    }
+
+    private static IConnectionSettings CreateMySqlRootConnectionSettings()
+    {
+        var settings = (Data.Providers.MySql.MySqlConnectionSettings)DatabaseIntegrationTestSupport.CreateConnectionSettings(DatabaseType.MySql);
+        settings.User = "root";
+        settings.Password = "root";
+        return settings;
+    }
+
     private static async Task<IReadOnlyList<SchemaNode>> LoadTreeFolderAsync(ISchemaExplorer explorer, SchemaNode table, NodeType folderType, DatabaseType databaseType)
     {
         var folder = table.Children.Single(node => node.NodeType == folderType);

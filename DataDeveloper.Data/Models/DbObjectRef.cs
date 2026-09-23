@@ -7,7 +7,8 @@ namespace DataDeveloper.Data.Models;
 /// Identifies a database object by kind, optional schema and name, with delimiters removed.
 /// A null <see cref="Schema"/> means the name was not qualified and the provider's default applies.
 /// </summary>
-public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name)
+/// <param name="Parent">The table an object such as a trigger belongs to.</param>
+public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name, DbObjectRef? Parent = null)
 {
     public string QualifiedName => Schema is null ? Name : $"{Schema}.{Name}";
 
@@ -37,6 +38,7 @@ public sealed record DbObjectRef(DbObjectKind Kind, string? Schema, string Name)
             NodeType.View => DbObjectKind.View,
             NodeType.Procedure => DbObjectKind.Procedure,
             NodeType.Function => DbObjectKind.Function,
+            NodeType.Trigger => DbObjectKind.Trigger,
             _ => null
         };
 

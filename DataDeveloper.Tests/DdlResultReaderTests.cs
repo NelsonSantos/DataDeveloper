@@ -37,6 +37,16 @@ public class DdlResultReaderTests
     }
 
     [Fact]
+    public async Task ReadAsync_UsesMySqlTriggerStatementColumn()
+    {
+        var table = CreateTable(
+            [("Trigger", typeof(string)), ("sql_mode", typeof(string)), ("SQL Original Statement", typeof(string))],
+            ["trg_orders", "STRICT_TRANS_TABLES", "CREATE TRIGGER `trg_orders` BEFORE INSERT ON `orders` FOR EACH ROW SET NEW.qty = 1"]);
+
+        Assert.Equal("CREATE TRIGGER `trg_orders` BEFORE INSERT ON `orders` FOR EACH ROW SET NEW.qty = 1", await ReadAsync(table));
+    }
+
+    [Fact]
     public async Task ReadAsync_ReturnsEmptyWhenMySqlHidesTheRoutineBody()
     {
         // SHOW CREATE PROCEDURE returns NULL in "Create Procedure" when the user lacks privileges;

@@ -26,6 +26,7 @@ public class NodeTypeToIconConverter : IValueConverter
             NodeType.ForeignKey => "\U000F119F",
             NodeType.CheckConstraint => "\U000F0565",
             NodeType.Index => "\U000F04BC",
+            NodeType.Trigger => "\U000F140B",
             _ => "\U000F024B"
         };
     }

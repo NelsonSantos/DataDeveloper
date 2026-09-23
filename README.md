@@ -12,7 +12,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Store saved connections in a local app-state database
 - Store connection credentials using the operating system secure storage
 - Browse database schema from a dedicated explorer panel
-- See each table's columns, keys (primary, unique and foreign), check constraints, and indexes in the schema explorer
+- See each table's columns, keys (primary, unique and foreign), check constraints, indexes, and triggers in the schema explorer
 - See objects outside the connection's default schema listed with their schema name (for example `sales.orders`)
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
@@ -23,7 +23,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Navigate query results with the custom `NextGrid` control
 - Detect named SQL parameters and fill them through a side panel in the editor
 - Select ranges, rows, columns, and copy results to the clipboard
-- Use context menus in the schema explorer to copy names and open SQL templates for tables, views, procedures, and functions
+- Use context menus in the schema explorer to copy names and open SQL templates for tables, views, procedures, and functions, and to get the DDL of triggers
 - Import data from CSV, XLS, and XLSX files through a step-by-step wizard, either into a new table or mapped into an existing one
 - Export a query result grid to CSV or XLSX, remembering the last format used per connection
 - Resize columns and navigate results with keyboard shortcuts

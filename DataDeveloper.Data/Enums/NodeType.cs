@@ -25,4 +25,6 @@ public enum NodeType
     CheckConstraint,
     Indexes,
     Index,
+    Triggers,
+    Trigger,
 }

@@ -73,6 +73,16 @@ public class SchemaExplorer : ISchemaExplorer
             return;
         }
 
+        // CREATE/DROP TRIGGER or INDEX may not name the table, so every opened folder of that kind is reloaded.
+        if (target.ObjectType is SchemaObjectType.Trigger or SchemaObjectType.Index)
+        {
+            var folderTypes = target.ObjectType == SchemaObjectType.Trigger
+                ? new[] { NodeType.Triggers }
+                : new[] { NodeType.Keys, NodeType.Indexes };
+            await ReloadOpenedTableFoldersAsync(folderTypes);
+            return;
+        }
+
         DbObjectKind? kind = target.ObjectType switch
         {
             SchemaObjectType.Table => DbObjectKind.Table,
@@ -170,6 +180,9 @@ public class SchemaExplorer : ISchemaExplorer
                 case NodeType.Indexes:
                     await LoadIndexesAsync(node);
                     break;
+                case NodeType.Triggers:
+                    await LoadTriggersAsync(node);
+                    break;
             }
         }
         catch
@@ -258,6 +271,28 @@ public class SchemaExplorer : ISchemaExplorer
         folder.CanLoad = false;
     }
 
+    private async Task LoadTriggersAsync(SchemaNode folder)
+    {
+        if (GetOwnerTableRef(folder) is not { } table)
+            return;
+
+        var triggers = await _metadata.GetTriggersAsync(table);
+        var children = triggers
+            .Select(trigger => new SchemaNode(
+                NodeType.Trigger,
+                trigger.Name,
+                isFolder: false,
+                parent: folder,
+                details: $"{trigger.Timing} {trigger.Events}".Trim())
+            {
+                ObjectRef = new DbObjectRef(DbObjectKind.Trigger, trigger.SchemaName ?? table.Schema, trigger.Name, table)
+            })
+            .ToList();
+
+        ReplaceChildren(folder, children);
+        folder.CanLoad = false;
+    }
+
     private DbObjectRef? GetOwnerTableRef(SchemaNode folder)
     {
         return folder.Parent is null
@@ -330,6 +365,18 @@ public class SchemaExplorer : ISchemaExplorer
                     await LoadNodeAsync(parametersFolder);
                 break;
         }
+    }
+
+    private async Task ReloadOpenedTableFoldersAsync(IReadOnlyCollection<NodeType> folderTypes)
+    {
+        var tables = FindFolder(NodeType.Tables)?.Children ?? [];
+        var openedFolders = tables
+            .SelectMany(table => table.Children)
+            .Where(child => folderTypes.Contains(child.NodeType) && !child.CanLoad)
+            .ToList();
+
+        foreach (var folder in openedFolders)
+            await LoadNodeAsync(folder);
     }
 
     // DDL may name an object with its schema even when the tree shows it unqualified.
@@ -408,6 +455,7 @@ public class SchemaExplorer : ISchemaExplorer
                 AddFolderIfMissing(node, NodeType.Keys, "Keys");
                 AddFolderIfMissing(node, NodeType.Constraints, "Constraints");
                 AddFolderIfMissing(node, NodeType.Indexes, "Indexes");
+                AddFolderIfMissing(node, NodeType.Triggers, "Triggers");
                 break;
             case NodeType.View:
                 AddFolderIfMissing(node, NodeType.Columns, "Columns");

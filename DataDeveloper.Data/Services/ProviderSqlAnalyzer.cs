@@ -124,12 +124,21 @@ public class ProviderSqlAnalyzer : IProviderSqlAnalyzer
                 index += 2;
             }
 
+            // Modifiers between CREATE and the object type, e.g. UNIQUE CLUSTERED INDEX or
+            // PostgreSQL's CONSTRAINT TRIGGER.
             while (IsToken(tokens, index, "temporary") ||
                    IsToken(tokens, index, "temp") ||
                    IsToken(tokens, index, "global") ||
                    IsToken(tokens, index, "local") ||
                    IsToken(tokens, index, "editionable") ||
-                   IsToken(tokens, index, "noneditionable"))
+                   IsToken(tokens, index, "noneditionable") ||
+                   IsToken(tokens, index, "unique") ||
+                   IsToken(tokens, index, "clustered") ||
+                   IsToken(tokens, index, "nonclustered") ||
+                   IsToken(tokens, index, "fulltext") ||
+                   IsToken(tokens, index, "spatial") ||
+                   IsToken(tokens, index, "bitmap") ||
+                   IsToken(tokens, index, "constraint"))
             {
                 index++;
             }
@@ -384,6 +393,18 @@ public class ProviderSqlAnalyzer : IProviderSqlAnalyzer
         if (value?.Equals("function", StringComparison.OrdinalIgnoreCase) == true)
         {
             objectType = SchemaObjectType.Function;
+            return true;
+        }
+
+        if (value?.Equals("trigger", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            objectType = SchemaObjectType.Trigger;
+            return true;
+        }
+
+        if (value?.Equals("index", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            objectType = SchemaObjectType.Index;
             return true;
         }
 

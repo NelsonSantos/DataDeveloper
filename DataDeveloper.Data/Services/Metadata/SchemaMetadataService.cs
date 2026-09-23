@@ -160,6 +160,24 @@ public sealed class SchemaMetadataService
         return tableDdl.SelectMany(ddl => query.ParseTableDdl(ddl)).ToList();
     }
 
+    /// <summary>
+    /// Reads the triggers defined on a table.
+    /// </summary>
+    public async Task<IReadOnlyList<TriggerModel>> GetTriggersAsync(DbObjectRef table, CancellationToken cancellationToken = default)
+    {
+        var query = _catalog.GetTriggersQuery();
+        await using var connection = CreateConnection();
+        var triggers = await QueryTableAsync<TriggerModel>(connection, query.Statement, table, cancellationToken);
+
+        if (query.CompleteFromDefinition is not null)
+        {
+            foreach (var trigger in triggers)
+                query.CompleteFromDefinition(trigger);
+        }
+
+        return triggers;
+    }
+
     private static async Task<IReadOnlyList<T>> QueryTableAsync<T>(
         DbConnection connection, string statement, DbObjectRef table, CancellationToken cancellationToken)
     {

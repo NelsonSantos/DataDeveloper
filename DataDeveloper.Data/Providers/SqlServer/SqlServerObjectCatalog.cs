@@ -412,4 +412,29 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
             order by cc.name;
             """);
     }
+
+    // A trigger belongs to its table's schema, so the schema-qualified name identifies it.
+    protected override DdlRetrieval GetTriggerDdlRetrieval(DbObjectRef trigger)
+    {
+        return new DdlRetrieval(BuildObjectDefinitionQuery(trigger));
+    }
+
+    public override TriggersQuery GetTriggersQuery()
+    {
+        return new TriggersQuery($"""
+            select
+                object_schema_name(t.parent_id) as SchemaName,
+                t.name as Name,
+                case when t.is_instead_of_trigger = 1 then 'instead of' else 'after' end as Timing,
+                stuff((
+                    select ', ' + lower(te.type_desc)
+                    from sys.trigger_events te
+                    where te.object_id = t.object_id
+                    order by te.type
+                    for xml path('')), 1, 2, '') as Events
+            from sys.triggers t
+            where t.parent_id = {TableObjectId}
+            order by t.name;
+            """);
+    }
 }
