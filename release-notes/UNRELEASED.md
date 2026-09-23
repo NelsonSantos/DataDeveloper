@@ -30,8 +30,14 @@
   - `SchemaMetadataService.GetTableStructureAsync(table)` runs the four statements on one connection and returns a public `TableStructure` model. This replaces the loader's private row classes, and phase 5 will reuse it for the Keys/Indexes tree folders.
   - `TableDefinitionLoader` (Edit Table, Schema Compare of tables) now uses the service. The `TableDefinition` is assembled in a pure `Build` method.
   - `IDatabaseProvider` keeps only connection, object listing, columns and routine parameters. Columns and parameters move in phase 4.
+- **#48 refactor: build the schema tree from the object catalog with schema-aware nodes** (https://github.com/NelsonSantos/DataDeveloper/pull/48)
+  - This is phase 4 of consolidating schema metadata access into a single per-provider point in `DataDeveloper.Data`.
+  - The object listing, column and routine parameter statements move from `IDatabaseProvider` into each provider's `IObjectCatalog` (`GetObjectListStatement(kind)`, `GetColumnsStatement`, `GetRoutineParametersStatement`). `IDatabaseProvider` now only has `GetConnection`, `TestConnection` and `GetAvailableDatabaseNames`.
+  - `SchemaExplorer` builds its folders from the catalog's `RootObjectKinds`. SQLite declares only tables and views, so the `if (SqLite)` special case is gone. The explorer reads everything through `SchemaMetadataService`.
+  - Column statements get the same `SchemaName`/`TableName` filtering as the phase 3 structure statements. Oracle columns now read from `all_tab_columns` filtered by owner.
 
 ## Included Commits
+- dc17ff8 Merge pull request #48 from NelsonSantos/feature/schema-metadata-tree
 - acf31dc Merge pull request #47 from NelsonSantos/feature/schema-metadata-table-structure
 - 20e68a2 Merge pull request #46 from NelsonSantos/feature/schema-metadata-ddl
 - ab6c278 Merge pull request #45 from NelsonSantos/feature/schema-metadata-foundation
