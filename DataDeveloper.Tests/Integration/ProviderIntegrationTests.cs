@@ -6,6 +6,7 @@ using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Models.SchemaCompare;
 using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Data.Services.SchemaCompare;
+using DataDeveloper.Services;
 using DataDeveloper.Services.SchemaCompare;
 using Xunit;
 
@@ -497,6 +498,168 @@ public class ProviderIntegrationTests
             await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop synonym {typedName}");
             throw;
         }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [MemberData(nameof(ProviderDatabaseTypes))]
+    public async Task Provider_CompletionListsViewsSynonymsAndSequencesWithTheirColumns(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        connectionSettings.Id = Guid.NewGuid(); // the completion cache is kept per connection id
+        var token = Guid.NewGuid().ToString("N")[..8];
+        var dialect = Data.Services.SqlDialects.SqlDialect.For(databaseType);
+        var hasSynonyms = databaseType is DatabaseType.SqlServer or DatabaseType.Oracle;
+        var hasSequences = databaseType is DatabaseType.SqlServer or DatabaseType.Oracle or DatabaseType.PostgresSql;
+        var synonym = dialect.ResolveQualifiedName($"syn_{token}").Single();
+        var sequence = dialect.ResolveQualifiedName($"seq_{token}").Single();
+
+        if (hasSynonyms)
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create synonym syn_{token} for {(databaseType == DatabaseType.SqlServer ? "dbo.orders" : "orders")}");
+        if (hasSequences)
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create sequence seq_{token}");
+        try
+        {
+            var viewName = dialect.ResolveQualifiedName("open_orders").Single();
+
+            // Objects after FROM: tables, views and synonyms, but not sequences.
+            var objects = await CompleteAsync(connectionSettings, "select * from ");
+            Assert.Contains(objects, item => item.Text == viewName && item.Kind == CompletionItemKind.View);
+            Assert.Equal(hasSynonyms, objects.Any(item => item.Text == synonym && item.Kind == CompletionItemKind.Synonym));
+            Assert.DoesNotContain(objects, item => item.Text == sequence);
+
+            // Columns of a view, and of a synonym through the table it points to.
+            var viewColumns = await CompleteAsync(connectionSettings, "select v. from open_orders v", "select v.".Length);
+            Assert.Contains(viewColumns, item => string.Equals(item.Text, "order_total", StringComparison.OrdinalIgnoreCase));
+            if (hasSynonyms)
+            {
+                var synonymColumns = await CompleteAsync(connectionSettings, $"select s. from syn_{token} s", "select s.".Length);
+                Assert.Contains(synonymColumns, item => string.Equals(item.Text, "order_total", StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Sequences where each provider expects one.
+            switch (databaseType)
+            {
+                case DatabaseType.SqlServer:
+                    Assert.Contains(await CompleteAsync(connectionSettings, "select next value for "), item => item.Text == sequence);
+                    break;
+                case DatabaseType.PostgresSql:
+                    Assert.Contains(await CompleteAsync(connectionSettings, "select nextval('"), item => item.Text == sequence);
+                    break;
+                case DatabaseType.Oracle:
+                    Assert.Contains(await CompleteAsync(connectionSettings, $"select seq_{token}."), item => item.Text == "NEXTVAL");
+                    break;
+            }
+
+            // In the tree, a synonym to a local table has that table's columns.
+            if (hasSynonyms)
+            {
+                var explorer = connectionSettings.GetSchemaExplorer();
+                await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), IntegrationTimeout, $"{databaseType} schema initialization");
+                var synonymNode = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Synonyms).Children.Single(node => node.Name == synonym);
+                var columns = synonymNode.Children.Single(node => node.NodeType == NodeType.Columns);
+                await explorer.LoadNodeAsync(columns);
+                Assert.Contains(columns.Children, node => string.Equals(node.Name, "order_total", StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        finally
+        {
+            if (hasSynonyms)
+                await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop synonym syn_{token}");
+            if (hasSequences)
+                await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop sequence seq_{token}");
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    public async Task SqlServer_SynonymToAnotherDatabaseHasTheTargetColumns()
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(DatabaseType.SqlServer);
+        connectionSettings.Id = Guid.NewGuid(); // the completion cache is kept per connection id
+        var token = Guid.NewGuid().ToString("N")[..8];
+        var otherDatabase = $"DataDeveloperIntegration_{token}";
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create database [{otherDatabase}]");
+        try
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"create table [{otherDatabase}].dbo.remote_orders (remote_id int not null primary key, remote_total decimal(10, 2) null)");
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"create synonym syn_{token} for [{otherDatabase}].dbo.remote_orders");
+
+            var synonymColumns = await CompleteAsync(connectionSettings, $"select s. from syn_{token} s", "select s.".Length);
+            Assert.Contains(synonymColumns, item => item.Text == "remote_total");
+
+            var explorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), IntegrationTimeout, "SqlServer schema initialization");
+            var synonymNode = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Synonyms).Children.Single(node => node.Name == $"syn_{token}");
+            var columns = synonymNode.Children.Single(node => node.NodeType == NodeType.Columns);
+            await explorer.LoadNodeAsync(columns);
+            // Read from the other database's catalog, so the primary key is known.
+            Assert.Equal(["remote_id", "remote_total"], columns.Children.Select(node => node.Name));
+            Assert.StartsWith("PK-", columns.Children[0].Details, StringComparison.Ordinal);
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop synonym if exists syn_{token}");
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(
+                connectionSettings,
+                $"alter database [{otherDatabase}] set single_user with rollback immediate; drop database [{otherDatabase}]");
+        }
+    }
+
+    [Theory]
+    [Trait("Category", "Integration")]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.Oracle)]
+    public async Task Provider_SynonymColumnsAreDescribedWhenTheCatalogCannotReachTheTarget(DatabaseType databaseType)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var token = Guid.NewGuid().ToString("N")[..8];
+        var dialect = Data.Services.SqlDialects.SqlDialect.For(databaseType);
+        var storedName = dialect.ResolveQualifiedName($"syn_{token}").Single();
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create synonym syn_{token} for {(databaseType == DatabaseType.SqlServer ? "dbo.orders" : "orders")}");
+        try
+        {
+            var service = new SchemaMetadataService(connectionSettings);
+            var synonym = (await service.ListObjectsAsync(DbObjectKind.Synonym)).Single(item => item.Name == storedName);
+
+            // A target behind a linked server or database link has no catalog entry to read.
+            synonym.TargetDatabaseName = null;
+            synonym.TargetSchemaName = null;
+            synonym.TargetName = null;
+
+            var columns = await DatabaseIntegrationTestSupport.WithTimeout(service.GetSynonymColumnsAsync(synonym), IntegrationTimeout, $"{databaseType} synonym columns");
+            Assert.Contains(columns, column => string.Equals(column.Name, "order_total", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop synonym syn_{token}");
+        }
+    }
+
+    private static async Task<IReadOnlyList<SqlCompletionData>> CompleteAsync(IConnectionSettings connectionSettings, string sql, int? caretOffset = null)
+    {
+        var caret = caretOffset ?? sql.Length;
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, caret);
+        var completions = await DatabaseIntegrationTestSupport.WithTimeout(
+            SqlCompletionProvider.GetCompletionsAsync(connectionSettings, sql, caret, request),
+            IntegrationTimeout,
+            $"{connectionSettings.DatabaseType} completion");
+        return completions.OfType<SqlCompletionData>().ToList();
     }
 
     private static bool NameMatches(string actualName, string expectedName)

@@ -363,6 +363,37 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public async Task SchemaRefresh_MakesObjectsCreatedAfterTheFirstCompletionAvailable()
+    {
+        using var context = CreateConnectionContext();
+        await context.ViewModel.Initialization;
+        const string sql = "select * from ";
+
+        // The first completion builds the connection's cache without the new table.
+        Assert.DoesNotContain(await CompleteAsync(context.ConnectionSettings, sql), item => item.Text == "created_later");
+
+        const string createStatement = "create table created_later (id integer primary key)";
+        using (var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={context.ConnectionSettings.Database}"))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = createStatement;
+            command.ExecuteNonQuery();
+        }
+
+        // What running DDL in the editor does: refresh the tab's schema tree.
+        await context.ViewModel.SchemaExplorer.RefreshSchemaObjectAsync(createStatement);
+
+        Assert.Contains(await CompleteAsync(context.ConnectionSettings, sql), item => item.Text == "created_later");
+    }
+
+    private static async Task<IReadOnlyList<AvaloniaEdit.CodeCompletion.ICompletionData>> CompleteAsync(Data.Interfaces.IConnectionSettings settings, string sql)
+    {
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+        return await SqlCompletionProvider.GetCompletionsAsync(settings, sql, sql.Length, request);
+    }
+
+    [Fact]
     public async Task LoadSchemaNodeAsync_WhenTheLoadFails_ShowsTheErrorAndKeepsTheFolderRetryable()
     {
         using var context = CreateConnectionContext();
