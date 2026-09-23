@@ -144,6 +144,10 @@ public class ProviderSqlAnalyzer : IProviderSqlAnalyzer
             }
         }
 
+        // Oracle's CREATE [OR REPLACE] PUBLIC SYNONYM and DROP PUBLIC SYNONYM.
+        if (IsToken(tokens, index, "public") && IsToken(tokens, index + 1, "synonym"))
+            index++;
+
         if (!TryReadObjectType(tokens, index, out var objectType, out var nextIndex))
             return null;
 
@@ -411,6 +415,12 @@ public class ProviderSqlAnalyzer : IProviderSqlAnalyzer
         if (value?.Equals("sequence", StringComparison.OrdinalIgnoreCase) == true)
         {
             objectType = SchemaObjectType.Sequence;
+            return true;
+        }
+
+        if (value?.Equals("synonym", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            objectType = SchemaObjectType.Synonym;
             return true;
         }
 

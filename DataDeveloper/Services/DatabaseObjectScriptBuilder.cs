@@ -14,7 +14,7 @@ public static class DatabaseObjectScriptBuilder
     {
         return node.NodeType switch
         {
-            NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Sequence =>
+            NodeType.Table or NodeType.View or NodeType.Procedure or NodeType.Function or NodeType.Sequence or NodeType.Synonym =>
                 QuoteObjectName(connectionSettings, node.Name),
             NodeType.Column => BuildQualifiedColumnName(connectionSettings, node),
             NodeType.Parameter => node.Name,

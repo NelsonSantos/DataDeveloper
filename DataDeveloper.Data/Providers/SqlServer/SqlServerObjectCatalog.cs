@@ -333,6 +333,15 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
                                          concat('increment ', cast(s.increment as nvarchar(40)), ', current ', cast(s.current_value as nvarchar(40))) as Details
                                      from sys.sequences s;
                                      """,
+            // nchar(8594) is "→", kept out of the literal to avoid code page issues.
+            DbObjectKind.Synonym => """
+                                    select
+                                        schema_name(s.schema_id) as SchemaName,
+                                        s.name as Name,
+                                        cast(case when schema_name(s.schema_id) = schema_name() then 1 else 0 end as bit) as IsDefaultSchema,
+                                        nchar(8594) + N' ' + s.base_object_name as Details
+                                    from sys.synonyms s;
+                                    """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
         };
     }
@@ -447,7 +456,7 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
     }
 
     public override IReadOnlyList<DbObjectKind> RootObjectKinds { get; } =
-        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence];
+        [DbObjectKind.Table, DbObjectKind.View, DbObjectKind.Procedure, DbObjectKind.Function, DbObjectKind.Sequence, DbObjectKind.Synonym];
 
     // SQL Server has no function returning a sequence's DDL, so it is assembled from sys.sequences.
     protected override DdlRetrieval GetSequenceDdlRetrieval(DbObjectRef sequence)
@@ -464,5 +473,13 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
             "    '    ' + case when s.is_cached = 0 then 'no cache' when s.cache_size is null then 'cache' else 'cache ' + cast(s.cache_size as nvarchar(20)) end + ';' as Definition" + Environment.NewLine +
             "from sys.sequences s" + Environment.NewLine +
             $"where s.object_id = object_id(N'{EscapeSqlLiteral(sequence.QualifiedName)}');");
+    }
+
+    protected override DdlRetrieval GetSynonymDdlRetrieval(DbObjectRef synonym)
+    {
+        return new DdlRetrieval(
+            "select 'create synonym ' + quotename(schema_name(s.schema_id)) + '.' + quotename(s.name) + ' for ' + s.base_object_name + ';' as Definition" + Environment.NewLine +
+            "from sys.synonyms s" + Environment.NewLine +
+            $"where s.object_id = object_id(N'{EscapeSqlLiteral(synonym.QualifiedName)}');");
     }
 }

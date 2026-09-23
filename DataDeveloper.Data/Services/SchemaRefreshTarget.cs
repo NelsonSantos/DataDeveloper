@@ -18,6 +18,7 @@ public enum SchemaObjectType
     Trigger,
     Index,
     Sequence,
+    Synonym,
 }
 
 public record SchemaRefreshTarget(SchemaRefreshAction Action, SchemaObjectType ObjectType, string? ObjectName);

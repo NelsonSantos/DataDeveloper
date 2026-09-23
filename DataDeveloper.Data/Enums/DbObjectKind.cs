@@ -7,5 +7,6 @@ public enum DbObjectKind
     Procedure,
     Function,
     Trigger,
-    Sequence
+    Sequence,
+    Synonym
 }

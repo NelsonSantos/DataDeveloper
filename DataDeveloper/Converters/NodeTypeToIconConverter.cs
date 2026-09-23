@@ -28,6 +28,7 @@ public class NodeTypeToIconConverter : IValueConverter
             NodeType.Index => "\U000F04BC",
             NodeType.Trigger => "\U000F140B",
             NodeType.Sequence => "\U000F1389",
+            NodeType.Synonym => "\U000F0339",
             _ => "\U000F024B"
         };
     }

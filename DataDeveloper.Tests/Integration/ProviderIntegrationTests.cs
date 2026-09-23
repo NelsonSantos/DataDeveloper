@@ -454,6 +454,51 @@ public class ProviderIntegrationTests
         }
     }
 
+    [Theory]
+    [Trait("Category", "Integration")]
+    [InlineData(DatabaseType.SqlServer, "→ [dbo].[orders]")]
+    [InlineData(DatabaseType.Oracle, "→ DATADEVELOPER.ORDERS")]
+    public async Task Provider_SchemaTreeShowsSynonymsWithTargetDdlAndRefresh(DatabaseType databaseType, string expectedDetails)
+    {
+        if (!DatabaseIntegrationTestSupport.ShouldRunIntegrationTests())
+            return;
+
+        var connectionSettings = DatabaseIntegrationTestSupport.CreateConnectionSettings(databaseType);
+        var typedName = $"syn_{Guid.NewGuid().ToString("N")[..8]}";
+        var storedName = Data.Services.SqlDialects.SqlDialect.For(databaseType).ResolveQualifiedName(typedName).Single();
+        var target = databaseType == DatabaseType.SqlServer ? "dbo.orders" : "orders";
+
+        await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"create synonym {typedName} for {target}");
+        try
+        {
+            var explorer = connectionSettings.GetSchemaExplorer();
+            await DatabaseIntegrationTestSupport.WithTimeout(explorer.InitializeSchemaNode(), IntegrationTimeout, $"{databaseType} schema initialization");
+            var synonyms = explorer.RootConnections[0].Children.Single(node => node.NodeType == NodeType.Synonyms);
+            var synonym = Assert.Single(synonyms.Children, node => node.Name == storedName);
+            Assert.Equal(NodeType.Synonym, synonym.NodeType);
+            Assert.Equal(expectedDetails, synonym.Details);
+
+            // The synonym resolves to the table.
+            Assert.True(await DatabaseIntegrationTestSupport.ExecuteScalarIntAsync(connectionSettings, $"select count(*) as value from {typedName}") >= 0);
+
+            var ddl = await DatabaseIntegrationTestSupport.WithTimeout(
+                new SchemaMetadataService(connectionSettings).GetDdlAsync(synonym), IntegrationTimeout, $"{databaseType} synonym DDL");
+            Assert.Contains("synonym", ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(storedName, ddl, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("orders", ddl, StringComparison.OrdinalIgnoreCase);
+
+            var dropStatement = $"drop synonym {typedName}";
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, dropStatement);
+            await explorer.RefreshSchemaObjectAsync(dropStatement);
+            Assert.DoesNotContain(synonyms.Children, node => node.Name == storedName);
+        }
+        catch
+        {
+            await DatabaseIntegrationTestSupport.ExecuteNonQueryAsync(connectionSettings, $"drop synonym {typedName}");
+            throw;
+        }
+    }
+
     private static bool NameMatches(string actualName, string expectedName)
     {
         return string.Equals(actualName, expectedName, StringComparison.OrdinalIgnoreCase) ||

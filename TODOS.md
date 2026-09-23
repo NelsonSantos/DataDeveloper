@@ -36,7 +36,7 @@ Objetos específicos de cada banco para a árvore de conexão. Cada item entra s
 - [ ] Sequences no MariaDB 10.3+ (conexão MySQL; a pasta depende da versão do servidor)
 - [ ] Materialized Views, com Columns e script de refresh (Oracle, PostgreSQL)
 - [ ] Packages, com as procedures e functions internas e seus parâmetros (Oracle)
-- [ ] Synonyms (SQL Server, Oracle)
+- [x] Synonyms (SQL Server, Oracle)
 - [ ] Triggers em views, `INSTEAD OF` (SQL Server, Oracle, PostgreSQL, SQLite)
 - [ ] Enums, Domains e Extensions (PostgreSQL)
 - [ ] Events (MySQL, MariaDB)

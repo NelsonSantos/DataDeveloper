@@ -29,4 +29,6 @@ public enum NodeType
     Trigger,
     Sequences,
     Sequence,
+    Synonyms,
+    Synonym,
 }
