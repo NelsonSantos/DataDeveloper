@@ -1,5 +1,4 @@
 using System;
-using System.Data.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using Avalonia.Media;
 using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 
@@ -155,12 +155,12 @@ public partial class TabConnectionView : UserControl
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>
             {
-                await OpenTableDdlAsync(node, viewModel, openInEditor: true);
+                await OpenDdlAsync(node, viewModel, openInEditor: true);
             }));
 
             sqlScriptItems.Add(CreateMenuItem("DDL Create to clipboard", async () =>
             {
-                await OpenTableDdlAsync(node, viewModel, openInEditor: false);
+                await OpenDdlAsync(node, viewModel, openInEditor: false);
             }));
         }
 
@@ -169,12 +169,12 @@ public partial class TabConnectionView : UserControl
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: true);
+                await OpenDdlAsync(node, viewModel, openInEditor: true);
             }));
 
             sqlScriptItems.Add(CreateMenuItem("DDL Create to clipboard", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: false);
+                await OpenDdlAsync(node, viewModel, openInEditor: false);
             }));
         }
 
@@ -189,12 +189,12 @@ public partial class TabConnectionView : UserControl
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: true);
+                await OpenDdlAsync(node, viewModel, openInEditor: true);
             }));
 
             sqlScriptItems.Add(CreateMenuItem("DDL Create to clipboard", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: false);
+                await OpenDdlAsync(node, viewModel, openInEditor: false);
             }));
         }
 
@@ -209,12 +209,12 @@ public partial class TabConnectionView : UserControl
             sqlScriptItems.Add(new Separator());
             sqlScriptItems.Add(CreateMenuItem("DDL Create to new Query", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: true);
+                await OpenDdlAsync(node, viewModel, openInEditor: true);
             }));
 
             sqlScriptItems.Add(CreateMenuItem("DDL Create to clipboard", async () =>
             {
-                await OpenDatabaseDdlAsync(node, viewModel, openInEditor: false);
+                await OpenDdlAsync(node, viewModel, openInEditor: false);
             }));
         }
 
@@ -296,56 +296,12 @@ public partial class TabConnectionView : UserControl
         await viewModel.SchemaExplorer.LoadNodeAsync(columnFolder);
     }
 
-    private async Task OpenDatabaseDdlAsync(SchemaNode node, TabConnectionViewModel viewModel, bool openInEditor)
+    private async Task OpenDdlAsync(SchemaNode node, TabConnectionViewModel viewModel, bool openInEditor)
     {
-        var ddlQuery = DatabaseObjectScriptBuilder.TryBuildNativeDdlRetrievalScript(viewModel.ConnectionSettings, node)
-                       ?? DatabaseObjectScriptBuilder.BuildObjectDdlRetrievalScript(viewModel.ConnectionSettings, node);
-        await using var connection = viewModel.ConnectionSettings.GetDatabaseProvider().GetConnection();
-        await connection.OpenAsync();
-
-        if (viewModel.ConnectionSettings.DatabaseType == DatabaseType.Oracle && node.NodeType == NodeType.Table)
-            await ConfigureOracleMetadataSessionAsync(connection);
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = ddlQuery;
-
-        await using var reader = await command.ExecuteReaderAsync();
-        var ddl = await ReadDdlAsync(reader);
-        ddl = DatabaseObjectScriptBuilder.PostProcessDdl(viewModel.ConnectionSettings, node, ddl);
-        ddl = string.IsNullOrWhiteSpace(ddl) ? "-- DDL not found." : ddl;
-
-        if (openInEditor)
-            viewModel.OpenQueryEditorWithScript(ddl);
-        else
-            await CopyToClipboardAsync(ddl);
-    }
-
-    private static async Task ConfigureOracleMetadataSessionAsync(DbConnection connection)
-    {
-        await using var command = connection.CreateCommand();
-        command.CommandText = """
-                              begin
-                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'PRETTY', true);
-                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SQLTERMINATOR', true);
-                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'SEGMENT_ATTRIBUTES', false);
-                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'STORAGE', false);
-                                  dbms_metadata.set_transform_param(dbms_metadata.session_transform, 'TABLESPACE', false);
-                              end;
-                              """;
-        await command.ExecuteNonQueryAsync();
-    }
-
-    private async Task OpenTableDdlAsync(SchemaNode node, TabConnectionViewModel viewModel, bool openInEditor)
-    {
-        var nativeDdlQuery = DatabaseObjectScriptBuilder.TryBuildNativeDdlRetrievalScript(viewModel.ConnectionSettings, node);
-        if (!string.IsNullOrWhiteSpace(nativeDdlQuery))
-        {
-            await OpenDatabaseDdlAsync(node, viewModel, openInEditor);
-            return;
-        }
-
-        await EnsureTableColumnsLoadedAsync(node, viewModel);
-        var ddl = DatabaseObjectScriptBuilder.BuildDdlScript(viewModel.ConnectionSettings, node);
+        var ddl = await new SchemaMetadataService(viewModel.ConnectionSettings).GetDdlAsync(node);
+        ddl = string.IsNullOrWhiteSpace(ddl)
+            ? "-- DDL not available: the object was not found, or the connection user lacks permission to view its definition."
+            : ddl;
 
         if (openInEditor)
             viewModel.OpenQueryEditorWithScript(ddl);
@@ -376,28 +332,4 @@ public partial class TabConnectionView : UserControl
         await viewModel.ExecuteBackgroundStatementAsync(dropScript, refreshSchema: true);
     }
 
-    private static async Task<string> ReadDdlAsync(DbDataReader reader)
-    {
-        var parts = new List<string>();
-
-        do
-        {
-            while (await reader.ReadAsync())
-            {
-                var createColumnIndex = Enumerable.Range(0, reader.FieldCount)
-                    .FirstOrDefault(index => reader.GetName(index).StartsWith("Create ", StringComparison.OrdinalIgnoreCase), -1);
-
-                if (createColumnIndex >= 0 && createColumnIndex < reader.FieldCount && !await reader.IsDBNullAsync(createColumnIndex))
-                {
-                    parts.Add(reader.GetString(createColumnIndex));
-                    continue;
-                }
-
-                if (!await reader.IsDBNullAsync(0))
-                    parts.Add(reader.GetString(0));
-            }
-        } while (await reader.NextResultAsync());
-
-        return string.Join($"{Environment.NewLine}{Environment.NewLine}", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
-    }
 }
