@@ -19,7 +19,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Open multiple query editors per connection
 - Execute SQL statements and inspect results in tabbed result views
 - Configure DML transaction mode per connection, using either auto commit or manual commit/rollback
-- Use provider-aware SQL completion for tables, columns, and common SQL functions
+- Use provider-aware SQL completion for tables, views, synonyms, columns, and common SQL functions, and for sequences where each database expects one (`NEXT VALUE FOR` on SQL Server, `nextval('...')` on PostgreSQL, `NEXTVAL`/`CURRVAL` on Oracle)
 - View column data types and function return details directly in completion suggestions
 - See function parameter hints while writing function calls in the SQL editor
 - Navigate query results with the custom `NextGrid` control

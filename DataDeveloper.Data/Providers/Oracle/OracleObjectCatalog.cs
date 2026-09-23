@@ -178,7 +178,9 @@ public sealed class OracleObjectCatalog : ObjectCatalog
                                         synonym_name as "Name",
                                         1 as "IsDefaultSchema",
                                         unistr('\2192') || ' ' || table_owner || '.' || table_name
-                                            || case when db_link is not null then '@' || db_link end as "Details"
+                                            || case when db_link is not null then '@' || db_link end as "Details",
+                                        case when db_link is null then table_owner end as "TargetSchemaName",
+                                        case when db_link is null then table_name end as "TargetName"
                                     from user_synonyms
                                     """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)

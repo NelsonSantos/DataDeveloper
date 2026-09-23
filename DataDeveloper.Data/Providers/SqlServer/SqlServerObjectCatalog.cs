@@ -339,7 +339,13 @@ public sealed class SqlServerObjectCatalog : ObjectCatalog
                                         schema_name(s.schema_id) as SchemaName,
                                         s.name as Name,
                                         cast(case when schema_name(s.schema_id) = schema_name() then 1 else 0 end as bit) as IsDefaultSchema,
-                                        nchar(8594) + N' ' + s.base_object_name as Details
+                                        nchar(8594) + N' ' + s.base_object_name as Details,
+                                        case when parsename(s.base_object_name, 4) is null and parsename(s.base_object_name, 3) <> db_name()
+                                             then parsename(s.base_object_name, 3) end as TargetDatabaseName,
+                                        case when parsename(s.base_object_name, 4) is null
+                                             then parsename(s.base_object_name, 2) end as TargetSchemaName,
+                                        case when parsename(s.base_object_name, 4) is null
+                                             then parsename(s.base_object_name, 1) end as TargetName
                                     from sys.synonyms s;
                                     """,
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)

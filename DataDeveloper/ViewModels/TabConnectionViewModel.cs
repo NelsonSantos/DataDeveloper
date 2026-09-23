@@ -46,6 +46,8 @@ public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     {
         ConnectionSettings = connectionSettings;
         SchemaExplorer = ConnectionSettings.GetSchemaExplorer();
+        // Objects created, altered or dropped show up in completion once the tree refreshes.
+        SchemaExplorer.SchemaRefreshed += (_, _) => SqlCompletionProvider.InvalidateSchemaCache(ConnectionSettings.Id);
         _sqlAnalyzer = ConnectionSettings.GetSqlAnalyzer();
         _dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         _fileImportDialogService = ServiceProvider.GetRequiredService<IFileImportDialogService>();

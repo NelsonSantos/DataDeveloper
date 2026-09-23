@@ -39,18 +39,45 @@ public static class SqlCompletionProvider
         @"(?ix)\bset\b",
         RegexOptions.Compiled);
 
+    // Places where a sequence name is expected: SQL Server's NEXT VALUE FOR and PostgreSQL's
+    // nextval/currval/setval string argument. Oracle's seq.NEXTVAL is handled after the dot.
+    private static readonly Regex NextValueForRegex = new(
+        @"\bnext\s+value\s+for\s+[\w\[\]""\.]*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex SequenceFunctionArgumentRegex = new(
+        @"\b(?:nextval|currval|setval)\s*\(\s*'[\w""\.]*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // Folders whose objects can be read from in FROM/JOIN/UPDATE/INTO, and how they are shown.
+    private static readonly (NodeType Folder, NodeType Item, CompletionItemKind Kind)[] SourceFolders =
+    [
+        (NodeType.Tables, NodeType.Table, CompletionItemKind.Table),
+        (NodeType.Views, NodeType.View, CompletionItemKind.View),
+        (NodeType.Synonyms, NodeType.Synonym, CompletionItemKind.Synonym)
+    ];
+
     private static readonly ConcurrentDictionary<Guid, SchemaCompletionCache> SchemaCache = new();
 
     // Only the literal space bar counts as trigger whitespace: char.IsWhiteSpace also
     // matches '\n'/'\r'/'\t', which made pressing Enter (or auto-indent) reopen completion.
     private static bool IsTriggerSpace(char ch) => ch == ' ';
 
+    /// <summary>
+    /// Discards the objects and columns cached for a connection, so the next completion reloads
+    /// them; called when that connection's schema tree is refreshed.
+    /// </summary>
+    public static void InvalidateSchemaCache(Guid connectionId)
+    {
+        SchemaCache.TryRemove(connectionId, out _);
+    }
+
     public static bool ShouldTriggerCompletion(string? text)
     {
         if (string.IsNullOrEmpty(text))
             return false;
 
-        return text.All(ch => char.IsLetterOrDigit(ch) || IsTriggerSpace(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(');
+        return text.All(ch => char.IsLetterOrDigit(ch) || IsTriggerSpace(ch) || ch == '_' || ch == '.' || ch == ',' || ch == '(' || ch == '\'');
     }
 
     public static CompletionRequest? GetAutoCompletionRequest(string editorText, int caretOffset, string? insertedText)
@@ -59,6 +86,13 @@ public static class SqlCompletionProvider
             return null;
 
         var context = DetectContext(editorText, caretOffset);
+
+        if (context.Trigger == CompletionTrigger.Sequences)
+        {
+            return insertedText.All(IsTriggerSpace) || insertedText is "'" or "." || insertedText.All(ch => char.IsLetterOrDigit(ch) || ch == '_')
+                ? new CompletionRequest(context)
+                : null;
+        }
 
         if (insertedText == ".")
             return new CompletionRequest(context with { Trigger = CompletionTrigger.Columns });
@@ -122,17 +156,32 @@ public static class SqlCompletionProvider
         var cache = SchemaCache.GetOrAdd(connectionSettings.Id, _ => new SchemaCompletionCache());
         await EnsureTablesLoadedAsync(connectionSettings, cache);
 
+        if (request.Context.Trigger == CompletionTrigger.Sequences)
+            return BuildSequenceCompletions(cache, currentWord);
+
         if (request.Context.Trigger is CompletionTrigger.Objects or CompletionTrigger.Any)
         {
             foreach (var table in cache.Tables)
             {
-                completions.TryAdd(table, new SqlCompletionData(table, "Table", CompletionItemKind.Table, GetObjectPriority(CompletionKind.Table, request.Context.Clause)));
+                var kind = cache.ObjectKinds.GetValueOrDefault(table, CompletionItemKind.Table);
+                completions.TryAdd(table, new SqlCompletionData(table, kind.ToString(), kind, GetObjectPriority(CompletionKind.Table, request.Context.Clause)));
             }
 
             foreach (var cteName in cteDefinitions.Keys)
             {
                 completions.TryAdd(cteName, new SqlCompletionData(cteName, "CTE", CompletionItemKind.Cte, GetObjectPriority(CompletionKind.Cte, request.Context.Clause)));
             }
+        }
+
+        // Oracle reads a sequence through its pseudocolumns: order_seq.NEXTVAL.
+        if (connectionSettings.DatabaseType == DatabaseType.Oracle &&
+            request.Context.ObjectNameBeforeDot is { } sequenceName &&
+            cache.Sequences.Contains(sequenceName))
+        {
+            foreach (var pseudocolumn in new[] { "NEXTVAL", "CURRVAL" })
+                completions.TryAdd(pseudocolumn, new SqlCompletionData(pseudocolumn, $"Sequence {sequenceName}", CompletionItemKind.Sequence));
+
+            return FilterAndSort(completions.Values, currentWord);
         }
 
         if (request.Context.Trigger is CompletionTrigger.Columns or CompletionTrigger.Any)
@@ -169,7 +218,19 @@ public static class SqlCompletionProvider
             }
         }
 
-        return completions.Values
+        return FilterAndSort(completions.Values, currentWord);
+    }
+
+    private static IReadOnlyList<ICompletionData> BuildSequenceCompletions(SchemaCompletionCache cache, string currentWord)
+    {
+        return FilterAndSort(
+            cache.Sequences.Select(sequence => new SqlCompletionData(sequence, "Sequence", CompletionItemKind.Sequence)),
+            currentWord);
+    }
+
+    private static IReadOnlyList<ICompletionData> FilterAndSort(IEnumerable<SqlCompletionData> completions, string currentWord)
+    {
+        return completions
             .Where(item => currentWord.Length == 0 || item.Text.StartsWith(currentWord, StringComparison.OrdinalIgnoreCase))
             .OrderBy(item => item.Priority)
             .ThenBy(item => item.Text)
@@ -222,25 +283,26 @@ public static class SqlCompletionProvider
         var schemaExplorer = connectionSettings.GetSchemaExplorer();
         await schemaExplorer.InitializeSchemaNode();
 
-        var tablesNode = schemaExplorer.RootConnections
-            .SelectMany(root => root.Children)
-            .FirstOrDefault(node => node.NodeType == NodeType.Tables);
-
-        if (tablesNode is null)
-        {
-            cache.TablesLoaded = true;
-            return;
-        }
+        var rootFolders = schemaExplorer.RootConnections.SelectMany(root => root.Children).ToList();
 
         cache.TableNodes.Clear();
-        foreach (var tableNode in tablesNode.Children.Where(node => node.NodeType == NodeType.Table))
+        foreach (var (folderType, itemType, kind) in SourceFolders)
         {
-            cache.Tables.Add(tableNode.Name);
-            cache.TableNodes[tableNode.Name] = tableNode;
-            cache.TableNodes[$"[{tableNode.Name}]"] = tableNode;
-            cache.TableNodes[$"`{tableNode.Name}`"] = tableNode;
-            cache.TableNodes[$"\"{tableNode.Name}\""] = tableNode;
+            var folder = rootFolders.FirstOrDefault(node => node.NodeType == folderType);
+            foreach (var objectNode in folder?.Children.Where(node => node.NodeType == itemType) ?? [])
+            {
+                cache.Tables.Add(objectNode.Name);
+                cache.ObjectKinds.TryAdd(objectNode.Name, kind);
+                cache.TableNodes.TryAdd(objectNode.Name, objectNode);
+                cache.TableNodes.TryAdd($"[{objectNode.Name}]", objectNode);
+                cache.TableNodes.TryAdd($"`{objectNode.Name}`", objectNode);
+                cache.TableNodes.TryAdd($"\"{objectNode.Name}\"", objectNode);
+            }
         }
+
+        var sequencesFolder = rootFolders.FirstOrDefault(node => node.NodeType == NodeType.Sequences);
+        foreach (var sequenceNode in sequencesFolder?.Children.Where(node => node.NodeType == NodeType.Sequence) ?? [])
+            cache.Sequences.Add(sequenceNode.Name);
 
         cache.TablesLoaded = true;
     }
@@ -364,7 +426,10 @@ public static class SqlCompletionProvider
         if (cteDefinitions.Count > 0)
             return cteDefinitions.Keys.Select(name => new CompletionSource(name, CompletionKind.Cte)).ToArray();
 
+        // Without any referenced source, fall back to every table (not views or synonyms, to keep
+        // the number of column lookups as before).
         return cache.TableNodes.Values
+            .Where(node => node.NodeType == NodeType.Table)
             .DistinctBy(node => node.Name)
             .Select(node => new CompletionSource(node.Name, CompletionKind.Table))
             .ToArray();
@@ -537,6 +602,9 @@ public static class SqlCompletionProvider
             return new CompletionContext(SqlClause.None, CompletionTrigger.Any, null, null, false, false);
 
         var textBeforeCaret = editorText[..Math.Min(caretOffset, editorText.Length)];
+        if (NextValueForRegex.IsMatch(textBeforeCaret) || SequenceFunctionArgumentRegex.IsMatch(textBeforeCaret))
+            return new CompletionContext(SqlClause.None, CompletionTrigger.Sequences, null, null, false, false);
+
         var targetTableName = DetectTargetTableName(textBeforeCaret);
         var isInsideInsertColumnList = IsInsideInsertColumnList(textBeforeCaret);
         var isInsideUpdateSetList = IsInsideUpdateSetList(textBeforeCaret);
@@ -1115,6 +1183,8 @@ public static class SqlCompletionProvider
         public bool TablesLoaded { get; set; }
         public HashSet<string> Tables { get; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, SchemaNode> TableNodes { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, CompletionItemKind> ObjectKinds { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> Sequences { get; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, ColumnCompletionInfo[]> ColumnsByTable { get; } = new(StringComparer.OrdinalIgnoreCase);
         public HashSet<string> LoadedTables { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
@@ -1181,7 +1251,8 @@ public enum CompletionTrigger
 {
     Any,
     Columns,
-    Objects
+    Objects,
+    Sequences
 }
 
 public enum CompletionItemKind
@@ -1189,7 +1260,10 @@ public enum CompletionItemKind
     Table,
     Column,
     Cte,
-    Function
+    Function,
+    View,
+    Synonym,
+    Sequence
 }
 
 public sealed record SqlCompletionData(string Text, string Description, CompletionItemKind Kind, double Priority = 0, string? Detail = null) : ICompletionData
@@ -1257,7 +1331,8 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
     {
         return Kind switch
         {
-            CompletionItemKind.Table => Avalonia.Media.Brushes.DeepSkyBlue,
+            CompletionItemKind.Table or CompletionItemKind.View or CompletionItemKind.Synonym => Avalonia.Media.Brushes.DeepSkyBlue,
+            CompletionItemKind.Sequence => Avalonia.Media.Brushes.Plum,
             CompletionItemKind.Column => Avalonia.Media.Brushes.LightGreen,
             CompletionItemKind.Cte => Avalonia.Media.Brushes.Goldenrod,
             CompletionItemKind.Function => Avalonia.Media.Brushes.Khaki,
@@ -1273,6 +1348,9 @@ public sealed record SqlCompletionData(string Text, string Description, Completi
             CompletionItemKind.Column => "\U000F08DF",
             CompletionItemKind.Cte => "\U000F01BC",
             CompletionItemKind.Function => "\U000F0295",
+            CompletionItemKind.View => "\U000F0208",
+            CompletionItemKind.Synonym => "\U000F0339",
+            CompletionItemKind.Sequence => "\U000F1389",
             _ => "\U000F09EE"
         };
     }

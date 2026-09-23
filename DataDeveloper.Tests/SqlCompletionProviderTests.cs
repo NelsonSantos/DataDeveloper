@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
+using DataDeveloper.Data;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Providers.SqLite;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Services;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace DataDeveloper.Tests;
@@ -500,6 +505,220 @@ public class SqlCompletionProviderTests
 
         Assert.Contains(completions, item => item.Text == "sale_id");
         Assert.Contains(completions, item => item.Text == "customer_name");
+    }
+
+    [Theory]
+    [InlineData("select next value for ", " ")]
+    [InlineData("select next value for ord", "d")]
+    [InlineData("insert into t (id) values (next value for dbo.", ".")]
+    [InlineData("select nextval('", "'")]
+    [InlineData("select setval('ord", "d")]
+    public void GetAutoCompletionRequest_InSequenceContexts_RequestsSequences(string sql, string insertedText)
+    {
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, insertedText);
+
+        Assert.NotNull(request);
+        Assert.Equal(CompletionTrigger.Sequences, request!.Context.Trigger);
+    }
+
+    [Theory]
+    [InlineData("select * from t where name = '")]
+    [InlineData("insert into t values ('")]
+    public void GetAutoCompletionRequest_ForAnOrdinaryQuote_DoesNotOpen(string sql)
+    {
+        Assert.Null(SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, "'"));
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_InSequenceContext_ReturnsOnlySequences()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedObjects(connection.Id, ("clientes", NodeType.Table, ["id"]));
+        SeedSequences(connection.Id, "order_number", "invoice_number");
+
+        var sql = "select next value for ord";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = (await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request)).OfType<SqlCompletionData>().ToList();
+
+        var sequence = Assert.Single(completions);
+        Assert.Equal("order_number", sequence.Text);
+        Assert.Equal(CompletionItemKind.Sequence, sequence.Kind);
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_AfterFrom_ListsTablesViewsAndSynonyms()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedObjects(
+            connection.Id,
+            ("clientes", NodeType.Table, ["id"]),
+            ("clientes_ativos", NodeType.View, ["id"]),
+            ("cli", NodeType.Synonym, ["id"]));
+        SeedSequences(connection.Id, "cli_seq");
+
+        var sql = "select * from cli";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = (await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request)).OfType<SqlCompletionData>().ToList();
+
+        Assert.Equal(CompletionItemKind.Table, Assert.Single(completions, item => item.Text == "clientes").Kind);
+        var view = Assert.Single(completions, item => item.Text == "clientes_ativos");
+        Assert.Equal((CompletionItemKind.View, "View"), (view.Kind, view.Description));
+        var synonym = Assert.Single(completions, item => item.Text == "cli");
+        Assert.Equal((CompletionItemKind.Synonym, "Synonym"), (synonym.Kind, synonym.Description));
+        Assert.DoesNotContain(completions, item => item.Text == "cli_seq");
+    }
+
+    [Theory]
+    [InlineData("clientes_ativos", NodeType.View)]
+    [InlineData("cli", NodeType.Synonym)]
+    public async Task GetCompletionsAsync_AfterAliasDot_ReturnsColumnsOfViewsAndSynonyms(string objectName, NodeType nodeType)
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedObjects(connection.Id, (objectName, nodeType, ["id", "nome"]));
+
+        var sql = $"select x. from {objectName} x";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, "select x.".Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, "select x.".Length, request);
+
+        Assert.Contains(completions, item => item.Text == "id");
+        Assert.Contains(completions, item => item.Text == "nome");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_WithoutReferencedSource_FallsBackToTablesOnly()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.SqlServer };
+        SeedObjects(
+            connection.Id,
+            ("clientes", NodeType.Table, ["nome"]),
+            ("clientes_ativos", NodeType.View, ["coluna_da_view"]));
+
+        var sql = "select ";
+        var request = SqlCompletionProvider.GetManualCompletionRequest(sql, sql.Length);
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request);
+
+        Assert.Contains(completions, item => item.Text == "nome");
+        Assert.DoesNotContain(completions, item => item.Text == "coluna_da_view");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_OracleSequenceDot_ReturnsNextvalAndCurrval()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.Oracle };
+        SeedObjects(connection.Id, ("CLIENTES", NodeType.Table, ["ID"]));
+        SeedSequences(connection.Id, "ORDER_SEQ");
+
+        var sql = "select order_seq.";
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, ".");
+
+        var completions = (await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request!)).OfType<SqlCompletionData>().ToList();
+
+        Assert.Equal(["CURRVAL", "NEXTVAL"], completions.Select(item => item.Text).OrderBy(text => text));
+        Assert.All(completions, item => Assert.Equal(CompletionItemKind.Sequence, item.Kind));
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_SequenceDotOutsideOracle_DoesNotSuggestPseudocolumns()
+    {
+        var connection = new TestConnectionSettings { DatabaseType = DatabaseType.PostgresSql };
+        SeedSequences(connection.Id, "order_seq");
+
+        var sql = "select order_seq.";
+        var request = SqlCompletionProvider.GetAutoCompletionRequest(sql, sql.Length, ".");
+
+        var completions = await SqlCompletionProvider.GetCompletionsAsync(connection, sql, sql.Length, request!);
+
+        Assert.DoesNotContain(completions, item => item.Text == "NEXTVAL");
+    }
+
+    [Fact]
+    public async Task GetCompletionsAsync_OnSqlite_ListsViewsAndTheirColumns()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<DatabaseProviderFactoryService>();
+        DatabaseExtensionsMethods.SetServiceProvider(services.BuildServiceProvider());
+
+        var databasePath = Path.Combine(Path.GetTempPath(), $"datadeveloper-completion-{Guid.NewGuid():N}.db");
+        try
+        {
+            using (var setup = new SqliteConnection($"Data Source={databasePath}"))
+            {
+                setup.Open();
+                using var command = setup.CreateCommand();
+                command.CommandText = """
+                                      create table orders (id integer primary key, total real);
+                                      create view big_orders as select id, total from orders where total > 100;
+                                      """;
+                command.ExecuteNonQuery();
+            }
+
+            var connection = new SqLiteConnectionSettings
+            {
+                Id = Guid.NewGuid(), Name = "Local", DatabaseType = DatabaseType.SqLite, Database = databasePath
+            };
+
+            var objectsSql = "select * from ";
+            var objects = await SqlCompletionProvider.GetCompletionsAsync(connection, objectsSql, objectsSql.Length, SqlCompletionProvider.GetManualCompletionRequest(objectsSql, objectsSql.Length));
+            Assert.Equal(CompletionItemKind.View, objects.OfType<SqlCompletionData>().Single(item => item.Text == "big_orders").Kind);
+
+            var columnsSql = "select b. from big_orders b";
+            var columns = await SqlCompletionProvider.GetCompletionsAsync(connection, columnsSql, "select b.".Length, SqlCompletionProvider.GetManualCompletionRequest(columnsSql, "select b.".Length));
+            Assert.Contains(columns, item => item.Text == "total");
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(databasePath);
+        }
+    }
+
+    private static void SeedObjects(Guid connectionId, params (string Name, NodeType NodeType, string[] Columns)[] objects)
+    {
+        SeedSchemaCache(connectionId, objects.Select(item => (item.Name, item.Columns)).ToArray());
+
+        var cache = GetSeededCache(connectionId);
+        var cacheType = cache.GetType();
+        var tableNodes = (IDictionary)cacheType.GetProperty("TableNodes")!.GetValue(cache)!;
+        var objectKinds = (IDictionary)cacheType.GetProperty("ObjectKinds")!.GetValue(cache)!;
+        foreach (var (name, nodeType, _) in objects)
+        {
+            var node = CreateSchemaNode(nodeType, name);
+            foreach (var key in new[] { name, $"[{name}]", $"`{name}`", $"\"{name}\"" })
+                tableNodes[key] = node;
+            objectKinds[name] = nodeType switch
+            {
+                NodeType.View => CompletionItemKind.View,
+                NodeType.Synonym => CompletionItemKind.Synonym,
+                _ => CompletionItemKind.Table
+            };
+        }
+    }
+
+    private static void SeedSequences(Guid connectionId, params string[] sequences)
+    {
+        if (!TryGetSeededCache(connectionId, out _))
+            SeedSchemaCache(connectionId, Array.Empty<(string, string[])>());
+
+        var cache = GetSeededCache(connectionId);
+        var sequenceSet = (ISet<string>)cache.GetType().GetProperty("Sequences")!.GetValue(cache)!;
+        foreach (var sequence in sequences)
+            sequenceSet.Add(sequence);
+    }
+
+    private static object GetSeededCache(Guid connectionId)
+    {
+        return TryGetSeededCache(connectionId, out var cache) ? cache! : throw new InvalidOperationException("Schema cache not seeded.");
+    }
+
+    private static bool TryGetSeededCache(Guid connectionId, out object? cache)
+    {
+        var cacheDictionary = (IDictionary)typeof(SqlCompletionProvider).GetField("SchemaCache", BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!;
+        cache = cacheDictionary.Contains(connectionId) ? cacheDictionary[connectionId] : null;
+        return cache is not null;
     }
 
     private static void SeedSchemaCache(Guid connectionId, string tableName, params string[] columns)

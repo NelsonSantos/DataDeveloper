@@ -310,4 +310,19 @@ public class SchemaExplorerTests
         Assert.False(columns.CanLoad);
         Assert.Equal("id", Assert.Single(columns.Children).Name);
     }
+
+    [Fact]
+    public async Task SchemaRefreshed_IsRaisedAfterInitializeAndAfterObjectRefresh()
+    {
+        var connection = new SqlServerConnectionSettings { DatabaseType = DatabaseType.SqlServer, Name = "Test" };
+        var explorer = new SchemaExplorer(new FakeDatabaseProvider(), connection, new FakeObjectCatalog("orders"));
+        var raised = 0;
+        explorer.SchemaRefreshed += (_, _) => raised++;
+
+        await explorer.InitializeSchemaNode();
+        Assert.Equal(1, raised);
+
+        await explorer.RefreshSchemaObjectAsync("create table dbo.new_table (id int)");
+        Assert.Equal(2, raised);
+    }
 }

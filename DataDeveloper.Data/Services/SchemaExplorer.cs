@@ -59,6 +59,8 @@ public class SchemaExplorer : ISchemaExplorer
 
         foreach (var kind in _metadata.RootObjectKinds)
             await RefreshFolderAsync(kind);
+
+        SchemaRefreshed?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task RefreshSchemaAsync()
@@ -66,7 +68,15 @@ public class SchemaExplorer : ISchemaExplorer
         await InitializeSchemaNode();
     }
 
+    public event EventHandler? SchemaRefreshed;
+
     public async Task RefreshSchemaObjectAsync(string statement)
+    {
+        await RefreshSchemaObjectCoreAsync(statement);
+        SchemaRefreshed?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task RefreshSchemaObjectCoreAsync(string statement)
     {
         var target = _sqlAnalyzer.ParseSchemaRefreshTarget(statement);
         if (target is null || target.ObjectType == SchemaObjectType.Unknown)
@@ -116,10 +126,13 @@ public class SchemaExplorer : ISchemaExplorer
     {
         var owner = table.NodeType == NodeType.Columns ? table.Parent : table;
         var dialect = SqlDialect.For(ConnectionSettings.DatabaseType);
-        var tableRef = owner is null
-            ? null
-            : DbObjectRef.FromSchemaNode(owner, dialect) ?? DbObjectRef.Parse(DbObjectKind.Table, owner.Name, dialect);
-        IReadOnlyList<ColumnModel> columns = tableRef is null ? [] : await _metadata.GetColumnsAsync(tableRef);
+        IReadOnlyList<ColumnModel> columns = owner switch
+        {
+            null => [],
+            { NodeType: NodeType.Synonym, Tag: DatabaseObjectModel synonym } => await _metadata.GetSynonymColumnsAsync(synonym),
+            { NodeType: NodeType.Synonym } => [],
+            _ => await _metadata.GetColumnsAsync(DbObjectRef.FromSchemaNode(owner, dialect) ?? DbObjectRef.Parse(DbObjectKind.Table, owner.Name, dialect))
+        };
 
         table.Children.Clear();
         foreach (var column in columns)
@@ -417,7 +430,8 @@ public class SchemaExplorer : ISchemaExplorer
     private static void SyncObjectFolder(SchemaNode folder, DbObjectKind kind, NodeType nodeType, IEnumerable<DatabaseObjectModel> objects)
     {
         var existing = folder.Children.ToDictionary(child => NormalizeObjectName(child.Name), child => child);
-        var isRoutine = kind is DbObjectKind.Procedure or DbObjectKind.Function;
+        // Routines keep their model for parameter lookups, synonyms for their target.
+        var keepsModel = kind is DbObjectKind.Procedure or DbObjectKind.Function or DbObjectKind.Synonym;
         var refreshedChildren = new List<SchemaNode>();
 
         // Objects in the default schema first, then the other schemas' objects grouped by schema.
@@ -443,7 +457,7 @@ public class SchemaExplorer : ISchemaExplorer
                 continue;
             }
 
-            var node = new SchemaNode(nodeType, item.DisplayName, isFolder: false, parent: folder, details: details, tag: isRoutine ? item : null)
+            var node = new SchemaNode(nodeType, item.DisplayName, isFolder: false, parent: folder, details: details, tag: keepsModel ? item : null)
             {
                 ObjectRef = objectRef
             };
@@ -466,6 +480,9 @@ public class SchemaExplorer : ISchemaExplorer
                 AddFolderIfMissing(node, NodeType.Triggers, "Triggers");
                 break;
             case NodeType.View:
+                AddFolderIfMissing(node, NodeType.Columns, "Columns");
+                break;
+            case NodeType.Synonym when node.Tag is DatabaseObjectModel:
                 AddFolderIfMissing(node, NodeType.Columns, "Columns");
                 break;
             case NodeType.Procedure:
