@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="420"
-             x:Class="DataDeveloper.Views.GenerateGuidView">
+             x:Class="DataDeveloper.Views.GenerateGuidView"
+             x:DataType="vm:GenerateGuidViewModel">
     <Design.DataContext>
         <vm:GenerateGuidViewModel />
     </Design.DataContext>

@@ -7,6 +7,8 @@
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.TabQueryEditorView"
+             xmlns:vm="using:DataDeveloper.ViewModels"
+             x:DataType="vm:TabQueryEditorViewModel"
              >
     <Design.DataContext>
         <viewModels:TabQueryEditorViewModel />
@@ -190,7 +192,7 @@
                             <Button 
                                 Background="Transparent" 
                                 IsVisible="{Binding CanClose}"
-                                Command="{Binding DataContext.CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                Command="{Binding ((vm:TabQueryEditorViewModel)DataContext).CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                 CommandParameter="{Binding .}"
                                 >
                                 <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />

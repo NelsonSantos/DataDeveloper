@@ -10,10 +10,12 @@
             BorderThickness="1"
             CornerRadius="999"
             Padding="{Binding BadgePadding, ElementName=Root}">
+        <!-- Svg.Path must use a reflection binding: a compiled binding assigns it during XAML load,
+             before the control can resolve relative asset paths, and the icon stays empty. -->
         <svg:Svg Width="{Binding IconSize, ElementName=Root}"
                  Height="{Binding IconSize, ElementName=Root}"
                  HorizontalAlignment="Center"
                  VerticalAlignment="Center"
-                 Path="{Binding DatabaseType, ElementName=Root, Converter={StaticResource EnumValueToResource}}" />
+                 Path="{ReflectionBinding DatabaseType, ElementName=Root, Converter={StaticResource EnumValueToResource}}" />
     </Border>
 </UserControl>

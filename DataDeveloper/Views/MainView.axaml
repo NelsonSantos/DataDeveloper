@@ -6,7 +6,8 @@
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.MainView">
+             x:Class="DataDeveloper.Views.MainView"
+             x:DataType="vm:MainWindowViewModel">
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
@@ -77,7 +78,7 @@
                                 Background="Transparent" 
                                 IsVisible="{Binding CanClose}"
                                 Margin="0"
-                                Command="{Binding DataContext.CloseTabConnectionCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                Command="{Binding ((vm:MainWindowViewModel)DataContext).CloseTabConnectionCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                                 CommandParameter="{Binding .}"
                                 >
                                 <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />

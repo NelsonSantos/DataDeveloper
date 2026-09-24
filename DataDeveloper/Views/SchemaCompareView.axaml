@@ -7,7 +7,8 @@
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
-             x:Class="DataDeveloper.Views.SchemaCompareView">
+             x:Class="DataDeveloper.Views.SchemaCompareView"
+             x:DataType="vm:SchemaCompareViewModel">
     <Design.DataContext>
         <vm:SchemaCompareViewModel />
     </Design.DataContext>

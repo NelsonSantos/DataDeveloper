@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="480"
-             x:Class="DataDeveloper.Views.ManageConnectionGroupsDialogView">
+             x:Class="DataDeveloper.Views.ManageConnectionGroupsDialogView"
+             x:DataType="vm:ManageConnectionGroupsViewModel">
     <Design.DataContext>
         <vm:ManageConnectionGroupsViewModel />
     </Design.DataContext>
@@ -41,7 +42,7 @@
                                 Background="Transparent"
                                 ToolTip.Tip="Edit"
                                 IsVisible="{Binding !IsEditing}"
-                                Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                Command="{Binding ((vm:ManageConnectionGroupsViewModel)DataContext).EditCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                 CommandParameter="{Binding}">
                             <TextBlock Text="&#xF03EB;" Classes="MaterialIcon" />
                         </Button>
@@ -49,7 +50,7 @@
                                 Background="Transparent"
                                 ToolTip.Tip="Save"
                                 IsVisible="{Binding IsEditing}"
-                                Command="{Binding DataContext.ConfirmCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                Command="{Binding ((vm:ManageConnectionGroupsViewModel)DataContext).ConfirmCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                 CommandParameter="{Binding}">
                             <TextBlock Text="&#xF0193;" Classes="MaterialIcon" Foreground="LightGreen" />
                         </Button>
@@ -58,7 +59,7 @@
                                 Background="Transparent"
                                 ToolTip.Tip="Delete"
                                 IsVisible="{Binding !IsEditing}"
-                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                Command="{Binding ((vm:ManageConnectionGroupsViewModel)DataContext).DeleteCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                 CommandParameter="{Binding}">
                             <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Brown" />
                         </Button>

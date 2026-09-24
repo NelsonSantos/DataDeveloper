@@ -7,7 +7,8 @@
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
-             x:Class="DataDeveloper.Views.FileImportView">
+             x:Class="DataDeveloper.Views.FileImportView"
+             x:DataType="vm:FileImportViewModel">
     <Design.DataContext>
         <vm:FileImportViewModel />
     </Design.DataContext>
@@ -295,7 +296,7 @@
                                         <TextBlock Grid.Column="1" Text="{Binding SourceColumnName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
 
                                         <Grid Grid.Column="2" ColumnDefinitions="*,150,Auto" ColumnSpacing="8"
-                                              IsVisible="{Binding DataContext.IsNewTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
+                                              IsVisible="{Binding ((vm:FileImportViewModel)DataContext).IsNewTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
                                             <TextBox Grid.Column="0" Text="{Binding NewColumn.Name, Mode=TwoWay}" PlaceholderText="column name" />
                                             <ComboBox Grid.Column="1" ItemsSource="{Binding NewColumn.AvailableDataTypes}" SelectedItem="{Binding NewColumn.SelectedDataType, Mode=TwoWay}" />
                                             <CheckBox Grid.Column="2" Content="Nullable" VerticalAlignment="Center" IsChecked="{Binding NewColumn.IsNullable, Mode=TwoWay}" />
@@ -304,7 +305,7 @@
                                         <ComboBox Grid.Column="2" HorizontalAlignment="Stretch"
                                                   ItemsSource="{Binding AvailableTargetColumns}"
                                                   SelectedItem="{Binding TargetColumnName, Mode=TwoWay}"
-                                                  IsVisible="{Binding DataContext.IsExistingTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                  IsVisible="{Binding ((vm:FileImportViewModel)DataContext).IsExistingTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
