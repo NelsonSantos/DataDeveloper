@@ -5,7 +5,9 @@
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              xmlns:nextGrid="clr-namespace:DataDeveloper.NextGrid.UI;assembly=DataDeveloper.NextGrid"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.TabDataGridView">
+             x:Class="DataDeveloper.Views.TabDataGridView"
+             xmlns:vm="using:DataDeveloper.ViewModels"
+             x:DataType="vm:TabDataGridViewModel">
     <Design.DataContext>
         <viewModels:TabDataGridViewModel />
     </Design.DataContext>

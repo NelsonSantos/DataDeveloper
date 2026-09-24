@@ -5,7 +5,8 @@
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              mc:Ignorable="d" d:DesignWidth="640" d:DesignHeight="520"
-             x:Class="DataDeveloper.Views.StructuredTextCellDialogView">
+             x:Class="DataDeveloper.Views.StructuredTextCellDialogView"
+             x:DataType="vm:StructuredTextCellDialogViewModel">
     <Design.DataContext>
         <vm:StructuredTextCellDialogViewModel />
     </Design.DataContext>

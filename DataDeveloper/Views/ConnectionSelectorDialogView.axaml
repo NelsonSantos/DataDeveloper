@@ -6,7 +6,9 @@
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
              xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              mc:Ignorable="d" d:DesignWidth="950" d:DesignHeight="550"
-             x:Class="DataDeveloper.Views.ConnectionSelectorDialogView">
+             x:Class="DataDeveloper.Views.ConnectionSelectorDialogView"
+             xmlns:vm="using:DataDeveloper.ViewModels"
+             x:DataType="vm:ConnectionSelectorViewModel">
 <!-- Bind the corresponding ViewModel -->
     <Design.DataContext>
       <viewModels:ConnectionSelectorViewModel />
@@ -76,7 +78,7 @@
                               >
                         <TreeView.Styles>
                             <Style Selector="TreeViewItem">
-                                <Setter Property="IsExpanded" Value="{Binding Group.IsExpanded, Mode=TwoWay}" />
+                                <Setter Property="IsExpanded" Value="{ReflectionBinding Group.IsExpanded, Mode=TwoWay}" />
                                 <Setter Property="Padding" Value="5" />
                                 <Setter Property="Margin" Value="0" />
                                 <Setter Property="MinHeight" Value="20" />
@@ -108,8 +110,8 @@
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding DatabaseType}" VerticalAlignment="Center"  FontSize="10" />
                                     <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="2"
                                             Background="Transparent" ToolTip.Tip="Edit"
-                                            IsVisible="{Binding !DataContext.HasBulkSelection, RelativeSource={RelativeSource AncestorType=TreeView}}"
-                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=TreeView}}"
+                                            IsVisible="{Binding !((vm:ConnectionSelectorViewModel)DataContext).HasBulkSelection, RelativeSource={RelativeSource AncestorType=TreeView}}"
+                                            Command="{Binding ((vm:ConnectionSelectorViewModel)DataContext).EditCommand, RelativeSource={RelativeSource AncestorType=TreeView}}"
                                             CommandParameter="{Binding .}"
                                             >
                                         <TextBlock Text="&#xF03EB;" Classes="MaterialIcon" />
@@ -212,7 +214,7 @@
                                            Text="Server" />
                                 <TextBox Grid.Row="1"
                                          Grid.Column="0"
-                                         Text="{Binding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Text="{ReflectionBinding SelectedConnection.Server, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsEditing}"
                                          IsReadOnly="{Binding !IsEditing}" />
 
@@ -222,7 +224,7 @@
                                            IsVisible="{Binding IsPortConnectionSelected}" />
                                 <TextBox Grid.Row="1"
                                          Grid.Column="1"
-                                         Text="{Binding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         Text="{ReflectionBinding SelectedConnection.Port, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsEditing}"
                                          IsReadOnly="{Binding !IsEditing}"
                                          IsVisible="{Binding IsPortConnectionSelected}" />
@@ -234,7 +236,7 @@
                                   HorizontalAlignment="Stretch">
                                 <ComboBox Grid.Column="0"
                                           ItemsSource="{Binding AvailableDatabaseNames}"
-                                          Text="{Binding SelectedConnection.Database, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Text="{ReflectionBinding SelectedConnection.Database, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsEditable="True"
                                           HorizontalAlignment="Stretch"
                                           IsHitTestVisible="{Binding IsEditing}"

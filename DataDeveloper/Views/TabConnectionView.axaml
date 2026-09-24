@@ -8,6 +8,7 @@
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.TabConnectionView"
+             x:DataType="vm:TabConnectionViewModel"
              >
     <UserControl.Styles>
         <Style Selector="TextBlock.FontStyle">
@@ -102,7 +103,7 @@
                 Grid.Row="1" 
                 ItemsSource="{Binding RootConnections}">
                 <TreeView.Styles>
-                    <Style Selector="TreeViewItem">
+                    <Style Selector="TreeViewItem" x:DataType="models:SchemaNode">
                         <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
                         <Setter Property="behaviors:TreeViewExpansionBehavior.NodeLoader" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=TreeView}}" />
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -163,7 +164,7 @@
                         <Button 
                             Background="Transparent" 
                             IsVisible="{Binding CanClose}"
-                            Command="{Binding DataContext.CloseTabQueryEditorCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                            Command="{Binding ((vm:TabConnectionViewModel)DataContext).CloseTabQueryEditorCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
                             CommandParameter="{Binding .}"
                             Margin="0"
                             >

@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="420" d:DesignHeight="240"
-             x:Class="DataDeveloper.Views.ExportConnectionsOptionsDialogView">
+             x:Class="DataDeveloper.Views.ExportConnectionsOptionsDialogView"
+             x:DataType="vm:ExportConnectionsOptionsViewModel">
     <Design.DataContext>
         <vm:ExportConnectionsOptionsViewModel />
     </Design.DataContext>

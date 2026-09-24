@@ -10,8 +10,6 @@
     <PackageProjectUrl>https://github.com/NelsonSantos/DataDeveloper</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
-    <!-- Keep reflection bindings until views declare x:DataType (compiled bindings are the default since Avalonia 12). -->
-    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <ApplicationIcon>Assets/Icons/AppIcon.ico</ApplicationIcon>

@@ -2,6 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
         x:Class="DataDeveloper.Views.TableDesignerWindow"
+        xmlns:vm="using:DataDeveloper.ViewModels"
+        x:DataType="vm:TableDesignerViewModel"
         Width="1300"
         Height="760"
         MinWidth="980"
@@ -103,7 +105,7 @@
                                                             HorizontalAlignment="Center"
                                                             VerticalAlignment="Center"
                                                             ToolTip.Tip="Remove column"
-                                                            Command="{Binding DataContext.RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Command="{Binding ((vm:TableDesignerViewModel)DataContext).RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding .}">
                                                         <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
                                                     </Button>
@@ -161,7 +163,7 @@
                                                         HorizontalAlignment="Center"
                                                         VerticalAlignment="Center"
                                                         ToolTip.Tip="Remove foreign key"
-                                                        Command="{Binding DataContext.RemoveForeignKeyCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        Command="{Binding ((vm:TableDesignerViewModel)DataContext).RemoveForeignKeyCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding .}">
                                                     <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
                                                 </Button>
@@ -190,7 +192,7 @@
                                                                           SelectedItem="{Binding ReferencedColumnName, Mode=TwoWay}" />
                                                                 <Button Grid.Column="3"
                                                                         Content="Remove column"
-                                                                        Command="{Binding DataContext.RemoveColumnMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                        Command="{Binding ((vm:TableDesignerForeignKeyViewModel)DataContext).RemoveColumnMappingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                         CommandParameter="{Binding .}">
                                                                 </Button>
                                                             </Grid>
@@ -269,10 +271,10 @@
                                                                     <TextBox Grid.Column="2"
                                                                              Text="{Binding PrefixLength, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                              PlaceholderText="Prefix"
-                                                                             IsVisible="{Binding DataContext.SupportsMySqlPrefixLength, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                                                             IsVisible="{Binding ((vm:TableDesignerIndexViewModel)DataContext).SupportsMySqlPrefixLength, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
                                                                     <Button Grid.Column="3"
                                                                             Content="Remove column"
-                                                                            Command="{Binding DataContext.RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                            Command="{Binding ((vm:TableDesignerIndexViewModel)DataContext).RemoveColumnCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                                             CommandParameter="{Binding .}">
                                                                     </Button>
                                                                 </Grid>
@@ -287,7 +289,7 @@
                                                             HorizontalAlignment="Center"
                                                             VerticalAlignment="Center"
                                                             ToolTip.Tip="Remove index"
-                                                            Command="{Binding DataContext.RemoveIndexCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Command="{Binding ((vm:TableDesignerViewModel)DataContext).RemoveIndexCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                             CommandParameter="{Binding .}">
                                                         <TextBlock Text="&#xF0A7A;" Classes="MaterialIcon" Foreground="Tomato" HorizontalAlignment="Center" FontSize="15"/>
                                                     </Button>

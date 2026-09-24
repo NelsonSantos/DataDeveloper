@@ -4,7 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="DataDeveloper.Views.TabMessageView">
+             x:Class="DataDeveloper.Views.TabMessageView"
+             xmlns:vm="using:DataDeveloper.ViewModels"
+             x:DataType="vm:TabMessageViewModel">
     <Design.DataContext>
         <viewModels:TabMessageViewModel />
     </Design.DataContext>
