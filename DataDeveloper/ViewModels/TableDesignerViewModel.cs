@@ -17,11 +17,12 @@ using DataDeveloper.Data.Services.TableDesigner;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public sealed class TableDesignerViewModel : ViewModelBase
+public sealed partial class TableDesignerViewModel : ViewModelBase
 {
     private readonly IConnectionSettings _connectionSettings;
     private readonly Func<string, Task<bool>> _applyScript;
@@ -112,13 +113,12 @@ public sealed class TableDesignerViewModel : ViewModelBase
     public ObservableCollection<TableDesignerIndexViewModel> Indexes { get; } = new();
     public string[] ReferentialActions { get; } = ["", "no action", "cascade", "set null", "set default", "restrict"];
 
-    [Reactive] public string SchemaName { get; set; } = string.Empty;
-    [Reactive] public string TableName { get; set; } = "NewTable";
-    [Reactive] public string PrimaryKeyName { get; set; } = string.Empty;
-    [Reactive] public string GeneratedSql { get; set; } = string.Empty;
-    [Reactive] public string ValidationMessage { get; set; } = string.Empty;
-    [Reactive] public bool HasValidationMessages { get; set; }
-
+    [Reactive] private string _schemaName = string.Empty;
+    [Reactive] private string _tableName = "NewTable";
+    [Reactive] private string _primaryKeyName = string.Empty;
+    [Reactive] private string _generatedSql = string.Empty;
+    [Reactive] private string _validationMessage = string.Empty;
+    [Reactive] private bool _hasValidationMessages;
     public ReactiveCommand<Unit, Unit> AddColumnCommand { get; }
     public ReactiveCommand<TableDesignerColumnViewModel, Unit> RemoveColumnCommand { get; }
     public ReactiveCommand<Unit, Unit> AddForeignKeyCommand { get; }
@@ -844,7 +844,7 @@ public sealed class TableDesignerViewModel : ViewModelBase
     }
 }
 
-public sealed class TableDesignerColumnViewModel : ViewModelBase
+public sealed partial class TableDesignerColumnViewModel : ViewModelBase
 {
     public TableDesignerColumnViewModel(
         ObservableCollection<ProviderDataTypeOption> availableDataTypes,
@@ -915,18 +915,18 @@ public sealed class TableDesignerColumnViewModel : ViewModelBase
     /// </summary>
     public Dictionary<string, string> ProviderOptions { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    [Reactive] public string Name { get; set; } = string.Empty;
-    [Reactive] public ProviderDataTypeOption? SelectedDataType { get; set; }
-    [Reactive] public int? Length { get; set; }
-    [Reactive] public int? Precision { get; set; }
-    [Reactive] public int? Scale { get; set; }
-    [Reactive] public bool IsNullable { get; set; } = true;
-    [Reactive] public bool IsIdentity { get; set; }
-    [Reactive] public bool IsPrimaryKey { get; set; }
-    [Reactive] public string DefaultValue { get; set; } = string.Empty;
+    [Reactive] private string _name = string.Empty;
+    [Reactive] private ProviderDataTypeOption? _selectedDataType;
+    [Reactive] private int? _length;
+    [Reactive] private int? _precision;
+    [Reactive] private int? _scale;
+    [Reactive] private bool _isNullable = true;
+    [Reactive] private bool _isIdentity;
+    [Reactive] private bool _isPrimaryKey;
+    [Reactive] private string _defaultValue = string.Empty;
 }
 
-public sealed class TableDesignerReferenceTableOption
+public sealed partial class TableDesignerReferenceTableOption
 {
     public TableDesignerReferenceTableOption(string displayName, string schemaName, string tableName, SchemaNode node)
     {
@@ -946,7 +946,7 @@ public sealed class TableDesignerReferenceTableOption
 
 public sealed record TableDesignerIndexColumnSelection(string Name, bool Descending);
 
-public sealed class TableDesignerForeignKeyViewModel : ViewModelBase
+public sealed partial class TableDesignerForeignKeyViewModel : ViewModelBase
 {
     private string _onDeleteAction = string.Empty;
     private string _onUpdateAction = string.Empty;
@@ -986,11 +986,11 @@ public sealed class TableDesignerForeignKeyViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AddColumnMappingCommand { get; }
     public ReactiveCommand<TableDesignerForeignKeyColumnMappingViewModel, Unit> RemoveColumnMappingCommand { get; }
 
-    [Reactive] public string Name { get; set; } = string.Empty;
-    [Reactive] public string ColumnNames { get; set; } = string.Empty;
-    [Reactive] public string ReferencedSchemaName { get; set; } = string.Empty;
-    [Reactive] public string ReferencedTableName { get; set; } = string.Empty;
-    [Reactive] public string ReferencedColumnNames { get; set; } = string.Empty;
+    [Reactive] private string _name = string.Empty;
+    [Reactive] private string _columnNames = string.Empty;
+    [Reactive] private string _referencedSchemaName = string.Empty;
+    [Reactive] private string _referencedTableName = string.Empty;
+    [Reactive] private string _referencedColumnNames = string.Empty;
     public TableDesignerReferenceTableOption? SelectedReferencedTable
     {
         get => _selectedReferencedTable;
@@ -1096,7 +1096,7 @@ public sealed class TableDesignerForeignKeyViewModel : ViewModelBase
     }
 }
 
-public sealed class TableDesignerForeignKeyColumnMappingViewModel : ViewModelBase
+public sealed partial class TableDesignerForeignKeyColumnMappingViewModel : ViewModelBase
 {
     private string _localColumnName = string.Empty;
     private string _referencedColumnName = string.Empty;
@@ -1142,7 +1142,7 @@ public sealed class TableDesignerForeignKeyColumnMappingViewModel : ViewModelBas
     }
 }
 
-public sealed class TableDesignerIndexViewModel : ViewModelBase
+public sealed partial class TableDesignerIndexViewModel : ViewModelBase
 {
     private readonly Action _changed;
 
@@ -1172,21 +1172,19 @@ public sealed class TableDesignerIndexViewModel : ViewModelBase
     public bool SupportsPostgresOptions { get; }
     public bool SupportsMySqlPrefixLength { get; }
 
-    [Reactive] public string Name { get; set; } = string.Empty;
-    [Reactive] public string ColumnNames { get; set; } = string.Empty;
-    [Reactive] public bool IsUnique { get; set; }
-
+    [Reactive] private string _name = string.Empty;
+    [Reactive] private string _columnNames = string.Empty;
+    [Reactive] private bool _isUnique;
     /// <summary>SQL Server only: render "clustered" instead of the implicit nonclustered.</summary>
-    [Reactive] public bool IsClustered { get; set; }
-
+    [Reactive] private bool _isClustered;
     /// <summary>SQL Server only: fill factor percentage (1-100), empty for provider default.</summary>
-    [Reactive] public string FillFactor { get; set; } = string.Empty;
+    [Reactive] private string _fillFactor = string.Empty;
 
     /// <summary>PostgreSQL only: index access method (btree/gin/gist/hash); empty means the provider default (btree).</summary>
-    [Reactive] public string IndexMethod { get; set; } = string.Empty;
+    [Reactive] private string _indexMethod = string.Empty;
 
     /// <summary>PostgreSQL only: partial-index WHERE predicate.</summary>
-    [Reactive] public string WherePredicate { get; set; } = string.Empty;
+    [Reactive] private string _wherePredicate = string.Empty;
 
     public string[] IndexMethods { get; } = ["", "btree", "gin", "gist", "hash"];
 
@@ -1222,7 +1220,7 @@ public sealed class TableDesignerIndexViewModel : ViewModelBase
     }
 }
 
-public sealed class TableDesignerIndexColumnViewModel : ViewModelBase
+public sealed partial class TableDesignerIndexColumnViewModel : ViewModelBase
 {
     private string _columnName = string.Empty;
 
@@ -1237,10 +1235,9 @@ public sealed class TableDesignerIndexColumnViewModel : ViewModelBase
     }
 
     public ObservableCollection<string> AvailableColumnNames { get; }
-    [Reactive] public bool Descending { get; set; }
-
+    [Reactive] private bool _descending;
     /// <summary>MySQL only: index key prefix length for this column; empty means the whole column.</summary>
-    [Reactive] public string PrefixLength { get; set; } = string.Empty;
+    [Reactive] private string _prefixLength = string.Empty;
 
     public string ColumnName
     {

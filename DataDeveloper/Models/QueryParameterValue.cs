@@ -1,9 +1,10 @@
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Models;
 
-public class QueryParameterValue : ReactiveObject
+public partial class QueryParameterValue : ReactiveObject
 {
     public QueryParameterValue(string name, string? value = null)
     {

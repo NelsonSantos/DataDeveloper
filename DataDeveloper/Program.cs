@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Avalonia;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia.Reactive;
 
 namespace DataDeveloper;
 
@@ -22,5 +22,5 @@ public class Program
             })
             .UsePlatformDetect()
             .LogToTrace()
-            .UseReactiveUI();
+            .UseReactiveUI(_ => { });
 }

@@ -1,11 +1,11 @@
 using DataDeveloper.Data.Models;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Providers.MySql;
 
-public class MySqlConnectionSettings : ConnectionSettings
+public partial class MySqlConnectionSettings : ConnectionSettings
 {
-    [Reactive] public string Server { get; set; } = string.Empty;
-    [Reactive] public string Database { get; set; } = string.Empty;
-    [Reactive] public uint Port { get; set; } = 3306;
+    [Reactive] private string _server = string.Empty;
+    [Reactive] private string _database = string.Empty;
+    [Reactive] private uint _port = 3306;
 }

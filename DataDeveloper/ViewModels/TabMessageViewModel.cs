@@ -3,12 +3,12 @@ using DataDeveloper.Enums;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DataDeveloper.ViewModels;
 
-public class TabMessageViewModel : BaseTabContent
+public partial class TabMessageViewModel : BaseTabContent
 {
     private readonly Guid _filterId;
     private readonly IEventAggregatorService _eventAggregatorService;
@@ -20,7 +20,7 @@ public class TabMessageViewModel : BaseTabContent
         _eventAggregatorService = ServiceProvider.GetRequiredService<IEventAggregatorService>();
         _eventAggregatorService.Subscribe<ShowResultMessageEvent>(this, DisplayMessage, msg => msg.Id == _filterId);
     }
-    [Reactive] public string Message { get; set; } = string.Empty;
+    [Reactive] private string _message = string.Empty;
 
     private void DisplayMessage(ShowResultMessageEvent message)
     {

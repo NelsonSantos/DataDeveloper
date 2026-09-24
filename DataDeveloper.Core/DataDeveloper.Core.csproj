@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ReactiveUI" Version="20.2.45" />
+        <PackageReference Include="ReactiveUI.Reactive" Version="24.2.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
     </ItemGroup>
 

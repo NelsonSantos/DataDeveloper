@@ -20,11 +20,13 @@ using DataDeveloper.Models.SchemaCompare;
 using DataDeveloper.Services;
 using DataDeveloper.Services.SchemaCompare;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.ViewModels;
 
-public class SchemaCompareViewModel : ViewModelBase
+public partial class SchemaCompareViewModel : ViewModelBase
 {
     private readonly IConnectionDialogService _connectionDialogService;
     private readonly IDialogService _dialogService;
@@ -106,22 +108,21 @@ public class SchemaCompareViewModel : ViewModelBase
     public ObservableCollection<SchemaCompareObjectPickerItem> ObjectChecklist { get; } = new();
     public ObservableCollection<SchemaCompareResultRow> Results { get; } = new();
 
-    [Reactive] public SchemaCompareWizardStep CurrentStep { get; private set; } = SchemaCompareWizardStep.SelectDatabaseType;
-    [Reactive] public DatabaseType? SelectedDatabaseType { get; set; }
-    [Reactive] public IConnectionSettings? SelectedSourceConnection { get; private set; }
-    [Reactive] public IConnectionSettings? SelectedDestinationConnection { get; private set; }
-    [Reactive] public bool IsBusyLoadingObjects { get; set; }
-    [Reactive] public string? ErrorMessage { get; set; }
-    [Reactive] public SchemaCompareResultRow? SelectedResultRow { get; set; }
-    [Reactive] public string GeneratedScript { get; private set; } = string.Empty;
-    [Reactive] public bool HasUnsavedOrUnexecutedScript { get; private set; }
-
-    [Reactive] public bool IsComparing { get; private set; }
-    [Reactive] public int ProgressCompleted { get; private set; }
-    [Reactive] public int ProgressTotal { get; private set; }
-    [Reactive] public string? ProgressCurrentObjectName { get; private set; }
-    [Reactive] public string ProgressText { get; private set; } = string.Empty;
-    [Reactive] public string CopyScriptButtonLabel { get; private set; } = "Copy to clipboard";
+    [Reactive(SetModifier = AccessModifier.Private)] private SchemaCompareWizardStep _currentStep = SchemaCompareWizardStep.SelectDatabaseType;
+    [Reactive] private DatabaseType? _selectedDatabaseType;
+    [Reactive(SetModifier = AccessModifier.Private)] private IConnectionSettings? _selectedSourceConnection;
+    [Reactive(SetModifier = AccessModifier.Private)] private IConnectionSettings? _selectedDestinationConnection;
+    [Reactive] private bool _isBusyLoadingObjects;
+    [Reactive] private string? _errorMessage;
+    [Reactive] private SchemaCompareResultRow? _selectedResultRow;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _generatedScript = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _hasUnsavedOrUnexecutedScript;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _isComparing;
+    [Reactive(SetModifier = AccessModifier.Private)] private int _progressCompleted;
+    [Reactive(SetModifier = AccessModifier.Private)] private int _progressTotal;
+    [Reactive(SetModifier = AccessModifier.Private)] private string? _progressCurrentObjectName;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _progressText = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _copyScriptButtonLabel = "Copy to clipboard";
 
     public ReactiveCommand<Unit, Unit> NextCommand { get; }
     public ReactiveCommand<Unit, Unit> BackCommand { get; }

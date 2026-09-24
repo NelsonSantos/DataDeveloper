@@ -1,11 +1,12 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models.SchemaCompare;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Models.SchemaCompare;
 
-public class SchemaCompareResultRow : ReactiveObject
+public partial class SchemaCompareResultRow : ReactiveObject
 {
     public SchemaCompareResultRow(SchemaCompareObjectResult result)
     {
@@ -23,5 +24,5 @@ public class SchemaCompareResultRow : ReactiveObject
     public bool CanToggle =>
         Status is SchemaCompareResultStatus.New or SchemaCompareResultStatus.Changed or SchemaCompareResultStatus.OnlyInDestination;
 
-    [Reactive] public bool IsChecked { get; set; }
+    [Reactive] private bool _isChecked;
 }

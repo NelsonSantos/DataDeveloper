@@ -20,6 +20,7 @@ using DataDeveloper.Services;
 using DataDeveloper.TemplateSelectors;
 using DataDeveloper.ViewModels;
 using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace DataDeveloper.Views;
 
@@ -54,7 +55,7 @@ public partial class TabQueryEditorView : UserControl
         Unloaded += OnUnloaded;
     }
 
-    private void OnDescendantGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnDescendantGotFocus(object? sender, FocusChangedEventArgs e)
     {
         // Focus moved to some other control in this view (e.g. a parameter value
         // TextBox), so neither the SQL editor nor the results grid should keep
@@ -377,7 +378,7 @@ public partial class TabQueryEditorView : UserControl
         _activeFunctionInsightName = null;
     }
 
-    private void SqlEditorOnGotFocus(object? sender, GotFocusEventArgs e)
+    private void SqlEditorOnGotFocus(object? sender, FocusChangedEventArgs e)
     {
         UpdateActiveEditorState();
     }

@@ -16,6 +16,7 @@ using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
 using Xunit;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.Tests;
 
@@ -95,7 +96,7 @@ public class MainWindowViewModelClipboardFocusTests
 
         await viewModel.CopyCommand.Execute().ToTask();
 
-        var text = await window.Clipboard!.GetTextAsync();
+        var text = await window.Clipboard!.TryGetTextAsync();
         Assert.Equal("R1C1", text);
         window.Close();
     }

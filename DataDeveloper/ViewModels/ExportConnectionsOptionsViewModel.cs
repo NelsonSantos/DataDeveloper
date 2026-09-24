@@ -3,11 +3,12 @@ using Avalonia;
 using DataDeveloper.Core;
 using DataDeveloper.Services;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public class ExportConnectionsOptionsViewModel : ViewModelBase
+public partial class ExportConnectionsOptionsViewModel : ViewModelBase
 {
     public ExportConnectionsOptionsViewModel()
     {
@@ -15,8 +16,7 @@ public class ExportConnectionsOptionsViewModel : ViewModelBase
         CancelCommand = ReactiveCommand.Create<StyledElement>(element => Close(element, false));
     }
 
-    [Reactive] public bool IncludePasswords { get; set; }
-
+    [Reactive] private bool _includePasswords;
     public ReactiveCommand<StyledElement, Unit> ExportCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
 

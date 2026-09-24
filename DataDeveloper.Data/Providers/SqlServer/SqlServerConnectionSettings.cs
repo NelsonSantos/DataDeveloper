@@ -1,12 +1,12 @@
 ﻿using DataDeveloper.Data.Models;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Providers.SqlServer;
 
-public class SqlServerConnectionSettings : ConnectionSettings
+public partial class SqlServerConnectionSettings : ConnectionSettings
 {
-    [Reactive]public string Server { get; set; } = string.Empty;
-    [Reactive]public string Database { get; set; } = string.Empty;
-    [Reactive]public int Port { get; set; } = 1433;
-    [Reactive]public SqlServerAuthenticationMode AuthenticationMode { get; set; } = SqlServerAuthenticationMode.SqlLogin;
+    [Reactive] private string _server = string.Empty;
+    [Reactive] private string _database = string.Empty;
+    [Reactive] private int _port = 1433;
+    [Reactive] private SqlServerAuthenticationMode _authenticationMode = SqlServerAuthenticationMode.SqlLogin;
 }

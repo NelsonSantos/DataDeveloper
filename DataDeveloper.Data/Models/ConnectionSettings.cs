@@ -1,11 +1,12 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Models;
 
-public class ConnectionSettings : ReactiveObject, IConnectionSettings
+public partial class ConnectionSettings : ReactiveObject, IConnectionSettings
 {
     public const int DefaultStatementTimeoutSeconds = 60;
 
@@ -16,19 +17,19 @@ public class ConnectionSettings : ReactiveObject, IConnectionSettings
             : DmlTransactionMode.AutoCommit;
     }
 
-    [Reactive] public Guid Id { get; set; }
-    [Reactive] public Guid? GroupId { get; set; }
-    [Reactive] public Guid? CredentialId { get; set; }
-    [Reactive] public string Name { get; set; } = string.Empty;
-    [Reactive] public string User { get; set; } = string.Empty;
-    [Reactive] public string Password { get; set; } = string.Empty;
+    [Reactive] private Guid _id;
+    [Reactive] private Guid? _groupId;
+    [Reactive] private Guid? _credentialId;
+    [Reactive] private string _name = string.Empty;
+    [Reactive] private string _user = string.Empty;
+    [Reactive] private string _password = string.Empty;
     public bool IsPasswordLoaded { get; set; }
     public string? LoadedPasswordSnapshot { get; set; }
-    [Reactive] public bool IsBulkSelected { get; set; }
-    [Reactive] public bool Encrypt { get; set; } = true;
-    [Reactive] public bool TrustServerCertificate { get; set; }
-    [Reactive] public bool AllowBlankPassword { get; set; }
-    [Reactive] public int StatementTimeoutSeconds { get; set; } = DefaultStatementTimeoutSeconds;
-    [Reactive] public DmlTransactionMode DmlTransactionMode { get; set; }
-    [Reactive] public DatabaseType DatabaseType { get; set; }
+    [Reactive] private bool _isBulkSelected;
+    [Reactive] private bool _encrypt = true;
+    [Reactive] private bool _trustServerCertificate;
+    [Reactive] private bool _allowBlankPassword;
+    [Reactive] private int _statementTimeoutSeconds = DefaultStatementTimeoutSeconds;
+    [Reactive] private DmlTransactionMode _dmlTransactionMode;
+    [Reactive] private DatabaseType _databaseType;
 }
