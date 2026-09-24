@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using ReactiveUI;
+using ReactiveUI.Reactive;
 using System.Reactive;
 using System.Linq;
 using System.Reactive.Linq;
@@ -20,7 +21,6 @@ using DataDeveloper.Data.Services;
 using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
-using DynamicData;
 
 namespace DataDeveloper.ViewModels;
 

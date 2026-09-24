@@ -20,12 +20,13 @@ using DataDeveloper.NextGrid.UI;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
 using ReactiveUI;
+using ReactiveUI.Reactive;
 using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IConnectionDialogService _connectionDialogService;
@@ -273,19 +274,19 @@ public class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<TabConnectionViewModel, bool> CloseTabConnectionCommand { get; }
     public ReactiveCommand<StyledElement, Unit> NewConnectionCommand { get; }
     public ObservableCollection<TabConnectionViewModel> Connections { get; } =  new();
-    [Reactive] public int SelectedTabConnectionIndex { get; set; }
-    [Reactive] public int CursorOffSet { get; set; }
-    [Reactive] public int CursorLine { get; set; }
-    [Reactive] public int CursorColumn { get; set; }
-    [Reactive] public bool IsExecutionStatusVisible { get; set; }
-    [Reactive] public string ExecutionStatusMessage { get; set; } = string.Empty;
-    [Reactive] public bool HasActiveEditor { get; private set; }
-    [Reactive] public bool HasSelection { get; private set; }
-    [Reactive] public bool CanCut { get; private set; }
-    [Reactive] public bool CanCopy { get; private set; }
-    [Reactive] public bool CanPaste { get; private set; }
-    [Reactive] public bool CanUndo { get; private set; }
-    [Reactive] public bool CanRedo { get; private set; }
+    [Reactive] private int _selectedTabConnectionIndex;
+    [Reactive] private int _cursorOffSet;
+    [Reactive] private int _cursorLine;
+    [Reactive] private int _cursorColumn;
+    [Reactive] private bool _isExecutionStatusVisible;
+    [Reactive] private string _executionStatusMessage = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _hasActiveEditor;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _hasSelection;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _canCut;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _canCopy;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _canPaste;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _canUndo;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _canRedo;
     public KeyGesture OpenFileGesture => CreatePrimaryGesture(Key.O);
     public KeyGesture SaveGesture => CreatePrimaryGesture(Key.S);
     public KeyGesture SaveAsGesture => CreatePrimaryGesture(Key.S, KeyModifiers.Shift);

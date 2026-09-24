@@ -1,11 +1,11 @@
 using DataDeveloper.Data.Models;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Providers.PostgresSql;
 
-public class PostgresConnectionSettings : ConnectionSettings
+public partial class PostgresConnectionSettings : ConnectionSettings
 {
-    [Reactive] public string Server { get; set; } = string.Empty;
-    [Reactive] public string Database { get; set; } = string.Empty;
-    [Reactive] public int Port { get; set; } = 5432;
+    [Reactive] private string _server = string.Empty;
+    [Reactive] private string _database = string.Empty;
+    [Reactive] private int _port = 5432;
 }

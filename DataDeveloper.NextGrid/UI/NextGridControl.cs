@@ -657,7 +657,7 @@ public sealed class NextGridControl : UserControl
             SyncDateTimePopupFromEditorText();
     }
 
-    private void OnEditorGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnEditorGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (!IsDateTimeEditorActive() || !_dateTimePopup.IsOpen)
             return;

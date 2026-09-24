@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using DataDeveloper.ViewModels;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.Views;
 

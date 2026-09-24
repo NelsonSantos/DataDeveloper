@@ -6,11 +6,12 @@ using DataDeveloper.Helpers;
 using DataDeveloper.NextGrid.Renderers;
 using DataDeveloper.Services;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public class StructuredTextCellDialogViewModel : ViewModelBase
+public partial class StructuredTextCellDialogViewModel : ViewModelBase
 {
     private string _initialText = string.Empty;
 
@@ -35,12 +36,11 @@ public class StructuredTextCellDialogViewModel : ViewModelBase
         CancelCommand = ReactiveCommand.Create<StyledElement>(element => Close(element, saved: false));
     }
 
-    [Reactive] public string Text { get; set; } = string.Empty;
-    [Reactive] public StructuredTextKind Kind { get; set; }
-    [Reactive] public bool IsEditable { get; set; }
-    [Reactive] public bool IsDirty { get; set; }
-    [Reactive] public bool HasInvalidTextWarning { get; set; }
-
+    [Reactive] private string _text = string.Empty;
+    [Reactive] private StructuredTextKind _kind;
+    [Reactive] private bool _isEditable;
+    [Reactive] private bool _isDirty;
+    [Reactive] private bool _hasInvalidTextWarning;
     public bool ShowOk => IsEditable && !IsDirty;
     public bool ShowSaveCancel => IsEditable && IsDirty;
     public bool ShowClose => !IsEditable;

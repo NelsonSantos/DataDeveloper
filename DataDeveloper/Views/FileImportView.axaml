@@ -269,9 +269,9 @@
 
                 <StackPanel IsVisible="{Binding IsNewTableMode}" Spacing="8">
                     <TextBlock Text="Table name" />
-                    <TextBox Text="{Binding NewTableName, Mode=TwoWay}" Watermark="table_name" />
+                    <TextBox Text="{Binding NewTableName, Mode=TwoWay}" PlaceholderText="table_name" />
                     <TextBlock Text="Schema (optional)" />
-                    <TextBox Text="{Binding NewSchemaName, Mode=TwoWay}" Watermark="schema" />
+                    <TextBox Text="{Binding NewSchemaName, Mode=TwoWay}" PlaceholderText="schema" />
                 </StackPanel>
 
                 <StackPanel IsVisible="{Binding IsExistingTableMode}" Spacing="8">
@@ -296,7 +296,7 @@
 
                                         <Grid Grid.Column="2" ColumnDefinitions="*,150,Auto" ColumnSpacing="8"
                                               IsVisible="{Binding DataContext.IsNewTableMode, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
-                                            <TextBox Grid.Column="0" Text="{Binding NewColumn.Name, Mode=TwoWay}" Watermark="column name" />
+                                            <TextBox Grid.Column="0" Text="{Binding NewColumn.Name, Mode=TwoWay}" PlaceholderText="column name" />
                                             <ComboBox Grid.Column="1" ItemsSource="{Binding NewColumn.AvailableDataTypes}" SelectedItem="{Binding NewColumn.SelectedDataType, Mode=TwoWay}" />
                                             <CheckBox Grid.Column="2" Content="Nullable" VerticalAlignment="Center" IsChecked="{Binding NewColumn.IsNullable, Mode=TwoWay}" />
                                         </Grid>

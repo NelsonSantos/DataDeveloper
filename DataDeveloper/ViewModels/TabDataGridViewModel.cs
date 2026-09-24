@@ -24,14 +24,14 @@ using DataDeveloper.Models;
 using DataDeveloper.NextGrid;
 using DataDeveloper.NextGrid.Renderers;
 using DataDeveloper.Services.GridExport;
-using DynamicData;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DataDeveloper.ViewModels;
 
-public class TabDataGridViewModel : BaseTabContent
+public partial class TabDataGridViewModel : BaseTabContent
 {
     // Reads from the DataReader off the UI thread before dispatching rows for visual append.
     private const int UiBatchSize = 200;
@@ -86,10 +86,10 @@ public class TabDataGridViewModel : BaseTabContent
 
         SelectedPage = selectedPage;
         LoadNextPageCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage(SelectedPage)
-            , outputScheduler: RxApp.MainThreadScheduler
+            , outputScheduler: RxSchedulers.MainThreadScheduler
             , canExecute: this.WhenAnyValue(vm => vm.CanLoadMore));
         LoadAllRecordsCommand = ReactiveCommand.CreateFromTask(() => LoadNextPage()
-            , outputScheduler: RxApp.MainThreadScheduler
+            , outputScheduler: RxSchedulers.MainThreadScheduler
             , canExecute: this.WhenAnyValue(vm => vm.CanLoadMore));
         DiscardChangesCommand = ReactiveCommand.Create(
             DiscardChanges,
@@ -178,7 +178,7 @@ public class TabDataGridViewModel : BaseTabContent
             GridColumnTypes.Add(columnHeader.Type);
         }
 
-        Headers.Add(columns);
+        Headers.AddRange(columns);
         await ResolveEditabilityAsync(dataReader, columns.Select(column => column.Name).ToList());
         
         await LoadNextPage(SelectedPage, showExecutionStatus: false);
@@ -836,18 +836,18 @@ public class TabDataGridViewModel : BaseTabContent
 
     public IConnectionSettings ConnectionSettings { get; }
     public StatementResult StatementResult { get; private set; }
-    [Reactive] public EditableResultSetMetadata? EditableMetadata { get; private set; }
-    [Reactive] public bool IsEditableResult { get; private set; }
-    [Reactive] public bool IsEditorOperationInProgress { get; set; }
-    [Reactive] public string? EditabilityReason { get; private set; }
-    [Reactive] public bool HasPendingChanges { get; private set; }
-    [Reactive] public int SelectedRowIndex { get; set; } = -1;
-    [Reactive] public string GridSelectionStatusText { get; set; } = "Cell=nothing";
-    [Reactive] public TimeSpan TimeElapsed { get; set; }
-    [Reactive] public bool IsClosed { get; set; }
-    [Reactive] public int RowNumber { get; set; }
-    [Reactive] public int SelectedPage { get; set; }
-    [Reactive] public GridExportFormat SelectedExportFormat { get; private set; }
+    [Reactive(SetModifier = AccessModifier.Private)] private EditableResultSetMetadata? _editableMetadata;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _isEditableResult;
+    [Reactive] private bool _isEditorOperationInProgress;
+    [Reactive(SetModifier = AccessModifier.Private)] private string? _editabilityReason;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _hasPendingChanges;
+    [Reactive] private int _selectedRowIndex = -1;
+    [Reactive] private string _gridSelectionStatusText = "Cell=nothing";
+    [Reactive] private TimeSpan _timeElapsed;
+    [Reactive] private bool _isClosed;
+    [Reactive] private int _rowNumber;
+    [Reactive] private int _selectedPage;
+    [Reactive(SetModifier = AccessModifier.Private)] private GridExportFormat _selectedExportFormat;
     public ObservableCollection<ColumnHeader> Headers { get; } = new();
     public ObservableCollection<string> GridHeaders { get; } = new();
     public ObservableCollection<Type> GridColumnTypes { get; } = new();

@@ -7,11 +7,13 @@ using Avalonia.Threading;
 using DataDeveloper.Core;
 using DataDeveloper.Models;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.ViewModels;
 
-public class GenerateGuidViewModel : ViewModelBase
+public partial class GenerateGuidViewModel : ViewModelBase
 {
     private const string SettingsFileName = "generate-guid-tool.json";
     private const string SettingsSubfolder = "Config";
@@ -54,13 +56,13 @@ public class GenerateGuidViewModel : ViewModelBase
 
     public string[] FormatOptions { get; } = Formats.Select(f => f.Label).ToArray();
 
-    [Reactive] public string SelectedFormat { get; set; } = string.Empty;
-    [Reactive] public int Quantity { get; set; } = 1;
-    [Reactive] public bool Uppercase { get; set; }
-    [Reactive] public string GeneratedText { get; private set; } = string.Empty;
-    [Reactive] public string PrimaryActionLabel { get; private set; } = "Copy";
-    [Reactive] public string CopyLabel { get; private set; } = "Copy";
-    [Reactive] public string CopyAndCloseLabel { get; private set; } = "Copy and close";
+    [Reactive] private string _selectedFormat = string.Empty;
+    [Reactive] private int _quantity = 1;
+    [Reactive] private bool _uppercase;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _generatedText = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _primaryActionLabel = "Copy";
+    [Reactive(SetModifier = AccessModifier.Private)] private string _copyLabel = "Copy";
+    [Reactive(SetModifier = AccessModifier.Private)] private string _copyAndCloseLabel = "Copy and close";
 
     public ReactiveCommand<Unit, Unit> RegenerateCommand { get; }
     public ReactiveCommand<Unit, Unit> PrimaryActionCommand { get; }

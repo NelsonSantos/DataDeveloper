@@ -9,11 +9,12 @@ using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public sealed class ConnectionGroupRow : ReactiveObject
+public sealed partial class ConnectionGroupRow : ReactiveObject
 {
     public ConnectionGroupRow(ConnectionGroup group)
     {
@@ -22,11 +23,11 @@ public sealed class ConnectionGroupRow : ReactiveObject
     }
 
     public ConnectionGroup Group { get; }
-    [Reactive] public bool IsEditing { get; set; }
-    [Reactive] public string DraftName { get; set; } = string.Empty;
+    [Reactive] private bool _isEditing;
+    [Reactive] private string _draftName = string.Empty;
 }
 
-public class ManageConnectionGroupsViewModel : ViewModelBase
+public partial class ManageConnectionGroupsViewModel : ViewModelBase
 {
     private readonly IConnectionGroupRepository _connectionGroupRepository;
     private readonly IDialogService _dialogService;

@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using DynamicData;
 
 namespace DataDeveloper;
 
@@ -15,7 +14,8 @@ public static class MappingExtensions
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNameCaseInsensitive = true
         };
-        jsonSerializerOptions.Converters.AddRange(converters);
+        foreach (var converter in converters)
+            jsonSerializerOptions.Converters.Add(converter);
         return jsonSerializerOptions;
     }
 

@@ -127,7 +127,7 @@
                                              IsEnabled="{Binding !IsNull}"
                                              MinWidth="120"
                                              HorizontalAlignment="Stretch"
-                                             Watermark="null" />
+                                             PlaceholderText="null" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

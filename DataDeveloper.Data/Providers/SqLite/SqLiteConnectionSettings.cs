@@ -1,9 +1,9 @@
 using DataDeveloper.Data.Models;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Providers.SqLite;
 
-public class SqLiteConnectionSettings : ConnectionSettings
+public partial class SqLiteConnectionSettings : ConnectionSettings
 {
-    [Reactive] public string Database { get; set; } = string.Empty;
+    [Reactive] private string _database = string.Empty;
 }

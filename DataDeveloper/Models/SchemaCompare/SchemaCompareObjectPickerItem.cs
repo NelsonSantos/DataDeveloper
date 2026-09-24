@@ -1,11 +1,12 @@
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models.SchemaCompare;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Models.SchemaCompare;
 
-public class SchemaCompareObjectPickerItem : ReactiveObject
+public partial class SchemaCompareObjectPickerItem : ReactiveObject
 {
     public SchemaCompareObjectPickerItem(SchemaCompareObjectRef objectRef)
     {
@@ -17,5 +18,5 @@ public class SchemaCompareObjectPickerItem : ReactiveObject
     public SchemaCompareObjectType ObjectType => ObjectRef.ObjectType;
     public string Name => ObjectRef.Name;
 
-    [Reactive] public bool IsChecked { get; set; }
+    [Reactive] private bool _isChecked;
 }

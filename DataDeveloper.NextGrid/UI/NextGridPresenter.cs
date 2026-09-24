@@ -11,6 +11,7 @@ using Avalonia.VisualTree;
 using DataDeveloper.NextGrid.Clipboard;
 using DataDeveloper.NextGrid.Editors;
 using DataDeveloper.NextGrid.Renderers;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.NextGrid.UI;
 
@@ -1194,7 +1195,7 @@ internal sealed class NextGridPresenter : Control, IScrollable, ILogicalScrollab
     {
         var bounds = GetCellBoundsForTest(rowIndex, columnIndex);
         var localPoint = new Point(bounds.X + Math.Min(12, bounds.Width / 2), bounds.Y + Math.Min(12, bounds.Height / 2));
-        var root = this.GetVisualRoot();
+        var root = TopLevel.GetTopLevel(this);
         return root is Visual visualRoot
             ? Avalonia.VisualExtensions.TranslatePoint(this, localPoint, visualRoot) ?? localPoint
             : localPoint;

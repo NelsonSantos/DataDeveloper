@@ -18,12 +18,13 @@ using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.Services;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DataDeveloper.ViewModels;
 
-public class TabQueryEditorViewModel : BaseTabContent
+public partial class TabQueryEditorViewModel : BaseTabContent
 {
     private static readonly HashSet<int> SupportedRunTimeouts = [15, 30, 60, 120, 240, 480];
     private readonly IEventAggregatorService _eventAggregatorService;
@@ -52,10 +53,10 @@ public class TabQueryEditorViewModel : BaseTabContent
             vm => vm.StatementIsRunning,
             (hasActiveTransaction, statementIsRunning) => hasActiveTransaction && !statementIsRunning);
 
-        ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxApp.MainThreadScheduler);
-        StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxApp.MainThreadScheduler);
-        CommitTransactionCommand = ReactiveCommand.CreateFromTask(CommitTransaction, canRunTransactionCommand, RxApp.MainThreadScheduler);
-        RollbackTransactionCommand = ReactiveCommand.CreateFromTask(RollbackTransaction, canRunTransactionCommand, RxApp.MainThreadScheduler);
+        ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteQuery, outputScheduler: RxSchedulers.MainThreadScheduler);
+        StopCommand = ReactiveCommand.CreateFromTask(StopQuery, outputScheduler: RxSchedulers.MainThreadScheduler);
+        CommitTransactionCommand = ReactiveCommand.CreateFromTask(CommitTransaction, canRunTransactionCommand, RxSchedulers.MainThreadScheduler);
+        RollbackTransactionCommand = ReactiveCommand.CreateFromTask(RollbackTransaction, canRunTransactionCommand, RxSchedulers.MainThreadScheduler);
         CloseTabResultCommand = ReactiveCommand.CreateFromTask<BaseTabContent>(CloseTabResult);
         ShowResultCommand = ReactiveCommand.Create(() => { });
 
@@ -95,24 +96,24 @@ public class TabQueryEditorViewModel : BaseTabContent
     }
 
     public IConnectionSettings ConnectionSettings { get; }
-    [Reactive] public string? File { get; set; }
-    [Reactive] public string SqlStatement { get; set; } = string.Empty;
-    [Reactive] public string SelectedStatement { get; set; } = string.Empty;
-    [Reactive] public int SelectedStatementLength { get; set; }
-    [Reactive] public int CursorOffSet { get; set; }
-    [Reactive] public int CursorLine { get; set; }
-    [Reactive] public int CursorColumn { get; set; }
-    [Reactive] public double EditorHeadHeight { get; set; }
-    [Reactive] public double ResultsHeaderHeight { get; set; }
-    [Reactive] public bool TextWasChanged { get; set; }
-    [Reactive] public bool StatementIsRunning { get; set; }
-    [Reactive] public bool HasActiveTransaction { get; set; }
-    [Reactive] public string TransactionStatusMessage { get; set; } = "No pending transaction";
-    [Reactive] public bool IsExecutionStatusVisible { get; set; }
-    [Reactive] public string ExecutionStatusMessage { get; set; } = string.Empty;
-    [Reactive] public bool ResultIsMinimized { get; set; } = true;
-    [Reactive] public int SelectedTabIndex { get; set; }
-    [Reactive] public int SelectedRunTimeoutSeconds { get; set; } = 60;
+    [Reactive] private string? _file;
+    [Reactive] private string _sqlStatement = string.Empty;
+    [Reactive] private string _selectedStatement = string.Empty;
+    [Reactive] private int _selectedStatementLength;
+    [Reactive] private int _cursorOffSet;
+    [Reactive] private int _cursorLine;
+    [Reactive] private int _cursorColumn;
+    [Reactive] private double _editorHeadHeight;
+    [Reactive] private double _resultsHeaderHeight;
+    [Reactive] private bool _textWasChanged;
+    [Reactive] private bool _statementIsRunning;
+    [Reactive] private bool _hasActiveTransaction;
+    [Reactive] private string _transactionStatusMessage = "No pending transaction";
+    [Reactive] private bool _isExecutionStatusVisible;
+    [Reactive] private string _executionStatusMessage = string.Empty;
+    [Reactive] private bool _resultIsMinimized = true;
+    [Reactive] private int _selectedTabIndex;
+    [Reactive] private int _selectedRunTimeoutSeconds = 60;
     public bool HasDetectedParameters => ParameterValues.Count > 0;
     
     public ObservableCollection<BaseTabContent> Tabs { get; } = new();

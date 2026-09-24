@@ -9,6 +9,7 @@ using DataDeveloper.NextGrid.Renderers;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using ReactiveUI;
+using ReactiveUI.Reactive;
 
 namespace DataDeveloper.Views;
 

@@ -12,6 +12,7 @@ using DataDeveloper.NextGrid.Editors;
 using DataDeveloper.NextGrid.Renderers;
 using DataDeveloper.NextGrid.UI;
 using Xunit;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.Tests.NextGrid.UI;
 
@@ -734,7 +735,7 @@ public sealed class NextGridControlUiTests
 
         await grid.CopySelectionAsync();
 
-        var text = await window.Clipboard!.GetTextAsync();
+        var text = await window.Clipboard!.TryGetTextAsync();
         Assert.Equal("R3C2", text);
         window.Close();
     }
@@ -757,7 +758,7 @@ public sealed class NextGridControlUiTests
         window.KeyPressQwerty(PhysicalKey.C, RawInputModifiers.Control);
         Dispatcher.UIThread.RunJobs();
 
-        var text = await window.Clipboard!.GetTextAsync();
+        var text = await window.Clipboard!.TryGetTextAsync();
         Assert.Equal("R2C2", text);
         window.Close();
     }

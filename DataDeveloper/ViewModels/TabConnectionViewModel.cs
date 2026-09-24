@@ -22,14 +22,14 @@ using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.Views;
-using DynamicData;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DataDeveloper.ViewModels;
 
-public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
+public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
 {
     private int _countQueryEditors = 0;
     private readonly IDialogService _dialogService;
@@ -384,7 +384,7 @@ public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     {
         _sessionChangeTrigger
             .Throttle(TimeSpan.FromSeconds(1.5))
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(_ =>
             {
                 if (!_autosaveSuspended)
@@ -517,7 +517,7 @@ public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             await SchemaExplorer.InitializeSchemaNode();
             
             RootConnections.Clear();
-            RootConnections.Add(SchemaExplorer.RootConnections);
+            RootConnections.AddRange(SchemaExplorer.RootConnections);
         }
         catch (Exception ex)
         {
@@ -551,8 +551,8 @@ public class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     public IConnectionSettings ConnectionSettings { get; }
     public ISchemaExplorer SchemaExplorer { get; }
     public Task Initialization { get; private set; }
-    [Reactive] public int SelectedEditor { get; set; }
-    [Reactive] public bool IsSchemaExplorerMinimized { get; set; }
+    [Reactive] private int _selectedEditor;
+    [Reactive] private bool _isSchemaExplorerMinimized;
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CreateTableCommand { get; }
     public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }

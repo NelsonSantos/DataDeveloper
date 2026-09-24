@@ -12,6 +12,7 @@ using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.Views;
 

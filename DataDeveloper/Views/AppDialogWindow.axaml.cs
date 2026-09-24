@@ -8,6 +8,7 @@ using Avalonia.Media;
 using DataDeveloper.Enums;
 using DataDeveloper.Models;
 using DataDeveloper.ViewModels;
+using Avalonia.Input.Platform;
 
 namespace DataDeveloper.Views;
 

@@ -5,7 +5,7 @@
         Height="280"
         CanResize="False"
         ShowInTaskbar="False"
-        SystemDecorations="None"
+        WindowDecorations="None"
         WindowStartupLocation="Manual"
         Background="Transparent"
         TransparencyLevelHint="Transparent"

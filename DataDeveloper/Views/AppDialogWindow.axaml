@@ -12,10 +12,9 @@
         CanResize="False"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
         Background="#00000000">
     <Border CornerRadius="16"
             Padding="24"

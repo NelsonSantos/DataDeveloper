@@ -1,11 +1,12 @@
 using System.Collections.ObjectModel;
 using DataDeveloper.Data.Enums;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Models;
 
-public class SchemaNode : ReactiveObject
+public partial class SchemaNode : ReactiveObject
 {
     internal SchemaNode(NodeType nodeType, string name, bool isFolder, SchemaNode? parent, bool canLoad = false, string? details = null, object? tag = null)
     {
@@ -28,8 +29,8 @@ public class SchemaNode : ReactiveObject
     public bool IsFolder { get; }
     public SchemaNode? Parent { get; }
     public SchemaNode? Next => Children.FirstOrDefault();
-    [Reactive] public bool CanLoad { get; set; }
-    [Reactive] public bool IsExpanded { get; set; }
+    [Reactive] private bool _canLoad;
+    [Reactive] private bool _isExpanded;
     public string? Details { get; }
     public object? Tag { get; }
 

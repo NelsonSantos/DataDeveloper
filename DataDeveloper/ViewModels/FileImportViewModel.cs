@@ -20,11 +20,12 @@ using DataDeveloper.Enums;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public class FileImportViewModel : ViewModelBase
+public partial class FileImportViewModel : ViewModelBase
 {
     private const int PreviewSampleRowCount = 50;
 
@@ -125,23 +126,23 @@ public class FileImportViewModel : ViewModelBase
     public ObservableCollection<FileImportTableOption> AvailableTables { get; } = new();
     public ObservableCollection<FileImportColumnMappingRowViewModel> MappingRows { get; } = new();
 
-    [Reactive] public FileImportWizardStep CurrentStep { get; private set; } = FileImportWizardStep.SelectConnection;
-    [Reactive] public IConnectionSettings? SelectedConnection { get; private set; }
-    [Reactive] public string? FilePath { get; private set; }
-    [Reactive] public FileImportPreview? FilePreview { get; private set; }
-    [Reactive] public FileImportTargetMode TargetMode { get; set; } = FileImportTargetMode.NewTable;
-    [Reactive] public string NewTableName { get; set; } = string.Empty;
-    [Reactive] public string NewSchemaName { get; set; } = string.Empty;
-    [Reactive] public FileImportTableOption? SelectedExistingTable { get; set; }
-    [Reactive] public bool IsBusy { get; set; }
-    [Reactive] public bool IsImporting { get; private set; }
-    [Reactive] public string? ErrorMessage { get; set; }
-    [Reactive] public string GeneratedCreateScript { get; private set; } = string.Empty;
-    [Reactive] public int RowCountToImport { get; private set; }
-    [Reactive] public int ProgressCompleted { get; private set; }
-    [Reactive] public int ProgressTotal { get; private set; }
-    [Reactive] public string ProgressText { get; private set; } = string.Empty;
-    [Reactive] public FileImportResult? ImportResult { get; private set; }
+    [Reactive(SetModifier = AccessModifier.Private)] private FileImportWizardStep _currentStep = FileImportWizardStep.SelectConnection;
+    [Reactive(SetModifier = AccessModifier.Private)] private IConnectionSettings? _selectedConnection;
+    [Reactive(SetModifier = AccessModifier.Private)] private string? _filePath;
+    [Reactive(SetModifier = AccessModifier.Private)] private FileImportPreview? _filePreview;
+    [Reactive] private FileImportTargetMode _targetMode = FileImportTargetMode.NewTable;
+    [Reactive] private string _newTableName = string.Empty;
+    [Reactive] private string _newSchemaName = string.Empty;
+    [Reactive] private FileImportTableOption? _selectedExistingTable;
+    [Reactive] private bool _isBusy;
+    [Reactive(SetModifier = AccessModifier.Private)] private bool _isImporting;
+    [Reactive] private string? _errorMessage;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _generatedCreateScript = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private int _rowCountToImport;
+    [Reactive(SetModifier = AccessModifier.Private)] private int _progressCompleted;
+    [Reactive(SetModifier = AccessModifier.Private)] private int _progressTotal;
+    [Reactive(SetModifier = AccessModifier.Private)] private string _progressText = string.Empty;
+    [Reactive(SetModifier = AccessModifier.Private)] private FileImportResult? _importResult;
     public bool HasImportErrors => ImportResult?.RowsFailed > 0;
 
     /// <summary>No rows imported at all — shown with the red/failure icon on the result step.</summary>
@@ -488,7 +489,7 @@ public class FileImportViewModel : ViewModelBase
     }
 }
 
-public sealed class FileImportTableOption
+public sealed partial class FileImportTableOption
 {
     public FileImportTableOption(string displayName, string schemaName, string tableName, SchemaNode node)
     {
@@ -506,7 +507,7 @@ public sealed class FileImportTableOption
     public override string ToString() => DisplayName;
 }
 
-public sealed class FileImportColumnMappingRowViewModel : ViewModelBase
+public sealed partial class FileImportColumnMappingRowViewModel : ViewModelBase
 {
     public FileImportColumnMappingRowViewModel(int sourceColumnIndex, string sourceColumnName)
     {
@@ -517,9 +518,8 @@ public sealed class FileImportColumnMappingRowViewModel : ViewModelBase
     public int SourceColumnIndex { get; }
     public string SourceColumnName { get; }
 
-    [Reactive] public bool IsIncluded { get; set; } = true;
-    [Reactive] public TableDesignerColumnViewModel? NewColumn { get; set; }
-    [Reactive] public string? TargetColumnName { get; set; }
-
+    [Reactive] private bool _isIncluded = true;
+    [Reactive] private TableDesignerColumnViewModel? _newColumn;
+    [Reactive] private string? _targetColumnName;
     public ObservableCollection<string> AvailableTargetColumns { get; } = new();
 }

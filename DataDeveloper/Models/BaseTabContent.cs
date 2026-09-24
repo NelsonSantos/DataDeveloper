@@ -5,11 +5,12 @@ using DataDeveloper.Core;
 using DataDeveloper.Enums;
 using DataDeveloper.Events;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Models;
 
-public abstract class BaseTabContent : ViewModelBase
+public abstract partial class BaseTabContent : ViewModelBase
 {
     protected BaseTabContent(TabType type, string name, bool canClose, IServiceProvider serviceProvider)
     {
@@ -21,8 +22,8 @@ public abstract class BaseTabContent : ViewModelBase
     }
     public Guid Id { get; }
     public TabType Type { get; }
-    [Reactive] public string Name { get; set; }
+    [Reactive] private string _name;
     public bool CanClose { get; }
     protected IServiceProvider ServiceProvider { get; }
-    [Reactive] public bool IsBusy { get; set; } 
+    [Reactive] private bool _isBusy;
 }

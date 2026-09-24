@@ -1,12 +1,13 @@
 using System;
 using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.Data.Models;
 
-public class ConnectionGroup : ReactiveObject
+public partial class ConnectionGroup : ReactiveObject
 {
-    [Reactive] public Guid Id { get; set; }
-    [Reactive] public string Name { get; set; } = string.Empty;
-    [Reactive] public bool IsExpanded { get; set; } = true;
+    [Reactive] private Guid _id;
+    [Reactive] private string _name = string.Empty;
+    [Reactive] private bool _isExpanded = true;
 }

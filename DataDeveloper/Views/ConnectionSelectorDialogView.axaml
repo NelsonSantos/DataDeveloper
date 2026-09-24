@@ -295,7 +295,7 @@
                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="Password" />
                                 <TextBox Grid.Row="1" Grid.Column="1"
                                          Text="{Binding SelectedConnection.Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         Watermark="{Binding PasswordWatermark}"
+                                         PlaceholderText="{Binding PasswordWatermark}"
                                          IsReadOnly="{Binding !IsEditing}"
                                          IsHitTestVisible="{Binding IsEditing}"
                                          Focusable="{Binding IsEditing}"
