@@ -2,15 +2,13 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifiers>osx-x64;osx-arm64;win-x64;linux-x64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/NelsonSantos/DataDeveloper</RepositoryUrl>
     <PackageProjectUrl>https://github.com/NelsonSantos/DataDeveloper</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
-    <!--Avalonia doesen't support TrimMode=link currently,but we are working on that https://github.com/AvaloniaUI/Avalonia/issues/6892 -->
-    <TrimMode>copyused</TrimMode>
     <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -43,7 +41,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
     <PackageReference Include="Svg.Controls.Avalonia" Version="11.3.0.1" />
   </ItemGroup>
 
