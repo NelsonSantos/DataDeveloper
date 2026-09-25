@@ -13,12 +13,6 @@ public class PostgresDatabaseProvider : DatabaseProviderBase<PostgresConnectionS
 
     public override DbConnection GetConnection()
     {
-        var sslMode = ConnectionSettings.Encrypt
-            ? ConnectionSettings.TrustServerCertificate
-                ? SslMode.Require
-                : SslMode.VerifyCA
-            : SslMode.Disable;
-
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder
         {
             Host = ConnectionSettings.Server,
@@ -26,8 +20,7 @@ public class PostgresDatabaseProvider : DatabaseProviderBase<PostgresConnectionS
             Username = ConnectionSettings.User,
             Password = ConnectionSettings.Password,
             Port = ConnectionSettings.Port,
-            SslMode = sslMode,
-            TrustServerCertificate = ConnectionSettings.TrustServerCertificate
+            SslMode = GetSslMode()
         };
 
         return new NpgsqlConnection(connectionStringBuilder.ConnectionString);
@@ -54,12 +47,6 @@ public class PostgresDatabaseProvider : DatabaseProviderBase<PostgresConnectionS
 
     private string BuildConnectionString(string? databaseName)
     {
-        var sslMode = ConnectionSettings.Encrypt
-            ? ConnectionSettings.TrustServerCertificate
-                ? SslMode.Require
-                : SslMode.VerifyCA
-            : SslMode.Disable;
-
         var connectionStringBuilder = new NpgsqlConnectionStringBuilder
         {
             Host = ConnectionSettings.Server,
@@ -67,10 +54,18 @@ public class PostgresDatabaseProvider : DatabaseProviderBase<PostgresConnectionS
             Username = ConnectionSettings.User,
             Password = ConnectionSettings.Password,
             Port = ConnectionSettings.Port,
-            SslMode = sslMode,
-            TrustServerCertificate = ConnectionSettings.TrustServerCertificate
+            SslMode = GetSslMode()
         };
 
         return connectionStringBuilder.ConnectionString;
     }
+
+    /// <summary>
+    /// Encryption without certificate validation when the server certificate is trusted (Npgsql's own
+    /// TrustServerCertificate option is obsolete: Require already skips validation).
+    /// </summary>
+    private SslMode GetSslMode() =>
+        ConnectionSettings.Encrypt
+            ? ConnectionSettings.TrustServerCertificate ? SslMode.Require : SslMode.VerifyCA
+            : SslMode.Disable;
 }
