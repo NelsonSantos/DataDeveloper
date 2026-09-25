@@ -210,6 +210,37 @@ public partial class MainWindowViewModel : ViewModelBase
         await this.Connections[this.SelectedTabConnectionIndex].AddQueryEditorCommand.Execute().ToTask();
     }
 
+    /// <summary>Opens the switcher, or moves its highlight when it is already open (Ctrl+Tab / Ctrl+Shift+Tab).</summary>
+    public void ShowSwitcher(int step)
+    {
+        if (Switcher is { } switcher)
+        {
+            switcher.Move(step);
+            return;
+        }
+
+        if (!HasConnections)
+            return;
+
+        Switcher = new QuerySwitcherViewModel(Connections, SelectedTabConnectionIndex, step, CommitSwitcher, CloseSwitcher);
+    }
+
+    public void CloseSwitcher() => Switcher = null;
+
+    private void CommitSwitcher(QuerySwitcherViewModel switcher)
+    {
+        if (!ReferenceEquals(Switcher, switcher))
+            return;
+
+        Switcher = null;
+        if (switcher.SelectedConnection is not { } connection)
+            return;
+
+        SelectedTabConnectionIndex = Connections.IndexOf(connection);
+        if (switcher.SelectedEditor is { } editor && connection.QueryEditors.IndexOf(editor) is var index and >= 0)
+            connection.SelectedEditor = index;
+    }
+
     private async Task<bool> CloseTabConnection(TabConnectionViewModel connection)
     {
         connection.SuspendAutosave();
@@ -275,6 +306,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> NewConnectionCommand { get; }
     public ObservableCollection<TabConnectionViewModel> Connections { get; } =  new();
     [Reactive] private int _selectedTabConnectionIndex;
+
+    /// <summary>The Ctrl+Tab switcher while it is open.</summary>
+    [Reactive(SetModifier = AccessModifier.Private)] private QuerySwitcherViewModel? _switcher;
     [Reactive] private int _cursorOffSet;
     [Reactive] private int _cursorLine;
     [Reactive] private int _cursorColumn;

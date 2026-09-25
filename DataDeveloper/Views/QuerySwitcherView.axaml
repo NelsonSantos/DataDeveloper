@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DataDeveloper.ViewModels"
+             xmlns:controls="clr-namespace:DataDeveloper.Controls"
+             x:Class="DataDeveloper.Views.QuerySwitcherView"
+             x:DataType="vm:QuerySwitcherViewModel"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Center">
+    <UserControl.Styles>
+        <Style Selector="ListBox.switcher-list">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Padding" Value="4" />
+        </Style>
+        <Style Selector="ListBox.switcher-list ListBoxItem">
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="MinHeight" Value="24" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Focusable" Value="False" />
+        </Style>
+        <!-- The column that arrow keys move in shows a stronger highlight. -->
+        <Style Selector="ListBox.switcher-list ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#3D4148" />
+        </Style>
+        <Style Selector="ListBox.switcher-list.active ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#2E436E" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Width="660"
+            MaxHeight="460"
+            Background="#2B2D30"
+            BorderBrush="#4A4A4A"
+            BorderThickness="1"
+            CornerRadius="8"
+            BoxShadow="0 8 24 0 #80000000">
+        <Grid RowDefinitions="Auto,*,Auto">
+            <TextBlock Text="Switcher" FontWeight="SemiBold" Margin="14,10,14,6" />
+
+            <Grid Grid.Row="1" ColumnDefinitions="220,*">
+                <ListBox x:Name="ConnectionList"
+                         Classes="switcher-list"
+                         Classes.active="{Binding IsConnectionColumnActive}"
+                         ItemsSource="{Binding ConnectionItems}"
+                         SelectedIndex="{Binding SelectedConnectionIndex, Mode=OneWay}"
+                         Tapped="OnConnectionTapped">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SwitcherConnectionItem">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <!-- Ctrl+number picks the connection while the switcher is open. -->
+                                <TextBlock Text="{Binding Number}"
+                                           Width="10"
+                                           Foreground="Gray"
+                                           VerticalAlignment="Center" />
+                                <controls:DatabaseTypeIcon DatabaseType="{Binding Connection.ConnectionSettings.DatabaseType}"
+                                                           BadgeSize="20"
+                                                           IconSize="13" />
+                                <TextBlock Text="{Binding Connection.Name}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Border Grid.Column="1" BorderBrush="#3C3F41" BorderThickness="1,0,0,0">
+                    <ListBox x:Name="EditorList"
+                             Classes="switcher-list"
+                             Classes.active="{Binding !IsConnectionColumnActive}"
+                             ItemsSource="{Binding Editors}"
+                             SelectedIndex="{Binding SelectedEditorIndex, Mode=OneWay}"
+                             Tapped="OnEditorTapped">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TabQueryEditorViewModel">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" FontSize="14" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                    <TextBlock Text="&#xF0765;"
+                                               Classes="MaterialIcon"
+                                               FontSize="8"
+                                               IsVisible="{Binding TextWasChanged}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" BorderBrush="#3C3F41" BorderThickness="0,1,0,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding Details}"
+                               Margin="14,6"
+                               FontSize="11"
+                               Foreground="Gray"
+                               TextTrimming="CharacterEllipsis" />
+                    <Border BorderBrush="#3C3F41" BorderThickness="0,1,0,0">
+                        <TextBlock Text="{Binding ShortcutHints}"
+                                   Margin="14,6"
+                                   HorizontalAlignment="Right"
+                                   FontSize="11"
+                                   Foreground="#8C8F94"
+                                   TextTrimming="CharacterEllipsis" />
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

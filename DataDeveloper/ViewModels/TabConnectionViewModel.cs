@@ -65,9 +65,11 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
         SetupAutosave();
         this.WhenAnyValue(vm => vm.SelectedEditor).Subscribe(_ =>
         {
-            if (this.SelectedEditor < 0) return;
-            
-            QueryEditors[this.SelectedEditor].ShowCursorData();
+            if (this.SelectedEditor < 0 || this.SelectedEditor >= QueryEditors.Count) return;
+
+            var editor = QueryEditors[this.SelectedEditor];
+            _recentEditors.Touch(editor);
+            editor.ShowCursorData();
         });
 
         _eventAggregatorService.Subscribe<RefreshSchemaExplorerEvent>(
@@ -405,7 +407,10 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
 
         if (e.OldItems is not null)
             foreach (TabQueryEditorViewModel editor in e.OldItems)
+            {
                 UntrackEditorForAutosave(editor);
+                _recentEditors.Remove(editor);
+            }
 
         _sessionChangeTrigger.OnNext(Unit.Default);
     }
@@ -560,4 +565,9 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ObservableCollection<SchemaNode> RootConnections { get; } = new();
     public ObservableCollection<TabQueryEditorViewModel> QueryEditors { get; } = new();
+
+    /// <summary>The query editors, most recently selected first (the order Ctrl+Tab and the switcher use).</summary>
+    public IReadOnlyList<TabQueryEditorViewModel> EditorsByRecentUse => _recentEditors.Order(QueryEditors);
+
+    private readonly RecentUseList<TabQueryEditorViewModel> _recentEditors = new();
 }
