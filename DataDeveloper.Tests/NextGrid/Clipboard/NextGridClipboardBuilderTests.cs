@@ -25,7 +25,7 @@ public sealed class NextGridClipboardBuilderTests
             rows,
             columnTypes);
 
-        Assert.Equal("B1\tC1\nB2\tC2", text);
+        Assert.Equal("B1\tC1\nB2\tC2".ReplaceLineEndings(), text);
     }
 
     [Fact]
@@ -45,6 +45,6 @@ public sealed class NextGridClipboardBuilderTests
             rows,
             columnTypes);
 
-        Assert.Equal("1\n2\n3", text);
+        Assert.Equal("1\n2\n3".ReplaceLineEndings(), text);
     }
 }

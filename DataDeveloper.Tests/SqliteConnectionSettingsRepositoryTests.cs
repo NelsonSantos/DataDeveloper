@@ -7,6 +7,7 @@ using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 namespace DataDeveloper.Tests;
@@ -467,6 +468,7 @@ public class SqliteConnectionSettingsRepositoryTests : IDisposable
 
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         if (Directory.Exists(_tempDirectory))
             Directory.Delete(_tempDirectory, recursive: true);
     }

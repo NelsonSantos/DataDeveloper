@@ -306,6 +306,7 @@ public class SchemaCompareEngineIntegrationTests
 
         public void Dispose()
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(_sourcePath))
                 File.Delete(_sourcePath);
             if (File.Exists(_destinationPath))

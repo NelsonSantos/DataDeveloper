@@ -17,6 +17,7 @@ using DataDeveloper.Interfaces;
 using DataDeveloper.Models;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -623,6 +624,7 @@ public class TabConnectionSessionTests
 
         public void Dispose()
         {
+            SqliteConnection.ClearAllPools();
             if (File.Exists(_databasePath))
                 File.Delete(_databasePath);
         }

@@ -189,7 +189,7 @@ public sealed class ReleaseUpdateServiceTests
             - feature/oracle sqlite
             - feat: add oracle and sqlite connection support
             - feat: support oracle and sqlite execution workflows
-            """,
+            """.ReplaceLineEndings("\n"),
             summary);
     }
 
