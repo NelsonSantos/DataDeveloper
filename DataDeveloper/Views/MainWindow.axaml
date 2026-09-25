@@ -12,5 +12,19 @@
         <KeyBinding Gesture="{Binding SaveAsGesture}" Command="{Binding SaveAsCurrentEditorTabCommand}" />
         <KeyBinding Gesture="{Binding NewQueryTabGesture}" Command="{Binding NewQueryTabCommand}" />
     </Window.KeyBindings>
+    <!-- macOS consumes Control-Tab before it reaches the app (it never arrives as a key press), so query tabs are
+         switched through native menu items, like Safari's; elsewhere MainWindow handles the key itself. -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="Window">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Show Next Tab" Gesture="Ctrl+Tab" Click="OnShowNextQueryTab" />
+                        <NativeMenuItem Header="Show Previous Tab" Gesture="Ctrl+Shift+Tab" Click="OnShowPreviousQueryTab" />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
     <views:MainView />
 </Window>

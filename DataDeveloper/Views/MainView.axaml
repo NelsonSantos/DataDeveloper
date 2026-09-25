@@ -6,14 +6,34 @@
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              xmlns:controls="clr-namespace:DataDeveloper.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:dock="using:Dock.Avalonia.Controls"
+             xmlns:dockModel="using:Dock.Model.Avalonia.Controls"
+             xmlns:dockCore="using:Dock.Model.Core"
+             xmlns:dockFactory="using:Dock.Model.Avalonia"
+             xmlns:recycling="using:Avalonia.Controls.Recycling"
+             xmlns:docking="clr-namespace:DataDeveloper.Docking"
              x:Class="DataDeveloper.Views.MainView"
+             x:Name="MainViewRoot"
              x:DataType="vm:MainWindowViewModel">
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
+        <docking:ConnectionDockItemContainerGenerator x:Key="ConnectionItemGenerator" DocumentOperations="Fill" />
+        <docking:NonCachingControlRecycling x:Key="DockControlRecycling" />
     </UserControl.Resources>
+    <UserControl.Styles>
+        <!-- Connection tabs show the database icon (TabConnectionView resets this for its query tabs). -->
+        <Style Selector="dock|DocumentControl">
+            <Setter Property="IconTemplate">
+                <DataTemplate DataType="dockCore:IDockable">
+                    <controls:DatabaseTypeIcon DatabaseType="{Binding ((vm:TabConnectionViewModel)Context).ConnectionSettings.DatabaseType}"
+                                               Margin="4,4,2,0" />
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto, Auto, *" Background="Transparent" Margin="0">
         <TextBlock Grid.Row="0" Grid.Column="0" Text="&#xF1ABD;" Classes="MaterialIcon" FontSize="21" Foreground="LightGray" VerticalAlignment="Center" />
         <Menu Grid.Row="0" Grid.Column="1">
@@ -68,33 +88,40 @@
             <StackPanel Orientation="Vertical" Spacing="10" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Click on [Load/Add connection] to start using Data Developer" FontSize="20" />
             </StackPanel>
-            <TabControl x:Name="Tabs" Margin="0" ItemsSource="{Binding Connections}" SelectedIndex="{Binding SelectedTabConnectionIndex}">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
-                            <controls:DatabaseTypeIcon DatabaseType="{Binding ConnectionSettings.DatabaseType}" />
-                            <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" />
-                            <Button 
-                                Background="Transparent" 
-                                IsVisible="{Binding CanClose}"
-                                Margin="0"
-                                Command="{Binding ((vm:MainWindowViewModel)DataContext).CloseTabConnectionCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                                CommandParameter="{Binding .}"
-                                >
-                                <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                            </Button>
-                        </StackPanel>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <StaticResource ResourceKey="TabTemplateSelector" />
-                </TabControl.ContentTemplate>
-                <TabControl.Styles>
-                    <Style Selector="TabControl:is(TabControl)[ItemCount=0]">
-                        <Setter Property="Background" Value="Transparent" />
-                    </Style>
-                </TabControl.Styles>
-            </TabControl>
+            <!-- Connections are dock documents: they can be reordered in their tab strip, not split or floated. -->
+            <dock:DockControl x:Name="MainDock"
+                              IsVisible="{Binding HasConnections}"
+                              recycling:ControlRecyclingDataTemplate.ControlRecycling="{StaticResource DockControlRecycling}"
+                              InitializeFactory="True"
+                              InitializeLayout="True">
+                <dock:DockControl.Factory>
+                    <dockFactory:Factory />
+                </dock:DockControl.Factory>
+
+                <dockModel:RootDock Id="MainRoot"
+                                    IsCollapsable="False"
+                                    EnableGlobalDocking="False"
+                                    AllowedDropOperations="None"
+                                    DefaultDockable="{Binding #ConnectionDocuments}"
+                                    ActiveDockable="{Binding #ConnectionDocuments}">
+                    <dockModel:DocumentDock x:Name="ConnectionDocuments"
+                                            Id="ConnectionDocuments"
+                                            CanCreateDocument="False"
+                                            IsCollapsable="False"
+                                            AllowedDropOperations="Fill"
+                                            ItemContainerGenerator="{StaticResource ConnectionItemGenerator}"
+                                            ItemsSource="{Binding #MainViewRoot.((vm:MainWindowViewModel)DataContext).Connections}">
+                        <dockModel:DocumentDock.DocumentTemplate>
+                            <dockModel:DocumentTemplate>
+                                <Grid x:DataType="dockModel:Document">
+                                    <ContentControl Content="{Binding Context}"
+                                                    ContentTemplate="{StaticResource TabTemplateSelector}" />
+                                </Grid>
+                            </dockModel:DocumentTemplate>
+                        </dockModel:DocumentDock.DocumentTemplate>
+                    </dockModel:DocumentDock>
+                </dockModel:RootDock>
+            </dock:DockControl>
             
         </Grid>
         <Border Grid.Row="2"

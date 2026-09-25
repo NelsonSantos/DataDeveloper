@@ -4,27 +4,55 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:viewModels="clr-namespace:DataDeveloper.ViewModels"
-             xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="DataDeveloper.Views.TabQueryEditorView"
              xmlns:vm="using:DataDeveloper.ViewModels"
+             xmlns:dock="using:Dock.Avalonia.Controls"
+             xmlns:dockModel="using:Dock.Model.Avalonia.Controls"
+             xmlns:dockCore="using:Dock.Model.Core"
+             xmlns:docking="clr-namespace:DataDeveloper.Docking"
+             xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              x:DataType="vm:TabQueryEditorViewModel"
+             x:Name="QueryEditorRoot"
              >
     <Design.DataContext>
         <viewModels:TabQueryEditorViewModel />
     </Design.DataContext>
-    <UserControl.Resources>
-        <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
-    </UserControl.Resources>
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding ExecuteCommand}" ></KeyBinding>
     </UserControl.KeyBindings>
-    <Grid x:Name="RootGrid" Background="#3C3F41">
+    <UserControl.Styles>
+        <!-- Result tabs (not Message) get a close button; Dock's tool tabs have none. -->
+        <Style Selector="dock|ToolControl">
+            <Setter Property="HeaderTemplate">
+                <DataTemplate DataType="dockCore:IDockable">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="{Binding Title}"
+                                   VerticalAlignment="Center"
+                                   Padding="{DynamicResource DockHeaderContentPadding}" />
+                        <Button Background="Transparent"
+                                Padding="0"
+                                VerticalAlignment="Center"
+                                IsVisible="{Binding CanClose}"
+                                Click="OnResultTabCloseClick">
+                            <TextBlock Text="&#xF0156;" Classes="MaterialIcon" FontSize="12" />
+                        </Button>
+                    </StackPanel>
+                </DataTemplate>
+            </Setter>
+        </Style>
+    </UserControl.Styles>
+    <UserControl.Resources>
+        <templateSelectors:TabTemplateSelector x:Key="ResultTemplateSelector" />
+        <docking:ConnectionDockItemContainerGenerator x:Key="ResultItemGenerator" />
+    </UserControl.Resources>
+    <Panel x:Name="EditorHost">
+    <!-- Toolbar, editor and status bar; moved into the EditorPane document by the code-behind. -->
+    <Grid x:Name="RootGrid" Background="#3C3F41" DataContext="{Binding #QueryEditorRoot.DataContext}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" MinHeight="{Binding EditorHeadHeight}" />
             <RowDefinition Height="1*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="1*" MinHeight="{Binding ResultsHeaderHeight, Mode=OneWay}" />
         </Grid.RowDefinitions>
         <StackPanel x:Name="StackPanelEditor" Grid.Row="0" Margin="4" Background="#3C3F41" Orientation="Horizontal">
             <TextBlock Text="Statement timeout:"
@@ -138,11 +166,9 @@
             </Grid>
         </Border>
         </Grid>
-        <GridSplitter x:Name="Splitter" Grid.Row="2" Height="5" ResizeDirection="Rows"/>
-        <Grid Grid.Row="3" RowDefinitions="Auto,Auto, *">
-            <Grid x:Name="StackPanelResult" Grid.Row="0" ColumnDefinitions="*,Auto" Margin="4,0">
-                <StackPanel Grid.Column="0"
-                            Orientation="Horizontal"
+        <Border Grid.Row="2" BorderBrush="#4A4A4A" BorderThickness="0,1,0,0">
+            <Grid x:Name="StatusBar" Margin="4,2">
+                <StackPanel Orientation="Horizontal"
                             Spacing="10"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Left"
@@ -175,35 +201,59 @@
                                  IsVisible="{Binding IsExecutionStatusVisible}"
                                  VerticalAlignment="Center"/>
                 </StackPanel>
-                <Button Grid.Column="1" Background="Transparent" Margin="5" Click="ToggleTabs_Click">
-                    <TextBlock 
-                        Text="{Binding ResultIsMinimized, Converter={StaticResource BoolToIcon}, ConverterParameter='&#xF0143;|&#xF0140;'}" 
-                        Classes="MaterialIcon" 
-                        VerticalAlignment="Center" 
-                        />
-                </Button>
             </Grid>
-            <Border Grid.Row="1" Background="LightGray" Height="0.5" Opacity="0.5" />
-            <TabControl Grid.Row="2"  x:Name="Tabs" ItemsSource="{Binding Tabs}" SelectedIndex="{Binding SelectedTabIndex}">
-                <TabControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
-                            <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" />
-                            <Button 
-                                Background="Transparent" 
-                                IsVisible="{Binding CanClose}"
-                                Command="{Binding ((vm:TabQueryEditorViewModel)DataContext).CloseTabResultCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                                CommandParameter="{Binding .}"
-                                >
-                                <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                            </Button>
-                        </StackPanel>
-                    </DataTemplate>
-                </TabControl.ItemTemplate>
-                <TabControl.ContentTemplate>
-                    <StaticResource ResourceKey="TabTemplateSelector" />
-                </TabControl.ContentTemplate>
-            </TabControl>
-        </Grid>
+        </Border>
     </Grid>
+
+    <!-- The editor above its Results tool dock: Message and result tabs are Dock tools that can be pinned
+         (collapsed to the bottom rail) as a group, independently for each query. -->
+    <dock:DockControl x:Name="QueryDock"
+                      InitializeFactory="True"
+                      InitializeLayout="True">
+        <dock:DockControl.Factory>
+            <docking:QueryDockFactory ResultsDockId="QueryResults" />
+        </dock:DockControl.Factory>
+
+        <dockModel:RootDock Id="QueryRoot"
+                            IsCollapsable="False"
+                            EnableGlobalDocking="False"
+                            AllowedDropOperations="None"
+                            DefaultDockable="{Binding #QueryLayout}"
+                            ActiveDockable="{Binding #QueryLayout}">
+            <dockModel:ProportionalDock x:Name="QueryLayout"
+                                        Id="QueryLayout"
+                                        Orientation="Vertical"
+                                        AllowedDropOperations="None"
+                                        ActiveDockable="{Binding #EditorPane}">
+                <!-- A document outside a document dock is shown without a tab strip. -->
+                <dockModel:Document x:Name="EditorPane"
+                                    Id="EditorPane"
+                                    CanClose="False"
+                                    CanDrag="False"
+                                    CanDrop="False"
+                                    CanFloat="False"
+                                    CanPin="False" />
+
+                <dockModel:ProportionalDockSplitter />
+
+                <dockModel:ToolDock x:Name="ResultsDock"
+                                    Id="QueryResults"
+                                    Alignment="Bottom"
+                                    AllowedDropOperations="None"
+                                    Proportion="0.4"
+                                    ItemContainerGenerator="{StaticResource ResultItemGenerator}"
+                                    ItemsSource="{Binding #QueryEditorRoot.((vm:TabQueryEditorViewModel)DataContext).Tabs}">
+                    <dockModel:ToolDock.ToolTemplate>
+                        <dockModel:ToolTemplate>
+                            <Grid x:DataType="dockModel:Tool">
+                                <ContentControl Content="{Binding Context}"
+                                                ContentTemplate="{StaticResource ResultTemplateSelector}" />
+                            </Grid>
+                        </dockModel:ToolTemplate>
+                    </dockModel:ToolDock.ToolTemplate>
+                </dockModel:ToolDock>
+            </dockModel:ProportionalDock>
+        </dockModel:RootDock>
+    </dock:DockControl>
+    </Panel>
 </UserControl>

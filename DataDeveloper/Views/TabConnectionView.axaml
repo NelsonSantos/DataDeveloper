@@ -5,14 +5,29 @@
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              xmlns:behaviors="clr-namespace:DataDeveloper.Behaviors"
+             xmlns:docking="clr-namespace:DataDeveloper.Docking"
              xmlns:templateSelectors="clr-namespace:DataDeveloper.TemplateSelectors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:dock="using:Dock.Avalonia.Controls"
+             xmlns:dockCore="using:Dock.Model.Core"
+             xmlns:recycling="using:Avalonia.Controls.Recycling"
+             xmlns:dockModel="using:Dock.Model.Avalonia.Controls"
+             xmlns:appModels="clr-namespace:DataDeveloper.Models"
              x:Class="DataDeveloper.Views.TabConnectionView"
+             x:Name="ConnectionRoot"
              x:DataType="vm:TabConnectionViewModel"
              >
     <UserControl.Styles>
         <Style Selector="TextBlock.FontStyle">
             <Setter Property="FontSize" Value="12"></Setter>
+        </Style>
+        <!-- Query tabs have no icon (overrides the connection tabs' icon from MainView). -->
+        <Style Selector="dock|DocumentControl">
+            <Setter Property="IconTemplate">
+                <DataTemplate DataType="dockCore:IDockable">
+                    <Panel />
+                </DataTemplate>
+            </Setter>
         </Style>
     </UserControl.Styles>
     <Design.DataContext>
@@ -20,162 +35,158 @@
     </Design.DataContext>
     <UserControl.Resources>
         <templateSelectors:TabTemplateSelector x:Key="TabTemplateSelector" />
+        <docking:ConnectionDockItemContainerGenerator x:Key="DockItemGenerator" />
+        <docking:NonCachingControlRecycling x:Key="DockControlRecycling" />
     </UserControl.Resources>    
-    <Grid x:Name="RootGrid" RowDefinitions="Auto,*" ColumnDefinitions="Auto,1*,Auto,3*" Margin="0">
-        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Background="LightGray" Height="0.5" Opacity="0.5" />
-        <Border x:Name="SchemaExplorerRail"
-                Grid.Row="1"
-                Grid.Column="0"
-                Width="36"
-                Background="#2B2B2B"
-                BorderBrush="#2D2D30"
-                BorderThickness="0,0,1,0"
-                >
-            <Button x:Name="ToggleSchemaExplorerButton"
-                    Width="28"
-                    Height="28"
-                    Margin="4"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    Padding="0"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    BorderThickness="0"
-                    Click="ToggleSchemaExplorer_Click"
-                    ToolTip.Tip="Show or hide schema explorer">
-                <TextBlock x:Name="SchemaRailIcon"
-                           Classes="MaterialIcon"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Text="&#xF04AA;"/>
-            </Button>
-        </Border>
-        <Grid x:Name="SchemaExplorerPanel" Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,*">
-            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="#3C3F41">
-                <Button 
-                    x:Name="RefreshButton"
-                    Grid.Column="0"  
-                    HorizontalAlignment="Right" 
-                    Margin="4" 
-                    Command="{Binding RefreshCommand}"
-                    Background="Transparent">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="&#xF0450;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                        <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
-                    </StackPanel>
-                </Button>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
-                    <Button
-                        Margin="4"
-                        Command="{Binding CreateTableCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                        Background="Transparent">
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <TextBlock Text="&#xF0A75;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                            <TextBlock FontSize="13" Text="New table" VerticalAlignment="Center" Margin="0,4,0,0" />
-                        </StackPanel>
-                    </Button>
-                    <Button
-                        Margin="4"
-                        Command="{Binding ImportFileCommand}"
-                        CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
-                        Background="Transparent">
-                        <StackPanel Orientation="Horizontal" Spacing="5">
-                            <TextBlock Text="&#xF0552;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                            <TextBlock FontSize="13" Text="Import file" VerticalAlignment="Center" Margin="0,4,0,0" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-                <Button
-                    x:Name="NewQueryButton"
-                    Grid.Column="2"  
-                    HorizontalAlignment="Right" 
-                    Margin="4" 
-                    Command="{Binding AddQueryEditorCommand}"
-                    Background="Transparent">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                        <TextBlock FontSize="13" Text="New query" VerticalAlignment="Center" Margin="0,4,0,0" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-            <TreeView x:Name="SchemaTreeView"
-                Grid.Row="1" 
-                ItemsSource="{Binding RootConnections}">
-                <TreeView.Styles>
-                    <Style Selector="TreeViewItem" x:DataType="models:SchemaNode">
-                        <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
-                        <Setter Property="behaviors:TreeViewExpansionBehavior.NodeLoader" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=TreeView}}" />
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="Margin" Value="0" />
-                        <Setter Property="MinHeight" Value="20" />
-                    </Style>
-                </TreeView.Styles>        
-                <TreeView.DataTemplates>
-                    <TreeDataTemplate
-                        DataType="{x:Type models:SchemaNode}"
-                        ItemsSource="{Binding Children}"
-                        >
-                        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4" PointerPressed="SchemaNode_PointerPressed">
-                            <TextBlock 
-                                Grid.Column="0" 
-                                Classes="MaterialIcon" 
-                                Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" 
-                                VerticalAlignment="Center"
-                                Margin="2"
-                                />
-                            <TextBlock 
-                                Grid.Column="0" 
-                                Classes="MaterialIcon" 
-                                Text="&#xF030B;"
-                                IsVisible="{Binding Tag, Converter={StaticResource ColumnModelIsPrimaryKey}}"
-                                VerticalAlignment="Bottom"
-                                Foreground="Goldenrod"
-                                FontSize="13"
-                                Margin="6,6,0,0"
-                            />
-                            <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,1,0,0" />
-                            <TextBlock Grid.Column="2" Text="{Binding Details}" VerticalAlignment="Center" Margin="0,1,0,0" FontSize="11" Foreground="Gray" />
-                        </Grid>
-                    </TreeDataTemplate>
-                </TreeView.DataTemplates>
-            </TreeView>
-        </Grid>
-        <GridSplitter x:Name="SchemaExplorerSplitter" Grid.Row="1" Grid.Column="2" Width="5" ResizeDirection="Columns" />
-        <TabControl 
-            Grid.Row="1" Grid.Column="3" 
-            ItemsSource="{Binding QueryEditors}" 
-            SelectedIndex="{Binding SelectedEditor, Mode=TwoWay}" 
-            Padding="0" Margin="0">
-            <TabControl.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="10,0,10,0">
-                        <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                        <TextBlock FontSize="13" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,4,0,0" />
-                        <TextBlock 
-                            FontSize="8" 
-                            Text="&#xF0765;" 
-                            Classes="MaterialIcon" 
-                            VerticalAlignment="Center" 
-                            IsVisible="{Binding TextWasChanged}"
-                            Foreground="DodgerBlue"
-                            />
-                        <Button 
-                            Background="Transparent" 
-                            IsVisible="{Binding CanClose}"
-                            Command="{Binding ((vm:TabConnectionViewModel)DataContext).CloseTabQueryEditorCommand, RelativeSource={RelativeSource AncestorType=TabControl}}"
-                            CommandParameter="{Binding .}"
-                            Margin="0"
-                            >
-                            <TextBlock Text="&#xF0156;" Classes="MaterialIcon" VerticalAlignment="Center" />
-                        </Button>
-                    </StackPanel>
-                </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-                <StaticResource ResourceKey="TabTemplateSelector" />
-            </TabControl.ContentTemplate>            
-        </TabControl>
-    </Grid>
+    <dock:DockControl x:Name="ConnectionDock"
+                      recycling:ControlRecyclingDataTemplate.ControlRecycling="{StaticResource DockControlRecycling}"
+                      InitializeFactory="True"
+                      InitializeLayout="True">
+        <dock:DockControl.Factory>
+            <docking:ConnectionDockFactory MainDocumentDockId="QueryDocuments" />
+        </dock:DockControl.Factory>
+
+        <!-- Query documents may only be reordered or floated: the layout rejects split and global docking. -->
+        <dockModel:RootDock Id="Root"
+                            IsCollapsable="False"
+                            EnableGlobalDocking="False"
+                            AllowedDropOperations="None"
+                            DefaultDockable="{Binding #MainLayout}"
+                            ActiveDockable="{Binding #MainLayout}">
+            <dockModel:ProportionalDock x:Name="MainLayout"
+                                        Id="MainLayout"
+                                        Orientation="Horizontal"
+                                        AllowedDropOperations="None"
+                                        ActiveDockable="{Binding #QueryDocuments}">
+                <dockModel:ToolDock x:Name="SchemaTools"
+                                    Id="SchemaTools"
+                                    Alignment="Left"
+                                    AllowedDropOperations="None"
+                                    Proportion="0.25"
+                                    ItemContainerGenerator="{StaticResource DockItemGenerator}"
+                                    ItemsSource="{Binding #ConnectionRoot.SchemaExplorerTools}">
+                    <dockModel:ToolDock.ToolTemplate>
+                        <dockModel:ToolTemplate>
+                            <Grid x:DataType="dockModel:Tool">
+                            <ContentControl DataContext="{Binding ((appModels:ConnectionToolItem)Context).Connection}">
+                            <Grid x:DataType="vm:TabConnectionViewModel" RowDefinitions="Auto,*">
+                                <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="#3C3F41">
+                                    <Button 
+                                        Grid.Column="0"  
+                                        HorizontalAlignment="Right" 
+                                        Margin="4" 
+                                        Command="{Binding RefreshCommand}"
+                                        Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <TextBlock Text="&#xF0450;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                                            <TextBlock FontSize="13" Text="Refresh" VerticalAlignment="Center" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                                        <Button
+                                            Margin="4"
+                                            Command="{Binding CreateTableCommand}"
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                                            Background="Transparent">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="&#xF0A75;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                                                <TextBlock FontSize="13" Text="New table" VerticalAlignment="Center" Margin="0,4,0,0" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button
+                                            Margin="4"
+                                            Command="{Binding ImportFileCommand}"
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Self}}"
+                                            Background="Transparent">
+                                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                                <TextBlock Text="&#xF0552;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                                                <TextBlock FontSize="13" Text="Import file" VerticalAlignment="Center" Margin="0,4,0,0" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                    <Button
+                                        Grid.Column="2"  
+                                        HorizontalAlignment="Right" 
+                                        Margin="4" 
+                                        Command="{Binding AddQueryEditorCommand}"
+                                        Background="Transparent">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <TextBlock Text="&#xF09EE;" Classes="MaterialIcon" VerticalAlignment="Center" />
+                                            <TextBlock FontSize="13" Text="New query" VerticalAlignment="Center" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <TreeView
+                                    Grid.Row="1" 
+                                    ItemsSource="{Binding RootConnections}">
+                                    <TreeView.Styles>
+                                        <Style Selector="TreeViewItem" x:DataType="models:SchemaNode">
+                                            <Setter Property="behaviors:TreeViewExpansionBehavior.MonitorExpansion" Value="True" />
+                                            <Setter Property="behaviors:TreeViewExpansionBehavior.NodeLoader" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                            <Setter Property="Padding" Value="0" />
+                                            <Setter Property="Margin" Value="0" />
+                                            <Setter Property="MinHeight" Value="20" />
+                                        </Style>
+                                    </TreeView.Styles>        
+                                    <TreeView.DataTemplates>
+                                        <TreeDataTemplate
+                                            DataType="{x:Type models:SchemaNode}"
+                                            ItemsSource="{Binding Children}"
+                                            >
+                                            <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4" PointerPressed="SchemaNode_PointerPressed">
+                                                <TextBlock 
+                                                    Grid.Column="0" 
+                                                    Classes="MaterialIcon" 
+                                                    Text="{Binding NodeType, Converter={StaticResource NodeTypeToIcon}}" 
+                                                    VerticalAlignment="Center"
+                                                    Margin="2"
+                                                    />
+                                                <TextBlock 
+                                                    Grid.Column="0" 
+                                                    Classes="MaterialIcon" 
+                                                    Text="&#xF030B;"
+                                                    IsVisible="{Binding Tag, Converter={StaticResource ColumnModelIsPrimaryKey}}"
+                                                    VerticalAlignment="Bottom"
+                                                    Foreground="Goldenrod"
+                                                    FontSize="13"
+                                                    Margin="6,6,0,0"
+                                                />
+                                                <TextBlock Grid.Column="1" Classes="FontStyle" Text="{Binding Name}" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                                <TextBlock Grid.Column="2" Text="{Binding Details}" VerticalAlignment="Center" Margin="0,1,0,0" FontSize="11" Foreground="Gray" />
+                                            </Grid>
+                                        </TreeDataTemplate>
+                                    </TreeView.DataTemplates>
+                                </TreeView>
+                            </Grid>
+
+                            </ContentControl>
+                            </Grid>
+                        </dockModel:ToolTemplate>
+                    </dockModel:ToolDock.ToolTemplate>
+                </dockModel:ToolDock>
+
+                <dockModel:ProportionalDockSplitter />
+
+                <dockModel:DocumentDock x:Name="QueryDocuments"
+                                        Id="QueryDocuments"
+                                        CanCreateDocument="False"
+                                        IsCollapsable="False"
+                                        AllowedDropOperations="Fill"
+                                        ItemContainerGenerator="{StaticResource DockItemGenerator}"
+                                        ItemsSource="{Binding #ConnectionRoot.((vm:TabConnectionViewModel)DataContext).QueryEditors}">
+                    <dockModel:DocumentDock.DocumentTemplate>
+                        <dockModel:DocumentTemplate>
+                            <!-- Dock rebuilds document content on every tab switch; TabTemplateSelector keeps one view
+                                 per editor (and detaches it from a stale host when the document moves to a window). -->
+                            <Grid x:DataType="dockModel:Document">
+                                <ContentControl Content="{Binding Context}"
+                                                ContentTemplate="{StaticResource TabTemplateSelector}" />
+                            </Grid>
+                        </dockModel:DocumentTemplate>
+                    </dockModel:DocumentDock.DocumentTemplate>
+                </dockModel:DocumentDock>
+            </dockModel:ProportionalDock>
+        </dockModel:RootDock>
+    </dock:DockControl>
 </UserControl>

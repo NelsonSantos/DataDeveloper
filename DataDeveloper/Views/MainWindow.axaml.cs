@@ -1,8 +1,12 @@
 using System;
+using System.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Platform;
+using Avalonia.VisualTree;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
@@ -27,7 +31,28 @@ public partial class MainWindow : Window, IMainWindow
         SetAppIcon();
         
         this.Closing += OnClosing;
+
+        // macOS consumes Control-Tab before it reaches the app; there the Window menu items handle it.
+        if (!OperatingSystem.IsMacOS())
+            AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
     }
+
+    // Runs before the SQL editor, which would treat Ctrl+Tab as indent.
+    private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Tab || !e.KeyModifiers.HasFlag(KeyModifiers.Control) || GetVisibleConnectionView() is not { } view)
+            return;
+
+        view.ShowAdjacentQuery(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+        e.Handled = true;
+    }
+
+    private void OnShowNextQueryTab(object? sender, EventArgs e) => GetVisibleConnectionView()?.ShowAdjacentQuery(1);
+
+    private void OnShowPreviousQueryTab(object? sender, EventArgs e) => GetVisibleConnectionView()?.ShowAdjacentQuery(-1);
+
+    private TabConnectionView? GetVisibleConnectionView() =>
+        this.GetVisualDescendants().OfType<TabConnectionView>().FirstOrDefault(view => view.IsEffectivelyVisible);
 
     private void SetAppIcon()
     {
