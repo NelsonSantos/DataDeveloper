@@ -67,6 +67,19 @@ public static class SqlCompletionProvider
     /// Discards the objects and columns cached for a connection, so the next completion reloads
     /// them; called when that connection's schema tree is refreshed.
     /// </summary>
+    /// <summary>
+    /// After the schema could not be read (e.g. the VPN dropped), completion stops querying the database for this long
+    /// and suggests what it already has, instead of waiting for a connection timeout on every keystroke.
+    /// Invalidating the cache (schema refresh) retries right away.
+    /// </summary>
+    internal static TimeSpan UnavailableRetryDelay { get; set; } = TimeSpan.FromSeconds(30);
+
+    internal static Func<DateTime> UtcNow { get; set; } = () => DateTime.UtcNow;
+
+    private static bool IsUnavailable(SchemaCompletionCache cache) => UtcNow() < cache.UnavailableUntil;
+
+    private static void MarkUnavailable(SchemaCompletionCache cache) => cache.UnavailableUntil = UtcNow() + UnavailableRetryDelay;
+
     public static void InvalidateSchemaCache(Guid connectionId)
     {
         SchemaCache.TryRemove(connectionId, out _);
@@ -277,9 +290,22 @@ public static class SqlCompletionProvider
 
     private static async Task EnsureTablesLoadedAsync(IConnectionSettings connectionSettings, SchemaCompletionCache cache)
     {
-        if (cache.TablesLoaded)
+        if (cache.TablesLoaded || IsUnavailable(cache))
             return;
 
+        try
+        {
+            await LoadTablesAsync(connectionSettings, cache);
+        }
+        catch
+        {
+            MarkUnavailable(cache);
+            throw;
+        }
+    }
+
+    private static async Task LoadTablesAsync(IConnectionSettings connectionSettings, SchemaCompletionCache cache)
+    {
         var schemaExplorer = connectionSettings.GetSchemaExplorer();
         await schemaExplorer.InitializeSchemaNode();
 
@@ -314,11 +340,19 @@ public static class SqlCompletionProvider
 
         await EnsureTablesLoadedAsync(connectionSettings, cache);
 
-        if (!cache.TableNodes.TryGetValue(tableName, out var tableNode))
+        if (IsUnavailable(cache) || !cache.TableNodes.TryGetValue(tableName, out var tableNode))
             return;
 
         var schemaExplorer = connectionSettings.GetSchemaExplorer();
-        await schemaExplorer.LoadTableColumnsAsync(tableNode);
+        try
+        {
+            await schemaExplorer.LoadTableColumnsAsync(tableNode);
+        }
+        catch
+        {
+            MarkUnavailable(cache);
+            throw;
+        }
 
         cache.ColumnsByTable[tableName] = tableNode.Children
             .Where(node => node.NodeType == NodeType.Column)
@@ -1181,6 +1215,7 @@ public static class SqlCompletionProvider
     private sealed class SchemaCompletionCache
     {
         public bool TablesLoaded { get; set; }
+        public DateTime UnavailableUntil { get; set; }
         public HashSet<string> Tables { get; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, SchemaNode> TableNodes { get; } = new(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, CompletionItemKind> ObjectKinds { get; } = new(StringComparer.OrdinalIgnoreCase);

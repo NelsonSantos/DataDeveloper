@@ -1,6 +1,8 @@
 using System;
+using System.Reactive;
 using System.Threading;
 using Avalonia;
+using DataDeveloper.Services;
 using ReactiveUI.Avalonia.Reactive;
 
 namespace DataDeveloper;
@@ -22,5 +24,7 @@ public class Program
             })
             .UsePlatformDetect()
             .LogToTrace()
-            .UseReactiveUI(_ => { });
+            // A failed command (e.g. the database became unreachable) is reported instead of crashing the app.
+            .UseReactiveUI(builder => builder.WithExceptionHandler(
+                Observer.Create<Exception>(exception => UnhandledErrorReporter.Report(exception, "ReactiveUI"))));
 }

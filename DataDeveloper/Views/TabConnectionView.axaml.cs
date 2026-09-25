@@ -410,7 +410,18 @@ public partial class TabConnectionView : UserControl
     private MenuItem CreateMenuItem(string header, Func<Task> action)
     {
         var menuItem = new MenuItem { Header = header };
-        menuItem.Click += async (_, _) => await action();
+        menuItem.Click += async (_, _) =>
+        {
+            // These run database work (DDL, columns, drop); a lost connection must not close the app.
+            try
+            {
+                await action();
+            }
+            catch (Exception exception)
+            {
+                UnhandledErrorReporter.Report(exception, $"Schema explorer: {header}");
+            }
+        };
         return menuItem;
     }
 

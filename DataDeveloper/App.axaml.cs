@@ -32,7 +32,9 @@ public partial class App : Application
     }
 
     public override void OnFrameworkInitializationCompleted()
-    {    
+    {
+        UnhandledErrorReporter.Install();
+
         SyntaxLoaderService.RegisterSqlHighlighting();
         SyntaxLoaderService.RegisterJsonHighlighting();
         SyntaxLoaderService.RegisterXmlHighlighting();

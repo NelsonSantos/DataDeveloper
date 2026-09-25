@@ -363,11 +363,22 @@ public partial class TabQueryEditorView : UserControl
         if (_viewModel is null)
             return;
 
-        var completions = await SqlCompletionProvider.GetCompletionsAsync(
-            _viewModel.ConnectionSettings,
-            SqlEditor.Text ?? string.Empty,
-            SqlEditor.CaretOffset,
-            request);
+        IReadOnlyList<ICompletionData> completions;
+        try
+        {
+            completions = await SqlCompletionProvider.GetCompletionsAsync(
+                _viewModel.ConnectionSettings,
+                SqlEditor.Text ?? string.Empty,
+                SqlEditor.CaretOffset,
+                request);
+        }
+        catch (Exception exception)
+        {
+            // Typing must keep working when the database is unreachable (e.g. the VPN dropped): no suggestions,
+            // no dialog, only a log entry.
+            UnhandledErrorReporter.Log(exception, "Completion");
+            return;
+        }
 
         if (completions.Count == 0)
             return;
