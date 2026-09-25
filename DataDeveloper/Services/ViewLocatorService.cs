@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using DataDeveloper.Core;
 using DataDeveloper.Interfaces;
+using DataDeveloper.Models;
 
 namespace DataDeveloper.Services;
 
@@ -24,6 +25,9 @@ public class ViewLocatorService : IDataTemplate
 
     public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        // Tab content is always built by TabTemplateSelector (which caches one view per tab). TabControl sets
+        // a tab's Content before its ContentTemplate, so matching here would build an orphan duplicate view
+        // that stays subscribed to the tab's view model.
+        return data is ViewModelBase and not BaseTabContent;
     }
 }

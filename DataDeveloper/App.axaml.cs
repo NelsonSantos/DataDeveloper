@@ -12,6 +12,7 @@ using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
 using DataDeveloper.Views;
+using Dock.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using TabConnectionViewModel = DataDeveloper.ViewModels.TabConnectionViewModel;
 
@@ -24,6 +25,9 @@ public partial class App : Application
 
     public override void Initialize()
     {
+        // Ctrl+Tab cycles the query tabs of the active connection (MainWindow); Dock's own selector would sit on the
+        // outer connection dock and cycle connections instead.
+        DockSettings.SelectorEnabled = false;
         AvaloniaXamlLoader.Load(this);
     }
 

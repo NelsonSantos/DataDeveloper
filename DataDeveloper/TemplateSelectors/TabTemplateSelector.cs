@@ -31,14 +31,19 @@ public class TabTemplateSelector : IDataTemplate
         if (param is not BaseTabContent tab)
             return null;
 
-        if (_controls.ContainsKey(tab.Id)) return _controls[tab.Id];
-        
-        var view = _viewResolver.ResolveByModel(tab);
+        if (!_controls.TryGetValue(tab.Id, out var view))
+        {
+            view = _viewResolver.ResolveByModel(tab);
+            _controls.Add(tab.Id, view);
+        }
 
-        _controls.Add(tab.Id, view);
-
-        return _controls[tab.Id];
+        // Presenters may rebuild while the view is still attached (tab moved to another window, dock document
+        // floated): hand out a fresh host each time instead of the view itself.
+        return CachedViewHost.Present(view);
     }
+
+    /// <summary>The view already built for <paramref name="tab"/>, if any.</summary>
+    public Control? GetCachedControl(BaseTabContent tab) => _controls.GetValueOrDefault(tab.Id);
 
     public void RemoveControl(BaseTabContent tab)
     {

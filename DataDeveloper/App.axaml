@@ -4,6 +4,9 @@
              xmlns:viewmodels="clr-namespace:DataDeveloper.ViewModels"
              xmlns:views="clr-namespace:DataDeveloper.Views"
              xmlns:converters="clr-namespace:DataDeveloper.Converters"
+             xmlns:dock="using:Dock.Avalonia.Controls"
+             xmlns:dockCore="using:Dock.Model.Core"
+             xmlns:docking="clr-namespace:DataDeveloper.Docking"
              x:Class="DataDeveloper.App"
              Name="Data Developer"
              RequestedThemeVariant="Dark"
@@ -30,6 +33,8 @@
             <FontFamily x:Key="MaterialDesignIcons">avares://DataDeveloper/Assets/Fonts/materialdesignicons-webfont.ttf#Material Design Icons</FontFamily>
             
             <ResourceDictionary.MergedDictionaries>
+
+            <ResourceInclude Source="avares://DataDeveloper/Themes/DockTabContextMenus.axaml" />
             
             <ResourceDictionary>
                 <!-- <ControlRecycling x:Key="ControlRecyclingKey" /> -->
@@ -70,6 +75,7 @@
     </Application.Resources>    
     <Application.Styles>
         <FluentTheme />
+        <DockFluentTheme />
         
         <StyleInclude Source="avares://DataDeveloper/Themes/SelectableTextBlock.axaml" />
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
@@ -83,6 +89,28 @@
         <Style Selector="Window">
             <Setter Property="Background" Value="#FF212121"></Setter>
         </Style>        
+
+        <!-- Tab strips that overflow get a button listing all their tabs (Dock only scrolls them). -->
+        <Style Selector="dock|DocumentTabStrip">
+            <Setter Property="RightContent">
+                <Template>
+                    <docking:DocumentTabListButton />
+                </Template>
+            </Setter>
+        </Style>
+
+        <!-- Unsaved query tabs show a dot instead of Dock's "*". -->
+        <Style Selector="dock|DocumentControl">
+            <Setter Property="ModifiedTemplate">
+                <DataTemplate DataType="dockCore:IDockable">
+                    <TextBlock Classes="MaterialIcon"
+                               Text="&#xF0765;"
+                               FontSize="8"
+                               Foreground="White"
+                               Margin="4,0,0,0" />
+                </DataTemplate>
+            </Setter>
+        </Style>
         
         <Style Selector="views|TabConnectionView">
             <Setter Property="Background" Value="#FF212121"></Setter>

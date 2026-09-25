@@ -35,7 +35,6 @@ public partial class TabQueryEditorViewModel : BaseTabContent
     private IStatementExecutor? _activeStatementExecutor;
     private CancellationTokenSource? _queryCancellationTokenSource;
     
-    public event EventHandler<int>? ShowResultTool; 
 
     public TabQueryEditorViewModel(IConnectionSettings connectionSettings, string name, string? file, bool canClose, IServiceProvider serviceProvider) 
         : base(TabType.QueryEditor, name, canClose, serviceProvider)
@@ -104,14 +103,12 @@ public partial class TabQueryEditorViewModel : BaseTabContent
     [Reactive] private int _cursorLine;
     [Reactive] private int _cursorColumn;
     [Reactive] private double _editorHeadHeight;
-    [Reactive] private double _resultsHeaderHeight;
     [Reactive] private bool _textWasChanged;
     [Reactive] private bool _statementIsRunning;
     [Reactive] private bool _hasActiveTransaction;
     [Reactive] private string _transactionStatusMessage = "No pending transaction";
     [Reactive] private bool _isExecutionStatusVisible;
     [Reactive] private string _executionStatusMessage = string.Empty;
-    [Reactive] private bool _resultIsMinimized = true;
     [Reactive] private int _selectedTabIndex;
     [Reactive] private int _selectedRunTimeoutSeconds = 60;
     public bool HasDetectedParameters => ParameterValues.Count > 0;
@@ -231,7 +228,6 @@ public partial class TabQueryEditorViewModel : BaseTabContent
                                 Dispatcher.UIThread.Post(() =>
                                 {
                                     SelectedTabIndex = 0;
-                                    ShowResultTool?.Invoke(this, SelectedTabIndex);
                                 });
                             },
                             (isVisible, message) =>
@@ -293,12 +289,10 @@ public partial class TabQueryEditorViewModel : BaseTabContent
 
             _activeStatementExecutor = null;
             RefreshTransactionState();
-            this.ResultIsMinimized = false;
             this.StatementIsRunning = false;
             IsExecutionStatusVisible = false;
             ExecutionStatusMessage = string.Empty;
             _eventAggregatorService.Publish(new ShowExecutionStatusEvent(false, string.Empty));
-            this.ShowResultTool?.Invoke(this, this.SelectedTabIndex);
         }
     }
 

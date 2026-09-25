@@ -102,27 +102,27 @@ public partial class MainWindowViewModel : ViewModelBase
         this.WhenAnyValue(vm => vm.SelectedTabConnectionIndex).Subscribe(_ => OnSelectedTabConnectionIndexChanged());
     }
 
+    // The selected indexes can briefly point past the end while a tab is being removed (Dock unloads a closed
+    // editor's view in the middle of the removal, and that view asks for the current editor).
     private TabQueryEditorViewModel? GetCurrentTabQueryEditorViewModel()
     {
-        if (!HasConnections) return null;
-        
-        var connection = this.Connections[this.SelectedTabConnectionIndex];
+        if (SelectedTabConnectionIndex < 0 || SelectedTabConnectionIndex >= Connections.Count)
+            return null;
 
-        if (!connection.QueryEditors.Any()) return null;
-        
-        var queryEditor = connection.QueryEditors[connection.SelectedEditor];
-        
-        return queryEditor;
+        var connection = this.Connections[this.SelectedTabConnectionIndex];
+        var editorIndex = connection.SelectedEditor;
+
+        return editorIndex >= 0 && editorIndex < connection.QueryEditors.Count
+            ? connection.QueryEditors[editorIndex]
+            : null;
     }
 
     private async Task SaveCurrentEditorTab(bool isSaveAs = false)
     {
-        if (GetCurrentTabQueryEditorViewModel() is null)
+        if (GetCurrentTabQueryEditorViewModel() is not { } queryEditor)
             return;
 
         var connection = this.Connections[this.SelectedTabConnectionIndex];
-        var queryEditor = connection.QueryEditors[connection.SelectedEditor];
-
         var saved = await connection.SaveChanges(queryEditor, isSaveAs);
         this.RaisePropertyChanged(nameof(HasCurrentFile));
 
@@ -347,9 +347,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnSelectedTabConnectionIndexChanged()
     {
         if (!Connections.Any()) return;
-        var connection = Connections[this.SelectedTabConnectionIndex];
-        var queryEditor = connection.QueryEditors[connection.SelectedEditor];
-        queryEditor.ShowCursorData();
+        GetCurrentTabQueryEditorViewModel()?.ShowCursorData();
         this.RaisePropertyChanged(nameof(HasConnections));
         this.RaisePropertyChanged(nameof(HasEditor));
         this.RaisePropertyChanged(nameof(HasCurrentFile));

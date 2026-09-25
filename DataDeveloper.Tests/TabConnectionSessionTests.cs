@@ -203,6 +203,24 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void HasEditor_WhileTheSelectedEditorIsBeingRemoved_DoesNotThrow()
+    {
+        // Dock unloads a closed query's view in the middle of the removal, before SelectedEditor catches up, and the
+        // view asks for the current editor; this used to crash the app when closing a connection.
+        using var context = CreateConnectionContext();
+        context.ViewModel.OpenQueryEditorWithScript("select 2");
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+
+        var hasEditorDuringRemoval = (bool?)null;
+        context.ViewModel.QueryEditors.CollectionChanged += (_, _) => hasEditorDuringRemoval ??= mainWindowViewModel.HasEditor;
+
+        context.ViewModel.QueryEditors.RemoveAt(context.ViewModel.SelectedEditor);
+
+        Assert.NotNull(hasEditorDuringRemoval);
+    }
+
+    [Fact]
     public void HasCurrentFile_ReflectsWhetherTheSelectedTabHasAnExistingFileOnDisk()
     {
         using var context = CreateConnectionContext();
