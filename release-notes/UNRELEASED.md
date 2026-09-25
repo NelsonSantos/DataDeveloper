@@ -7,8 +7,11 @@
   - Upgrades the UI stack to Avalonia 12.1 (Avalonia 11 is moving to maintenance) together with the ReactiveUI 24 line required by the Avalonia 12 integration package.
 - **#59 feat: enable compiled bindings with x:DataType across views** (https://github.com/NelsonSantos/DataDeveloper/pull/59)
   - Enables Avalonia 12 compiled bindings app-wide (deferred from #58). Bindings are now type-checked at build time and no longer resolved through reflection at runtime.
+- **#60 feat: adopt Dock for connection and query tabs** (https://github.com/NelsonSantos/DataDeveloper/pull/60)
+  - Replaces the connection and query `TabControl`s with [wieslawsoltes/Dock](https://github.com/wieslawsoltes/Dock) 12.1. Dock is used only for the workspace docked in the main window; dialogs and secondary windows (Table Designer, connection selector) keep Avalonia tabs.
 
 ## Included Commits
+- 44834b8 Merge pull request #60 from NelsonSantos/feature/dock-evaluation
 - 00df4a0 Merge pull request #59 from NelsonSantos/feature/compiled-bindings
 - 98316e6 Merge pull request #58 from NelsonSantos/feature/avalonia-12
 - f195a95 Merge pull request #57 from NelsonSantos/feature/dotnet-10
