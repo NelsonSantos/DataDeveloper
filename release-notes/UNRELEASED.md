@@ -13,8 +13,16 @@
   - Ctrl+Tab now follows recent use, like Rider and VS Code. A quick Ctrl+Tab returns to the previously used query (and again back); holding Ctrl opens a switcher listing the open connections and the highlighted connection's queries, most recent first.
 - **#62 fix: keep the app running when the database becomes unreachable** (https://github.com/NelsonSantos/DataDeveloper/pull/62)
   - Losing the database connection while using the app (typically the VPN dropping) could crash it: nothing handled errors escaping ReactiveUI commands, async event handlers or the UI thread. They are now logged and shown to the user, and the app keeps running.
+- **#63 ci: build and test pull requests on Linux, Windows and macOS** (https://github.com/NelsonSantos/DataDeveloper/pull/63)
+  - Adds `.github/workflows/ci.yml`. It runs on every pull request to `main` and every push to `main`. Release-notes bot commits carry `[skip ci]`, so they don't trigger it.
+  - The matrix covers `ubuntu-latest`, `windows-latest` and `macos-latest`. Each job restores packages, builds the solution in Release and runs `dotnet test`.
+  - The .NET SDK comes from `global.json`. The job doesn't stop on the first failed OS (`fail-fast: false`), and a new push cancels the previous run.
+  - Avalonia UI tests run headless. Database integration tests stay skipped because they are opt-in via `RUN_DB_INTEGRATION_TESTS`.
+  - When a job fails, its `.trx` results are uploaded as an artifact.
+  - Documents the workflow in `TESTS.md`.
 
 ## Included Commits
+- 18eb4f3 Merge pull request #63 from NelsonSantos/feature/ci-workflow
 - d1e3c23 Merge pull request #62 from NelsonSantos/feature/crash-resilience
 - cf35ef1 Merge pull request #61 from NelsonSantos/feature/query-switcher
 - 44834b8 Merge pull request #60 from NelsonSantos/feature/dock-evaluation
