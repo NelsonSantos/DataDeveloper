@@ -11,8 +11,11 @@
   - Replaces the connection and query `TabControl`s with [wieslawsoltes/Dock](https://github.com/wieslawsoltes/Dock) 12.1. Dock is used only for the workspace docked in the main window; dialogs and secondary windows (Table Designer, connection selector) keep Avalonia tabs.
 - **#61 feat: add Ctrl+Tab query switcher** (https://github.com/NelsonSantos/DataDeveloper/pull/61)
   - Ctrl+Tab now follows recent use, like Rider and VS Code. A quick Ctrl+Tab returns to the previously used query (and again back); holding Ctrl opens a switcher listing the open connections and the highlighted connection's queries, most recent first.
+- **#62 fix: keep the app running when the database becomes unreachable** (https://github.com/NelsonSantos/DataDeveloper/pull/62)
+  - Losing the database connection while using the app (typically the VPN dropping) could crash it: nothing handled errors escaping ReactiveUI commands, async event handlers or the UI thread. They are now logged and shown to the user, and the app keeps running.
 
 ## Included Commits
+- d1e3c23 Merge pull request #62 from NelsonSantos/feature/crash-resilience
 - cf35ef1 Merge pull request #61 from NelsonSantos/feature/query-switcher
 - 44834b8 Merge pull request #60 from NelsonSantos/feature/dock-evaluation
 - 00df4a0 Merge pull request #59 from NelsonSantos/feature/compiled-bindings
