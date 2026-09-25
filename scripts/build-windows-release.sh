@@ -36,7 +36,7 @@ fi
 dotnet restore "$PROJECT_PATH" \
   -r "$RUNTIME_IDENTIFIER" \
   -p:RestoreIgnoreFailedSources=true \
-  "${VERSION_MSBUILD_ARGS[@]}" \
+  ${VERSION_MSBUILD_ARGS[@]+"${VERSION_MSBUILD_ARGS[@]}"} \
   --source "$NUGET_SOURCE"
 
 dotnet publish "$PROJECT_PATH" \
@@ -46,7 +46,7 @@ dotnet publish "$PROJECT_PATH" \
   --no-restore \
   --source "$NUGET_SOURCE" \
   -p:RestoreIgnoreFailedSources=true \
-  "${VERSION_MSBUILD_ARGS[@]}" \
+  ${VERSION_MSBUILD_ARGS[@]+"${VERSION_MSBUILD_ARGS[@]}"} \
   -p:PublishSingleFile=false \
   -p:PublishTrimmed=false \
   -p:UseAppHost=true \
