@@ -2,6 +2,7 @@ using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.SqlServer;
 using DataDeveloper.Services;
+using Microsoft.Data.Sqlite;
 using Xunit;
 
 namespace DataDeveloper.Tests;
@@ -100,6 +101,7 @@ public class SqliteConnectionGroupRepositoryTests : IDisposable
 
     public void Dispose()
     {
+        SqliteConnection.ClearAllPools();
         if (Directory.Exists(_tempDirectory))
             Directory.Delete(_tempDirectory, recursive: true);
     }

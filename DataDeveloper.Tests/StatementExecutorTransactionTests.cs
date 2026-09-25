@@ -4,6 +4,7 @@ using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
 using DataDeveloper.Data.Providers.SqLite;
 using DataDeveloper.Data.Services;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -34,6 +35,7 @@ public class StatementExecutorTransactionTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
     }
@@ -58,6 +60,7 @@ public class StatementExecutorTransactionTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
     }
@@ -86,6 +89,7 @@ public class StatementExecutorTransactionTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
     }
@@ -108,6 +112,7 @@ public class StatementExecutorTransactionTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
     }
@@ -141,6 +146,7 @@ public class StatementExecutorTransactionTests
         }
         finally
         {
+            SqliteConnection.ClearAllPools();
             File.Delete(databasePath);
         }
     }

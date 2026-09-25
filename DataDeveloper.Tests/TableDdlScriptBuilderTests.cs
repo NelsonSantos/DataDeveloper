@@ -624,7 +624,7 @@ public class TableDdlScriptBuilderTests
 
         var sql = TableDdlScriptBuilder.BuildAlterTableScript(databaseType, original, current);
 
-        Assert.Equal(expected, sql);
+        Assert.Equal(expected.ReplaceLineEndings(), sql);
     }
 
     [Fact]
@@ -710,7 +710,7 @@ public class TableDdlScriptBuilderTests
         var sql = TableDdlScriptBuilder.BuildAlterTableScript(DatabaseType.SqlServer, original, current);
 
         Assert.Equal(
-            "alter table [dbo].[Orders] drop constraint [DF_Orders_Code];\n\nalter table [dbo].[Orders] add default N'n/a' for [Code];",
+            "alter table [dbo].[Orders] drop constraint [DF_Orders_Code];\n\nalter table [dbo].[Orders] add default N'n/a' for [Code];".ReplaceLineEndings(),
             sql);
     }
 
@@ -730,7 +730,7 @@ public class TableDdlScriptBuilderTests
         var sql = TableDdlScriptBuilder.BuildAlterTableScript(DatabaseType.SqlServer, original, current);
 
         Assert.Equal(
-            "create clustered index [IX_Orders_Id]\n    on [dbo].[Orders] ([Id]) with (fillfactor = 90);",
+            "create clustered index [IX_Orders_Id]\n    on [dbo].[Orders] ([Id]) with (fillfactor = 90);".ReplaceLineEndings(),
             sql);
     }
 
@@ -750,7 +750,7 @@ public class TableDdlScriptBuilderTests
         var sql = TableDdlScriptBuilder.BuildAlterTableScript(DatabaseType.PostgresSql, original, current);
 
         Assert.Equal(
-            "create index \"IX_Orders_Id\"\n    on \"Orders\" using hash (\"Id\") where \"Id\" > 0;",
+            "create index \"IX_Orders_Id\"\n    on \"Orders\" using hash (\"Id\") where \"Id\" > 0;".ReplaceLineEndings(),
             sql);
     }
 
@@ -770,7 +770,7 @@ public class TableDdlScriptBuilderTests
         var sql = TableDdlScriptBuilder.BuildAlterTableScript(DatabaseType.MySql, original, current);
 
         Assert.Equal(
-            "create index `IX_Orders_Id`\n    on `Orders` (`Id`(10));",
+            "create index `IX_Orders_Id`\n    on `Orders` (`Id`(10));".ReplaceLineEndings(),
             sql);
     }
 

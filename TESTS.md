@@ -45,3 +45,7 @@ RUN_DB_INTEGRATION_TESTS=1 dotnet test DataDeveloper.Tests/DataDeveloper.Tests.c
 SQLite integration coverage uses a temporary local database file and does not require Docker.
 
 Integration test classes that use the shared Docker databases belong to the `Database integration` xUnit collection (`[Collection(DatabaseIntegrationCollection.Name)]`), so they run one class at a time. They share the seeded tables: some write to `customers` while others create and drop tables with foreign keys to it, which deadlocks on Oracle (`ORA-00060`) and skews row counts when run in parallel. Add new database integration test classes to this collection.
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` builds the solution and runs the test suite on Ubuntu, Windows and macOS for every pull request to `main` and every push to `main`. The Avalonia UI tests run headless, so no display is needed. Database integration tests stay skipped in CI because they require `RUN_DB_INTEGRATION_TESTS` and the Docker databases. When a run fails, the `.trx` test results are attached to the run as an artifact.
