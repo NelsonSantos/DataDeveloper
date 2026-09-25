@@ -12,6 +12,7 @@
              xmlns:dockFactory="using:Dock.Model.Avalonia"
              xmlns:recycling="using:Avalonia.Controls.Recycling"
              xmlns:docking="clr-namespace:DataDeveloper.Docking"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
              x:Class="DataDeveloper.Views.MainView"
              x:Name="MainViewRoot"
              x:DataType="vm:MainWindowViewModel">
@@ -136,5 +137,17 @@
                        Foreground="LightGray"
                        VerticalAlignment="Center" />
         </Border>
+
+        <!-- Ctrl+Tab switcher, shown once Ctrl is held for a moment (a quick Ctrl+Tab just flips queries). -->
+        <Panel x:Name="SwitcherLayer"
+               Grid.Row="0"
+               Grid.RowSpan="3"
+               Grid.Column="0"
+               Grid.ColumnSpan="3"
+               IsVisible="False"
+               Background="#40000000"
+               PointerPressed="OnSwitcherBackdropPressed">
+            <views:QuerySwitcherView DataContext="{Binding Switcher}" />
+        </Panel>
     </Grid>    
 </UserControl>

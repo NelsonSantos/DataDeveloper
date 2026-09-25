@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
-using Avalonia.VisualTree;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
 using DataDeveloper.ViewModels;
@@ -32,27 +30,81 @@ public partial class MainWindow : Window, IMainWindow
         
         this.Closing += OnClosing;
 
-        // macOS consumes Control-Tab before it reaches the app; there the Window menu items handle it.
-        if (!OperatingSystem.IsMacOS())
-            AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+        // Tunnel handlers run before the SQL editor, which would treat Ctrl+Tab as indent.
+        AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, OnPreviewKeyUp, RoutingStrategies.Tunnel);
+        Deactivated += (_, _) => _viewModel.Switcher?.Cancel();
     }
 
-    // Runs before the SQL editor, which would treat Ctrl+Tab as indent.
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Tab || !e.KeyModifiers.HasFlag(KeyModifiers.Control) || GetVisibleConnectionView() is not { } view)
+        if (_viewModel.Switcher is { } switcher)
+        {
+            HandleSwitcherKey(switcher, e);
             return;
+        }
 
-        view.ShowAdjacentQuery(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+        // macOS consumes Control-Tab before it reaches the app; there the Window menu items open the switcher.
+        if (e.Key == Key.Tab && e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            _viewModel.ShowSwitcher(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+            e.Handled = true;
+        }
+    }
+
+    // While the switcher is open it owns the keyboard: Tab/arrows move, 1-9 pick a connection, Left/Right change
+    // column (macOS takes Ctrl+arrows for Spaces, so with Ctrl held use the numbers), Enter/Esc close it.
+    private static void HandleSwitcherKey(QuerySwitcherViewModel switcher, KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Tab:
+                switcher.Move(e.KeyModifiers.HasFlag(KeyModifiers.Shift) ? -1 : 1);
+                break;
+            case Key.Down:
+                switcher.Move(1);
+                break;
+            case Key.Up:
+                switcher.Move(-1);
+                break;
+            case Key.Left:
+                switcher.ActivateConnectionColumn(true);
+                break;
+            case Key.Right:
+                switcher.ActivateConnectionColumn(false);
+                break;
+            case >= Key.D1 and <= Key.D9:
+                switcher.HighlightConnectionNumber(e.Key - Key.D0);
+                break;
+            case >= Key.NumPad1 and <= Key.NumPad9:
+                switcher.HighlightConnectionNumber(e.Key - Key.NumPad0);
+                break;
+            case Key.Enter:
+                switcher.Commit();
+                break;
+            case Key.Escape:
+                switcher.Cancel();
+                break;
+            case Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift:
+                return;
+        }
+
         e.Handled = true;
     }
 
-    private void OnShowNextQueryTab(object? sender, EventArgs e) => GetVisibleConnectionView()?.ShowAdjacentQuery(1);
+    // Releasing Ctrl switches to the highlighted entry (other keys keep it open, e.g. when opened from the menu).
+    private void OnPreviewKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel.Switcher is not { } switcher || e.Key is not (Key.LeftCtrl or Key.RightCtrl))
+            return;
 
-    private void OnShowPreviousQueryTab(object? sender, EventArgs e) => GetVisibleConnectionView()?.ShowAdjacentQuery(-1);
+        switcher.Commit();
+        e.Handled = true;
+    }
 
-    private TabConnectionView? GetVisibleConnectionView() =>
-        this.GetVisualDescendants().OfType<TabConnectionView>().FirstOrDefault(view => view.IsEffectivelyVisible);
+    private void OnShowNextQueryTab(object? sender, EventArgs e) => _viewModel.ShowSwitcher(1);
+
+    private void OnShowPreviousQueryTab(object? sender, EventArgs e) => _viewModel.ShowSwitcher(-1);
 
     private void SetAppIcon()
     {

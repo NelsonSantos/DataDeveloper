@@ -203,6 +203,128 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void EditorsByRecentUse_FollowsSelectionAndDropsClosedEditors()
+    {
+        using var context = CreateConnectionContext();
+        var first = context.ViewModel.QueryEditors[0];
+        context.ViewModel.OpenQueryEditorWithScript("select 2");
+        context.ViewModel.OpenQueryEditorWithScript("select 3");
+        var (second, third) = (context.ViewModel.QueryEditors[1], context.ViewModel.QueryEditors[2]);
+
+        context.ViewModel.SelectedEditor = 0;
+        Assert.Equal([first, third, second], context.ViewModel.EditorsByRecentUse);
+
+        context.ViewModel.QueryEditors.Remove(third);
+        Assert.Equal([first, second], context.ViewModel.EditorsByRecentUse);
+    }
+
+    [Fact]
+    public void Switcher_QuickCtrlTab_GoesBackToThePreviousQuery()
+    {
+        // Like Rider/VS Code: from Query 1, click Query 3, then Ctrl+Tab returns to Query 1 and again to Query 3.
+        using var context = CreateConnectionContext();
+        context.ViewModel.OpenQueryEditorWithScript("select 2");
+        context.ViewModel.OpenQueryEditorWithScript("select 3");
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+        context.ViewModel.SelectedEditor = 0;
+        context.ViewModel.SelectedEditor = 2;
+
+        mainWindowViewModel.ShowSwitcher(1);
+        mainWindowViewModel.Switcher!.Commit();
+        Assert.Equal(0, context.ViewModel.SelectedEditor);
+
+        mainWindowViewModel.ShowSwitcher(1);
+        mainWindowViewModel.Switcher!.Commit();
+        Assert.Equal(2, context.ViewModel.SelectedEditor);
+        Assert.Null(mainWindowViewModel.Switcher);
+    }
+
+    [Fact]
+    public void Switcher_RepeatedCtrlTabWalksTheRecentList_AndShiftStartsFromTheOldest()
+    {
+        using var context = CreateConnectionContext();
+        context.ViewModel.OpenQueryEditorWithScript("select 2");
+        context.ViewModel.OpenQueryEditorWithScript("select 3");
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+        context.ViewModel.SelectedEditor = 0;
+        context.ViewModel.SelectedEditor = 1;
+        context.ViewModel.SelectedEditor = 2;
+        var editors = context.ViewModel.QueryEditors;
+
+        mainWindowViewModel.ShowSwitcher(1);
+        mainWindowViewModel.ShowSwitcher(1);
+        Assert.Same(editors[0], mainWindowViewModel.Switcher!.SelectedEditor);
+
+        mainWindowViewModel.ShowSwitcher(1);
+        Assert.Same(editors[2], mainWindowViewModel.Switcher!.SelectedEditor);
+
+        mainWindowViewModel.Switcher.Cancel();
+        Assert.Null(mainWindowViewModel.Switcher);
+        Assert.Equal(2, context.ViewModel.SelectedEditor);
+
+        mainWindowViewModel.ShowSwitcher(-1);
+        Assert.Same(editors[0], mainWindowViewModel.Switcher!.SelectedEditor);
+    }
+
+    [Fact]
+    public void Switcher_ConnectionColumn_SwitchesToTheHighlightedConnectionsRecentQuery()
+    {
+        using var first = CreateConnectionContext(Guid.NewGuid());
+        using var second = CreateConnectionContext(Guid.NewGuid());
+        second.ViewModel.OpenQueryEditorWithScript("select 2");
+        second.ViewModel.SelectedEditor = 1;
+        second.ViewModel.SelectedEditor = 0;
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(first.ViewModel);
+        mainWindowViewModel.Connections.Add(second.ViewModel);
+        mainWindowViewModel.SelectedTabConnectionIndex = 0;
+
+        mainWindowViewModel.ShowSwitcher(1);
+        var switcher = mainWindowViewModel.Switcher!;
+        switcher.ActivateConnectionColumn(true);
+        switcher.Move(1);
+
+        // The right column now lists the highlighted connection's queries, its current query first.
+        Assert.Same(second.ViewModel, switcher.SelectedConnection);
+        Assert.Same(second.ViewModel.QueryEditors[0], switcher.SelectedEditor);
+
+        switcher.Commit();
+        Assert.Equal(1, mainWindowViewModel.SelectedTabConnectionIndex);
+        Assert.Equal(0, second.ViewModel.SelectedEditor);
+    }
+
+    [Fact]
+    public void Switcher_ConnectionNumber_ListsThatConnectionsQueries_AndTabWalksThem()
+    {
+        using var first = CreateConnectionContext(Guid.NewGuid());
+        using var second = CreateConnectionContext(Guid.NewGuid());
+        second.ViewModel.OpenQueryEditorWithScript("select 2");
+        var mainWindowViewModel = new MainWindowViewModel(new MainWindowServiceProviderStub());
+        mainWindowViewModel.Connections.Add(first.ViewModel);
+        mainWindowViewModel.Connections.Add(second.ViewModel);
+        mainWindowViewModel.SelectedTabConnectionIndex = 0;
+
+        mainWindowViewModel.ShowSwitcher(1);
+        var switcher = mainWindowViewModel.Switcher!;
+        Assert.Equal([1, 2], switcher.ConnectionItems.Select(item => item.Number));
+
+        switcher.HighlightConnectionNumber(2);
+        Assert.Same(second.ViewModel, switcher.SelectedConnection);
+        Assert.False(switcher.IsConnectionColumnActive);
+
+        // Ctrl+Tab again moves through the highlighted connection's queries.
+        var current = switcher.SelectedEditor;
+        mainWindowViewModel.ShowSwitcher(1);
+        Assert.NotSame(current, switcher.SelectedEditor);
+        Assert.Contains(switcher.SelectedEditor!, second.ViewModel.QueryEditors);
+
+        switcher.HighlightConnectionNumber(3);
+        Assert.Same(second.ViewModel, switcher.SelectedConnection);
+    }
+
+    [Fact]
     public void HasEditor_WhileTheSelectedEditorIsBeingRemoved_DoesNotThrow()
     {
         // Dock unloads a closed query's view in the middle of the removal, before SelectedEditor catches up, and the

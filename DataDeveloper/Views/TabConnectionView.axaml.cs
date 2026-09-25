@@ -33,11 +33,13 @@ public partial class TabConnectionView : UserControl
     private TabConnectionViewModel? _viewModel;
     private readonly TabTemplateSelector? _templateSelector;
     private bool _isSyncingActiveEditor;
+    private bool _isDockPopulated;
 
     public TabConnectionView()
     {
         InitializeComponent();
         _templateSelector = Resources["TabTemplateSelector"] as TabTemplateSelector;
+        Loaded += OnFirstLoaded;
         ConnectionDock.HostWindowFactory = () => new DocumentHostWindow();
         DockableLogicalOwner.AdoptLayout(ConnectionDock.Layout);
         if (ConnectionDock.Factory is { } factory)
@@ -49,6 +51,15 @@ public partial class TabConnectionView : UserControl
         // Clicking a query tab leaves keyboard focus on the tab strip, so shortcuts such as F5 would not reach
         // the editor; hand the focus to the editor instead (also when the clicked tab was already active).
         ConnectionDock.AddHandler(PointerReleasedEvent, OnDockPointerReleased, RoutingStrategies.Bubble, handledEventsToo: true);
+    }
+
+    // By the time the view is loaded Dock has generated the restored query documents: from now on activations come
+    // from the user, and the view model's selection (not the last generated document) is the active query.
+    private void OnFirstLoaded(object? sender, RoutedEventArgs e)
+    {
+        Loaded -= OnFirstLoaded;
+        _isDockPopulated = true;
+        ActivateSelectedEditorDocument();
     }
 
     /// <summary>Items for the schema explorer tool dock (a single tool bound to this connection).</summary>
@@ -120,7 +131,8 @@ public partial class TabConnectionView : UserControl
 
     private void OnActiveDockableChanged(object? sender, ActiveDockableChangedEventArgs e)
     {
-        if (_viewModel is null || e.Dockable is not IDocument { Context: TabQueryEditorViewModel editor })
+        // Dock activates each query document as it generates them; those are not the user's selection.
+        if (_viewModel is null || !_isDockPopulated || e.Dockable is not IDocument { Context: TabQueryEditorViewModel editor })
             return;
 
         FocusEditor(editor);
@@ -143,19 +155,6 @@ public partial class TabConnectionView : UserControl
         }
     }
 
-    /// <summary>Activates the query tab <paramref name="step"/> positions away from the active one, wrapping around.</summary>
-    public void ShowAdjacentQuery(int step)
-    {
-        if (ConnectionDock.Factory is not { } factory ||
-            QueryDocuments.VisibleDockables?.OfType<IDocument>().ToList() is not { Count: > 1 } documents)
-            return;
-
-        var index = QueryDocuments.ActiveDockable is IDocument active ? documents.IndexOf(active) : -1;
-        var next = documents[((index + step) % documents.Count + documents.Count) % documents.Count];
-        factory.SetActiveDockable(next);
-        factory.SetFocusedDockable(QueryDocuments, next);
-    }
-
     private void OnDockPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (e.InitialPressMouseButton != MouseButton.Left ||
@@ -163,6 +162,13 @@ public partial class TabConnectionView : UserControl
             return;
 
         FocusEditor(editor);
+    }
+
+    /// <summary>Moves keyboard focus to this connection's selected query editor.</summary>
+    public void FocusSelectedEditor()
+    {
+        if (_viewModel is { SelectedEditor: var index } && index >= 0 && index < _viewModel.QueryEditors.Count)
+            FocusEditor(_viewModel.QueryEditors[index]);
     }
 
     private void FocusEditor(TabQueryEditorViewModel editor, bool retryUntilBuilt = true)

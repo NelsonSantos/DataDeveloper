@@ -3,9 +3,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Reactive.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using DataDeveloper.Docking;
+using DataDeveloper.TemplateSelectors;
 using DataDeveloper.ViewModels;
 using Dock.Model.Controls;
 using Dock.Model.Core;
@@ -16,12 +18,17 @@ namespace DataDeveloper.Views;
 
 public partial class MainView : UserControl
 {
+    private static readonly TimeSpan SwitcherShowDelay = TimeSpan.FromMilliseconds(150);
+
+    private readonly TabTemplateSelector? _templateSelector;
     private MainWindowViewModel? _viewModel;
     private bool _isSyncingActiveConnection;
+    private IDisposable? _switcherShowTimer;
 
     public MainView()
     {
         InitializeComponent();
+        _templateSelector = Resources["TabTemplateSelector"] as TabTemplateSelector;
         DockableLogicalOwner.AdoptLayout(MainDock.Layout);
         if (MainDock.Factory is { } factory)
         {
@@ -56,7 +63,14 @@ public partial class MainView : UserControl
 
     private void OnActiveDockableChanged(object? sender, ActiveDockableChangedEventArgs e)
     {
-        if (_viewModel is null || _isSyncingActiveConnection || e.Dockable is not IDocument { Context: TabConnectionViewModel connection })
+        if (_viewModel is null || e.Dockable is not IDocument { Context: TabConnectionViewModel connection })
+            return;
+
+        // The connection's current query takes the keyboard, so shortcuts such as F5 work right away.
+        if (_templateSelector?.GetCachedControl(connection) is TabConnectionView connectionView)
+            connectionView.FocusSelectedEditor();
+
+        if (_isSyncingActiveConnection)
             return;
 
         var index = _viewModel.Connections.IndexOf(connection);
@@ -76,11 +90,42 @@ public partial class MainView : UserControl
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainWindowViewModel.Switcher))
+        {
+            UpdateSwitcherLayer();
+            return;
+        }
+
         if (e.PropertyName != nameof(MainWindowViewModel.SelectedTabConnectionIndex) || _isSyncingActiveConnection)
             return;
 
         // Defer until Dock has generated the document for a newly added connection.
         Dispatcher.UIThread.Post(ActivateSelectedConnectionDocument, DispatcherPriority.Background);
+    }
+
+    private void UpdateSwitcherLayer()
+    {
+        _switcherShowTimer?.Dispose();
+        _switcherShowTimer = null;
+
+        if (_viewModel?.Switcher is not { } switcher)
+        {
+            SwitcherLayer.IsVisible = false;
+            return;
+        }
+
+        // Keep a reference: an unreferenced one-shot timer can be collected before it fires.
+        _switcherShowTimer = DispatcherTimer.RunOnce(() =>
+        {
+            if (ReferenceEquals(_viewModel?.Switcher, switcher))
+                SwitcherLayer.IsVisible = true;
+        }, SwitcherShowDelay);
+    }
+
+    private void OnSwitcherBackdropPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, SwitcherLayer))
+            _viewModel?.Switcher?.Cancel();
     }
 
     private void ActivateSelectedConnectionDocument()
