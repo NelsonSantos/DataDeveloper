@@ -7,31 +7,46 @@ namespace DataDeveloper.Core;
 
 public class AppDataFileService
 {
-    private const string AppFolderName = "DataDeveloper";
-    public static string AppDataDirectory { get; }= InitializeAppDataDirectory();
+    public static string AppDataDirectory { get; } = InitializeAppDataDirectory();
 
     private static string InitializeAppDataDirectory()
     {
-        string basePath;
+        var platform = AppDataLocation.CurrentPlatform;
+        var appPath = AppDataLocation.GetAppDataPath(
+            platform,
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            Environment.GetEnvironmentVariable("XDG_CONFIG_HOME"));
+        var legacyPath = AppDataLocation.GetLegacyAppDataPath(platform, Environment.GetFolderPath(Environment.SpecialFolder.Personal));
 
-        if (OperatingSystem.IsWindows())
+        try
         {
-            basePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); // %AppData%
+            var outcome = AppDataLocation.MigrateLegacyData(legacyPath, appPath);
+            if (outcome != AppDataLocation.MigrationOutcome.NotNeeded)
+                LogMigration(appPath, $"{outcome} app data from {legacyPath} to {appPath}");
         }
-        else if (OperatingSystem.IsMacOS())
+        catch (Exception exception) when (legacyPath is not null && Directory.Exists(legacyPath))
         {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            basePath = Path.Combine(home, "Library", "Application Support");
-        }
-        else // Linux and fallback
-        {
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            basePath = Path.Combine(home, ".config");
+            // Keep using the old folder rather than starting without the user's connections; try again next launch.
+            LogMigration(legacyPath, $"Could not move app data from {legacyPath} to {appPath}: {exception}");
+            return legacyPath;
         }
 
-        var appPath = Path.Combine(basePath, AppFolderName);
-        Directory.CreateDirectory(appPath); // ensure exists
+        Directory.CreateDirectory(appPath);
         return appPath;
+    }
+
+    private static void LogMigration(string appPath, string message)
+    {
+        try
+        {
+            var logs = Directory.CreateDirectory(Path.Combine(appPath, "logs"));
+            File.AppendAllText(Path.Combine(logs.FullName, "app-data-migration.log"), $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n");
+        }
+        catch
+        {
+            // Logging must not stop the app from starting.
+        }
     }
 
     public void AppendLog(string fileName, string message, string? subfolder = null)
