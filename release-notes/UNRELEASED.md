@@ -24,8 +24,16 @@
   - The release scripts run under `set -u`. When `VERSION` is not set, `VERSION_MSBUILD_ARGS` is empty, and macOS's bash 3.2 treats `"${VERSION_MSBUILD_ARGS[@]}"` as an unbound variable, so local builds failed right away.
   - The macOS, Linux and Windows scripts now use `${VERSION_MSBUILD_ARGS[@]+"${VERSION_MSBUILD_ARGS[@]}"}`, which expands only when the array has items.
   - CI and releases always pass `VERSION` and use a newer bash, so they were not affected.
+- **#65 fix: drop Npgsql's obsolete TrustServerCertificate option** (https://github.com/NelsonSantos/DataDeveloper/pull/65)
+  - Removes `NpgsqlConnectionStringBuilder.TrustServerCertificate` from both Postgres connection strings. Npgsql 8 marks it obsolete and says it "does nothing", so the build warning (CS0618) goes away.
+  - Behavior doesn't change. The SSL mode alone decides certificate handling:
+  - Encrypt off → `Disable`
+  - Encrypt + trust server certificate → `Require` (encrypts without validating the certificate)
+  - Encrypt without trust → `VerifyCA`
+  - The duplicated SSL mode mapping in `GetConnection` and `BuildConnectionString` now lives in one `GetSslMode()` method.
 
 ## Included Commits
+- 9c145fd Merge pull request #65 from NelsonSantos/feature/npgsql-trust-certificate
 - 0c236bf Merge pull request #64 from NelsonSantos/feature/macos-build-script-version
 - 18eb4f3 Merge pull request #63 from NelsonSantos/feature/ci-workflow
 - d1e3c23 Merge pull request #62 from NelsonSantos/feature/crash-resilience
