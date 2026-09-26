@@ -62,6 +62,7 @@ public partial class App : Application
         viewResolver.SetServiceProvider(ServiceProvider);
         
         this.DataTemplates.Add(new ViewLocatorService(viewResolver));
+        DockMenu.Install(this, ServiceProvider);
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -91,6 +92,7 @@ public partial class App : Application
         services.AddTransient<IFileImportDialogService, FileImportDialogService>();
         services.AddSingleton<IWindowStateService, WindowStateService>();
         services.AddSingleton<IRecentFilesService, RecentFilesService>();
+        services.AddSingleton<IRecentConnectionsService, RecentConnectionsService>();
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
         services.AddTransient<StatementSplitter>();

@@ -466,6 +466,56 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void OpenConnection_AlreadyOpen_SelectsItAndMovesItToTheTopOfRecentConnections()
+    {
+        using var first = CreateConnectionContext();
+        using var second = CreateConnectionContext();
+        var serviceProvider = new MainWindowServiceProviderStub();
+        var olderId = Guid.NewGuid();
+        serviceProvider.RecentConnectionsService.InitialConnectionIds = new List<Guid> { olderId, second.ConnectionSettings.Id };
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+        mainWindowViewModel.Connections.Add(first.ViewModel);
+        mainWindowViewModel.Connections.Add(second.ViewModel);
+        mainWindowViewModel.SelectedTabConnectionIndex = 0;
+
+        mainWindowViewModel.OpenConnection(second.ConnectionSettings);
+
+        Assert.Equal(1, mainWindowViewModel.SelectedTabConnectionIndex);
+        Assert.Equal(2, mainWindowViewModel.Connections.Count);
+        Assert.Equal([second.ConnectionSettings.Id, olderId], mainWindowViewModel.RecentConnectionIds);
+        Assert.Equal([second.ConnectionSettings.Id, olderId], serviceProvider.RecentConnectionsService.LastSaved);
+    }
+
+    [Fact]
+    public void RecentConnectionIds_KeepAtMostTenConnections()
+    {
+        using var context = CreateConnectionContext();
+        var serviceProvider = new MainWindowServiceProviderStub();
+        serviceProvider.RecentConnectionsService.InitialConnectionIds = Enumerable.Range(0, 12).Select(_ => Guid.NewGuid()).ToList();
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+        Assert.Equal(10, mainWindowViewModel.RecentConnectionIds.Count);
+
+        mainWindowViewModel.Connections.Add(context.ViewModel);
+        mainWindowViewModel.OpenConnection(context.ConnectionSettings);
+
+        Assert.Equal(10, mainWindowViewModel.RecentConnectionIds.Count);
+        Assert.Equal(context.ConnectionSettings.Id, mainWindowViewModel.RecentConnectionIds[0]);
+    }
+
+    [Fact]
+    public void ClearRecentConnections_EmptiesAndSavesTheList()
+    {
+        var serviceProvider = new MainWindowServiceProviderStub();
+        serviceProvider.RecentConnectionsService.InitialConnectionIds = new List<Guid> { Guid.NewGuid() };
+        var mainWindowViewModel = new MainWindowViewModel(serviceProvider);
+
+        mainWindowViewModel.ClearRecentConnections();
+
+        Assert.Empty(mainWindowViewModel.RecentConnectionIds);
+        Assert.Empty(serviceProvider.RecentConnectionsService.LastSaved!);
+    }
+
+    [Fact]
     public void PersistSessionSnapshot_WritesEditorsWithContentToStore()
     {
         using var context = CreateConnectionContext();
@@ -768,6 +818,7 @@ public class TabConnectionSessionTests
         private readonly IEventAggregatorService _eventAggregatorService = new EventAggregatorService();
 
         public StubRecentFilesService RecentFilesService { get; } = new();
+        public StubRecentConnectionsService RecentConnectionsService { get; } = new();
 
         public object? GetService(Type serviceType)
         {
@@ -783,6 +834,8 @@ public class TabConnectionSessionTests
                 return new StubGenerateGuidWindowService();
             if (serviceType == typeof(IRecentFilesService))
                 return RecentFilesService;
+            if (serviceType == typeof(IRecentConnectionsService))
+                return RecentConnectionsService;
             if (serviceType == typeof(ISchemaCompareDialogService))
                 return new StubSchemaCompareDialogService();
             if (serviceType == typeof(IFileImportDialogService))
@@ -819,6 +872,19 @@ public class TabConnectionSessionTests
     {
         public Task NotifyIfUpdateAvailableAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task CheckForUpdatesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    }
+
+    private sealed class StubRecentConnectionsService : IRecentConnectionsService
+    {
+        public List<Guid> InitialConnectionIds { get; set; } = new();
+        public IReadOnlyList<Guid>? LastSaved { get; private set; }
+
+        public IReadOnlyList<Guid> Load() => InitialConnectionIds;
+
+        public void Save(IReadOnlyList<Guid> connectionIds)
+        {
+            LastSaved = connectionIds.ToList();
+        }
     }
 
     private sealed class StubRecentFilesService : IRecentFilesService
