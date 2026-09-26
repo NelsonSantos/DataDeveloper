@@ -47,8 +47,13 @@
   - pooled connections now have a 1-hour maximum lifetime (previously unlimited);
   - some SSL callbacks and compatibility connection-string options are obsolete, and the app uses none of them.
   - Skips Npgsql 10 for now. It reads `date`/`time` columns as `DateOnly`/`TimeOnly` through `GetValue`, while the results grid only handles `DateTime`/`DateTimeOffset` (formatting, editor, copy, export, edit write-back). The follow-up is tracked in `TODOS.md`.
+- **#68 style: drop the line under document tabs and center the connection icon** (https://github.com/NelsonSantos/DataDeveloper/pull/68)
+  - Hides the 2 px separator that Dock's Fluent theme draws between document tab strips and their content. It turns the accent blue under the active connection or query tab. The app overrides `DockDocumentTabStripSeparatorVisible` (False) and `DockDocumentTabStripSeparatorSize` (0), so no empty gap is left behind.
+  - The connection tab icon margin changes from `4,4,2,0` to `4,2,2,2`. The separator used to pad the space under the icon; now the icon is centered with the same tab height.
+  - Tool tabs (Schema Explorer, Message/results) had no such line and are unchanged.
 
 ## Included Commits
+- f4126a1 Merge pull request #68 from NelsonSantos/feature/hide-document-tab-separator
 - a6db2df Merge pull request #67 from NelsonSantos/feature/npgsql-9
 - edb0575 Merge pull request #66 from NelsonSantos/feature/dock-layout-persistence
 - 9c145fd Merge pull request #65 from NelsonSantos/feature/npgsql-trust-certificate
