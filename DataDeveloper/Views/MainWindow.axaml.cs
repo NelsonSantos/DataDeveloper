@@ -34,6 +34,9 @@ public partial class MainWindow : Window, IMainWindow
         AddHandler(KeyDownEvent, OnPreviewKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnPreviewKeyUp, RoutingStrategies.Tunnel);
         Deactivated += (_, _) => _viewModel.Switcher?.Cancel();
+        // The macOS Dock menu lists this window's connections while it is the one the user works in.
+        Activated += (_, _) => DockMenu.Follow(this, _viewModel);
+        Closed += (_, _) => DockMenu.Forget(this);
     }
 
     private void OnPreviewKeyDown(object? sender, KeyEventArgs e)

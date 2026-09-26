@@ -181,6 +181,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeGenerateGuidWindowService();
             if (serviceType == typeof(IRecentFilesService))
                 return new FakeRecentFilesService();
+            if (serviceType == typeof(IRecentConnectionsService))
+                return new FakeRecentConnectionsService();
             if (serviceType == typeof(ISchemaCompareDialogService))
                 return new FakeSchemaCompareDialogService();
             if (serviceType == typeof(IFileImportDialogService))
@@ -204,6 +206,14 @@ public class MainWindowViewModelClipboardFocusTests
     {
         public Task<IConnectionSettings?> ShowDialogAsync(Window parentWindow, IConnectionSettings? preselectedConnection = null) =>
             Task.FromResult<IConnectionSettings?>(null);
+    }
+
+    private sealed class FakeRecentConnectionsService : IRecentConnectionsService
+    {
+        public IReadOnlyList<Guid> Load() => Array.Empty<Guid>();
+        public void Save(IReadOnlyList<Guid> connectionIds)
+        {
+        }
     }
 
     private sealed class FakeRecentFilesService : IRecentFilesService

@@ -14,6 +14,7 @@ using AvaloniaEdit.Search;
 using DataDeveloper.Core;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
+using DataDeveloper.Data.Models;
 using DataDeveloper.EventAggregators;
 using DataDeveloper.Interfaces;
 using DataDeveloper.NextGrid.UI;
@@ -38,6 +39,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IFileImportDialogService _fileImportDialogService;
     private readonly IRecentFilesService _recentFilesService;
     private const int MaxRecentFiles = 20;
+    private const int MaxRecentConnections = 10;
+    private readonly IRecentConnectionsService _recentConnectionsService;
     private readonly KeyModifiers _primaryShortcutModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
     private TextEditor? _activeEditor;
     private DatabaseType _activeDatabaseType;
@@ -65,6 +68,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
         foreach (var file in _recentFilesService.Load().Take(MaxRecentFiles))
             RecentFiles.Add(file);
+
+        _recentConnectionsService = _serviceProvider.GetRequiredService<IRecentConnectionsService>();
+        foreach (var connectionId in _recentConnectionsService.Load().Take(MaxRecentConnections))
+            RecentConnectionIds.Add(connectionId);
 
         _eventAggregatorService.Subscribe<ShowCursorDataEvent>(this, ShowCursorDataEvent);
         _eventAggregatorService.Subscribe<ShowExecutionStatusEvent>(this, ShowExecutionStatusEvent);
@@ -280,6 +287,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ReactiveCommand<string, Unit> OpenRecentFileCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearRecentFilesCommand { get; }
     public ObservableCollection<string> RecentFiles { get; } = new();
+
+    /// <summary>Ids of the most recently opened connections, most recent first.</summary>
+    public ObservableCollection<Guid> RecentConnectionIds { get; } = new();
 
     public bool HasRecentFiles => RecentFiles.Count > 0;
 
@@ -617,30 +627,64 @@ public partial class MainWindowViewModel : ViewModelBase
             var connectionSettings = await _connectionDialogService.ShowDialogAsync(window);
 
             if (connectionSettings is not null)
-            {
-                var existingIndex = FindConnectionIndex(Connections, connectionSettings.Id);
-
-                if (existingIndex >= 0)
-                {
-                    SelectedTabConnectionIndex = existingIndex;
-                }
-                else
-                {
-                    var tab = new TabConnectionViewModel(connectionSettings, true, _serviceProvider);
-                    Connections.Add(tab);
-                    SelectedTabConnectionIndex = Connections.Count - 1;
-                }
-
-                this.RaisePropertyChanged(nameof(HasConnections));
-                this.RaisePropertyChanged(nameof(HasEditor));
-                this.RaisePropertyChanged(nameof(HasCurrentFile));
-                this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
-            }
+                OpenConnection(connectionSettings);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
         }
+    }
+
+    /// <summary>Shows the connection's tab, opening it first when it is not open yet.</summary>
+    public void OpenConnection(IConnectionSettings connectionSettings)
+    {
+        var existingIndex = FindConnectionIndex(Connections, connectionSettings.Id);
+
+        if (existingIndex >= 0)
+        {
+            SelectedTabConnectionIndex = existingIndex;
+        }
+        else
+        {
+            var tab = new TabConnectionViewModel(connectionSettings, true, _serviceProvider);
+            Connections.Add(tab);
+            SelectedTabConnectionIndex = Connections.Count - 1;
+        }
+
+        AddRecentConnection(connectionSettings.Id);
+        this.RaisePropertyChanged(nameof(HasConnections));
+        this.RaisePropertyChanged(nameof(HasEditor));
+        this.RaisePropertyChanged(nameof(HasCurrentFile));
+        this.RaisePropertyChanged(nameof(CanOpenRecentFiles));
+    }
+
+    /// <summary>Opens a saved connection (e.g. a recent one from the Dock menu), loading its password first.</summary>
+    public async Task OpenSavedConnectionAsync(ConnectionSettings connectionSettings)
+    {
+        if (FindConnectionIndex(Connections, connectionSettings.Id) < 0)
+        {
+            var repository = _serviceProvider.GetRequiredService<IConnectionSettingsRepository>();
+            await Task.Run(() => repository.LoadPassword(connectionSettings));
+        }
+
+        OpenConnection(connectionSettings);
+    }
+
+    public void ClearRecentConnections()
+    {
+        RecentConnectionIds.Clear();
+        _recentConnectionsService.Save(RecentConnectionIds);
+    }
+
+    private void AddRecentConnection(Guid connectionId)
+    {
+        RecentConnectionIds.Remove(connectionId);
+        RecentConnectionIds.Insert(0, connectionId);
+
+        while (RecentConnectionIds.Count > MaxRecentConnections)
+            RecentConnectionIds.RemoveAt(RecentConnectionIds.Count - 1);
+
+        _recentConnectionsService.Save(RecentConnectionIds);
     }
 
     public static int FindConnectionIndex(IReadOnlyList<TabConnectionViewModel> connections, Guid connectionId)
