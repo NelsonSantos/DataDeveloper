@@ -47,3 +47,8 @@ Layout do Dock (branch `feature/dock-evaluation`). Salvar junto do JSON de sess�
 
 - [x] Persistir por conexão a largura do Schema Explorer e se ele está recolhido
 - [x] Persistir por query a altura do painel Results e se ele está recolhido
+
+Npgsql 10. O projeto está no Npgsql 9. No 10, as colunas `date` e `time` do PostgreSQL passam a ser lidas como `DateOnly` e `TimeOnly` (antes `DateTime` e `TimeSpan`), e a grade só trata `DateTime`/`DateTimeOffset`.
+
+- [ ] Tratar `DateOnly` e `TimeOnly` na grade (formatação, editor, cópia, exportação e gravação na edição de dados) antes de atualizar
+- [ ] Atualizar para o Npgsql 10 e validar com os testes de integração do PostgreSQL
