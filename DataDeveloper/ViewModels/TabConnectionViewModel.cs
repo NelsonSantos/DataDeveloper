@@ -361,17 +361,19 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
                 Name = editor.Name,
                 File = editor.File,
                 SqlStatement = editor.SqlStatement,
-                IsDirty = editor.TextWasChanged
+                IsDirty = editor.TextWasChanged,
+                Results = editor.ResultsLayout is { IsDefault: false } results ? results : null
             })
             .ToList();
 
-        if (editors.Count == 0)
+        var schemaExplorer = SchemaExplorerLayout is { IsDefault: false } layout ? layout : null;
+        if (editors.Count == 0 && schemaExplorer is null)
         {
             _sessionTabStore.Remove(ConnectionSettings.Id);
             return;
         }
 
-        _sessionTabStore.Save(ConnectionSettings.Id, editors);
+        _sessionTabStore.Save(ConnectionSettings.Id, editors, schemaExplorer);
     }
 
     private static bool HasMeaningfulContent(TabQueryEditorViewModel editor)
@@ -392,6 +394,10 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
                 if (!_autosaveSuspended)
                     PersistSessionSnapshot();
             });
+
+        this.WhenAnyValue(vm => vm.SchemaExplorerLayout)
+            .Skip(1)
+            .Subscribe(_ => _sessionChangeTrigger.OnNext(Unit.Default));
 
         foreach (var editor in QueryEditors)
             TrackEditorForAutosave(editor);
@@ -417,7 +423,7 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
 
     private void TrackEditorForAutosave(TabQueryEditorViewModel editor)
     {
-        var subscription = editor.WhenAnyValue(e => e.SqlStatement)
+        var subscription = editor.WhenAnyValue(e => e.SqlStatement, e => e.ResultsLayout)
             .Skip(1)
             .Subscribe(_ => _sessionChangeTrigger.OnNext(Unit.Default));
 
@@ -433,6 +439,7 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     private void RestoreSessionOrAddDefaultEditor()
     {
         var sessionState = _sessionTabStore.Get(ConnectionSettings.Id);
+        SchemaExplorerLayout = sessionState?.SchemaExplorer;
         if (sessionState is null || sessionState.Editors.Count == 0)
         {
             AddQueryEditor();
@@ -461,7 +468,8 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             this.ServiceProvider)
         {
             SqlStatement = state.SqlStatement,
-            TextWasChanged = state.IsDirty
+            TextWasChanged = state.IsDirty,
+            ResultsLayout = state.Results
         };
 
         this.QueryEditors.Add(queryEditor);
@@ -557,7 +565,8 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     public ISchemaExplorer SchemaExplorer { get; }
     public Task Initialization { get; private set; }
     [Reactive] private int _selectedEditor;
-    [Reactive] private bool _isSchemaExplorerMinimized;
+    /// <summary>Schema Explorer size and collapsed state, saved with the session.</summary>
+    [Reactive] private PanelLayoutState? _schemaExplorerLayout;
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CreateTableCommand { get; }
     public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }

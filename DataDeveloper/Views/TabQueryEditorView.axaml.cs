@@ -45,6 +45,7 @@ public partial class TabQueryEditorView : UserControl
     private readonly TabTemplateSelector? _resultTemplateSelector;
     private bool _isSyncingActiveResult;
     private bool _isEditorFocusRequested;
+    private ToolDockLayoutBinding? _resultsLayout;
 
     public TabQueryEditorView()
     {
@@ -97,6 +98,8 @@ public partial class TabQueryEditorView : UserControl
             _viewModel.Tabs.CollectionChanged -= OnResultTabsChanged;
         }
 
+        _resultsLayout?.Dispose();
+        _resultsLayout = null;
         _viewModel = DataContext as TabQueryEditorViewModel;
         if (_viewModel is null)
             return;
@@ -119,9 +122,22 @@ public partial class TabQueryEditorView : UserControl
             return;
 
         _viewModel.EditorHeadHeight = StackPanelEditor.Bounds.Height;
+        BindResultsLayout(_viewModel);
         ConfigureEditorContextMenu();
         UpdateActiveEditorState();
         ApplyParametersPanelState();
+    }
+
+    // Restores this query's saved Results height and collapsed state once its result tools exist (the view is
+    // loaded again on every tab switch), then saves the user's changes to them.
+    private void BindResultsLayout(TabQueryEditorViewModel viewModel)
+    {
+        if (_resultsLayout is not null || QueryDock.Factory is not { } factory || QueryDock.Layout is not IRootDock root)
+            return;
+
+        _resultsLayout = ToolDockLayoutBinding.Attach(
+            factory, root, ResultsDock, EditorPane, viewModel.ResultsLayout,
+            layout => viewModel.ResultsLayout = layout);
     }
 
     private void OnUnloaded(object? sender, RoutedEventArgs e)
