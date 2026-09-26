@@ -45,5 +45,5 @@ Objetos específicos de cada banco para a árvore de conexão. Cada item entra s
 
 Layout do Dock (branch `feature/dock-evaluation`). Salvar junto do JSON de sessão de cada conexão (`SessionTabStore`), sem SQLite.
 
-- [ ] Persistir por conexão a largura do Schema Explorer e se ele está recolhido
-- [ ] Persistir por query a altura do painel Results e se ele está recolhido
+- [x] Persistir por conexão a largura do Schema Explorer e se ele está recolhido
+- [x] Persistir por query a altura do painel Results e se ele está recolhido

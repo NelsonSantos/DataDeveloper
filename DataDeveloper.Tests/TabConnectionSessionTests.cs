@@ -56,6 +56,29 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void SessionTabStore_SaveThenGet_RoundTripsPanelLayouts()
+    {
+        var (store, _) = CreateFileBackedStore();
+        var connectionId = Guid.NewGuid();
+        try
+        {
+            store.Save(
+                connectionId,
+                new List<EditorTabState> { new() { Name = "Query 1", SqlStatement = "select 1", Results = new PanelLayoutState(0.55, true) } },
+                new PanelLayoutState(0.2, false));
+
+            var loaded = store.Get(connectionId);
+
+            Assert.Equal(new PanelLayoutState(0.2, false), loaded!.SchemaExplorer);
+            Assert.Equal(new PanelLayoutState(0.55, true), Assert.Single(loaded.Editors).Results);
+        }
+        finally
+        {
+            store.Remove(connectionId);
+        }
+    }
+
+    [Fact]
     public void SessionTabStore_Save_OverwritesPreviousState()
     {
         var (store, _) = CreateFileBackedStore();
@@ -471,6 +494,54 @@ public class TabConnectionSessionTests
     }
 
     [Fact]
+    public void PersistSessionSnapshot_SavesPanelLayouts_AndReopeningRestoresThem()
+    {
+        var sessionStore = new InMemorySessionTabStore();
+        var connectionId = Guid.NewGuid();
+        using (var context = CreateConnectionContext(connectionId, sessionStore))
+        {
+            context.ViewModel.QueryEditors[0].SqlStatement = "select 1";
+            context.ViewModel.QueryEditors[0].ResultsLayout = new PanelLayoutState(0.6, true);
+            context.ViewModel.SchemaExplorerLayout = new PanelLayoutState(0.3, false);
+
+            context.ViewModel.PersistSessionSnapshot();
+        }
+
+        using var reopened = CreateConnectionContext(connectionId, sessionStore);
+
+        Assert.Equal(new PanelLayoutState(0.3, false), reopened.ViewModel.SchemaExplorerLayout);
+        Assert.Equal(new PanelLayoutState(0.6, true), Assert.Single(reopened.ViewModel.QueryEditors).ResultsLayout);
+    }
+
+    [Fact]
+    public void PersistSessionSnapshot_KeepsSchemaExplorerLayout_WhenNoEditorHasContent()
+    {
+        using var context = CreateConnectionContext();
+        context.ViewModel.SchemaExplorerLayout = new PanelLayoutState(null, true);
+
+        context.ViewModel.PersistSessionSnapshot();
+
+        var saved = context.SessionStore.Get(context.ConnectionSettings.Id);
+        Assert.Equal(new PanelLayoutState(null, true), saved!.SchemaExplorer);
+        Assert.Empty(saved.Editors);
+    }
+
+    [Fact]
+    public void PersistSessionSnapshot_OmitsDefaultPanelLayouts()
+    {
+        using var context = CreateConnectionContext();
+        context.ViewModel.QueryEditors[0].SqlStatement = "select 1";
+        context.ViewModel.QueryEditors[0].ResultsLayout = new PanelLayoutState(null, false);
+        context.ViewModel.SchemaExplorerLayout = new PanelLayoutState(null, false);
+
+        context.ViewModel.PersistSessionSnapshot();
+
+        var saved = context.SessionStore.Get(context.ConnectionSettings.Id);
+        Assert.Null(saved!.SchemaExplorer);
+        Assert.Null(Assert.Single(saved.Editors).Results);
+    }
+
+    [Fact]
     public void PersistSessionSnapshot_KeepsEditorWithContentButOmitsBlankSiblingTab()
     {
         using var context = CreateConnectionContext();
@@ -639,9 +710,9 @@ public class TabConnectionSessionTests
             return _states.TryGetValue(connectionId, out var state) ? state : null;
         }
 
-        public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors)
+        public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors, PanelLayoutState? schemaExplorer = null)
         {
-            _states[connectionId] = new ConnectionSessionState { ConnectionId = connectionId, Editors = new List<EditorTabState>(editors) };
+            _states[connectionId] = new ConnectionSessionState { ConnectionId = connectionId, Editors = new List<EditorTabState>(editors), SchemaExplorer = schemaExplorer };
         }
 
         public void Remove(Guid connectionId)

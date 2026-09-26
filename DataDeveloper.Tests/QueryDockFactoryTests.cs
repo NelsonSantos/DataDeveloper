@@ -2,6 +2,7 @@ using System.Linq;
 using Avalonia.Collections;
 using Avalonia.Headless.XUnit;
 using DataDeveloper.Docking;
+using DataDeveloper.Models;
 using Dock.Model.Avalonia.Controls;
 using Dock.Model.Core;
 using Xunit;
@@ -70,6 +71,18 @@ public class QueryDockFactoryTests
         factory.RemovePinnedResults(root, [message.Context!]);
 
         Assert.Equal([message], root.BottomPinnedDockables!.ToList());
+    }
+
+    [AvaloniaFact]
+    public void RestoringCollapsedResults_PinsTheWholeResultsDock()
+    {
+        var (factory, root, results, message, grid) = CreateLayout();
+        var editor = root.VisibleDockables!.OfType<ProportionalDock>().Single().VisibleDockables!.OfType<Document>().Single();
+
+        using var binding = ToolDockLayoutBinding.Attach(factory, root, results, editor, new PanelLayoutState(null, true), _ => { });
+
+        Assert.Empty(results.VisibleDockables!);
+        Assert.Equal([message, grid], root.BottomPinnedDockables!.ToList());
     }
 
     private static (QueryDockFactory Factory, RootDock Root, ToolDock Results, Tool Message, Tool Grid) CreateLayout()

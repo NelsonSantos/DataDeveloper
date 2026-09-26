@@ -34,6 +34,7 @@ public partial class TabConnectionView : UserControl
     private readonly TabTemplateSelector? _templateSelector;
     private bool _isSyncingActiveEditor;
     private bool _isDockPopulated;
+    private ToolDockLayoutBinding? _schemaExplorerLayout;
 
     public TabConnectionView()
     {
@@ -60,6 +61,20 @@ public partial class TabConnectionView : UserControl
         Loaded -= OnFirstLoaded;
         _isDockPopulated = true;
         ActivateSelectedEditorDocument();
+        BindSchemaExplorerLayout();
+    }
+
+    // Restores the Schema Explorer's saved width and collapsed state, then saves the user's changes to them.
+    private void BindSchemaExplorerLayout()
+    {
+        _schemaExplorerLayout?.Dispose();
+        _schemaExplorerLayout = null;
+        if (_viewModel is not { } viewModel || ConnectionDock.Factory is not { } factory || ConnectionDock.Layout is not IRootDock root)
+            return;
+
+        _schemaExplorerLayout = ToolDockLayoutBinding.Attach(
+            factory, root, SchemaTools, QueryDocuments, viewModel.SchemaExplorerLayout,
+            layout => viewModel.SchemaExplorerLayout = layout);
     }
 
     /// <summary>Items for the schema explorer tool dock (a single tool bound to this connection).</summary>
@@ -77,6 +92,8 @@ public partial class TabConnectionView : UserControl
 
         _viewModel = DataContext as TabConnectionViewModel;
         SchemaExplorerTools.Clear();
+        if (_isDockPopulated)
+            BindSchemaExplorerLayout();
 
         if (_viewModel is null)
             return;

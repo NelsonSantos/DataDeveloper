@@ -111,6 +111,10 @@ public partial class TabQueryEditorViewModel : BaseTabContent
     [Reactive] private string _executionStatusMessage = string.Empty;
     [Reactive] private int _selectedTabIndex;
     [Reactive] private int _selectedRunTimeoutSeconds = 60;
+
+    /// <summary>Results panel size and collapsed state, saved with the session.</summary>
+    [Reactive] private PanelLayoutState? _resultsLayout;
+
     public bool HasDetectedParameters => ParameterValues.Count > 0;
     
     public ObservableCollection<BaseTabContent> Tabs { get; } = new();
