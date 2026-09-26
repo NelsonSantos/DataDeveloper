@@ -31,8 +31,19 @@
   - Encrypt + trust server certificate → `Require` (encrypts without validating the certificate)
   - Encrypt without trust → `VerifyCA`
   - The duplicated SSL mode mapping in `GetConnection` and `BuildConnectionString` now lives in one `GetSslMode()` method.
+- **#66 feat: remember the Schema Explorer and Results panel layout** (https://github.com/NelsonSantos/DataDeveloper/pull/66)
+  - Each connection's session JSON now stores:
+  - the Schema Explorer's width (its share of the split) and whether it is collapsed;
+  - for each query, the Results panel's height and whether it is collapsed.
+  - The layout is restored when the connection reopens. Default layouts aren't written, and older session files still load.
+  - New `ToolDockLayoutBinding`:
+  - applies a saved `PanelLayoutState` to a Dock tool dock: the proportion goes to the dock and its sibling, and a collapsed panel is pinned;
+  - reports the user's resizes and collapse/expand changes back to the view model, and the existing debounced autosave writes them.
+  - Collapsed results are restored as a group through `QueryDockFactory`. Running a query still reopens them, and that expanded state is saved too.
+  - Removes the unused `_isSchemaExplorerMinimized` field and ticks the two Dock layout items in `TODOS.md`.
 
 ## Included Commits
+- edb0575 Merge pull request #66 from NelsonSantos/feature/dock-layout-persistence
 - 9c145fd Merge pull request #65 from NelsonSantos/feature/npgsql-trust-certificate
 - 0c236bf Merge pull request #64 from NelsonSantos/feature/macos-build-script-version
 - 18eb4f3 Merge pull request #63 from NelsonSantos/feature/ci-workflow
