@@ -41,8 +41,15 @@
   - reports the user's resizes and collapse/expand changes back to the view model, and the existing debounced autosave writes them.
   - Collapsed results are restored as a group through `QueryDockFactory`. Running a query still reopens them, and that expanded state is saved too.
   - Removes the unused `_isSchemaExplorerMinimized` field and ticks the two Dock layout items in `TODOS.md`.
+- **#67 chore: update Npgsql to 9.0.5** (https://github.com/NelsonSantos/DataDeveloper/pull/67)
+  - Updates Npgsql from 8.0.3 to 9.0.5, the latest 9.x release. No code changes were needed.
+  - Npgsql 9 breaking changes don't affect the app:
+  - pooled connections now have a 1-hour maximum lifetime (previously unlimited);
+  - some SSL callbacks and compatibility connection-string options are obsolete, and the app uses none of them.
+  - Skips Npgsql 10 for now. It reads `date`/`time` columns as `DateOnly`/`TimeOnly` through `GetValue`, while the results grid only handles `DateTime`/`DateTimeOffset` (formatting, editor, copy, export, edit write-back). The follow-up is tracked in `TODOS.md`.
 
 ## Included Commits
+- a6db2df Merge pull request #67 from NelsonSantos/feature/npgsql-9
 - edb0575 Merge pull request #66 from NelsonSantos/feature/dock-layout-persistence
 - 9c145fd Merge pull request #65 from NelsonSantos/feature/npgsql-trust-certificate
 - 0c236bf Merge pull request #64 from NelsonSantos/feature/macos-build-script-version
