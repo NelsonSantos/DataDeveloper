@@ -61,8 +61,21 @@
   - `RecentConnectionsService` keeps the last 10 opened connection ids in `Config/recent-connections.json`, the same way recent files are stored.
   - The code that opens a connection tab is now `MainWindowViewModel.OpenConnection`, shared by the connection dialog and the Dock menu. It records the connection as recent. `OpenSavedConnectionAsync` loads the password first, for recent connections.
   - Windows and Linux are unchanged; the menu is only installed on macOS.
+- **#70 fix: keep app data out of ~/Documents on macOS and Linux** (https://github.com/NelsonSantos/DataDeveloper/pull/70)
+  - The app data folder (settings database, sessions, logs, config) was built from `SpecialFolder.Personal`. Since .NET 8 that is `~/Documents` on macOS and Linux, so data landed in `~/Documents/Library/Application Support/DataDeveloper` and `~/Documents/.config/DataDeveloper`.
+  - New `AppDataLocation` resolves the right folder:
+  - macOS: `~/Library/Application Support/DataDeveloper`
+  - Linux: `$XDG_CONFIG_HOME/DataDeveloper`, or `~/.config/DataDeveloper` when it is unset
+  - Windows: `%AppData%\DataDeveloper` (unchanged)
+  - One-time migration at startup:
+  - runs only when the old folder has files and the new one has none;
+  - moves the folder, or copies it without overwriting when a move isn't possible (the old folder is then kept);
+  - if copying fails, the partial copy is removed and the app keeps using the old folder, so connections never disappear, and it retries on the next launch;
+  - each migration is logged to `logs/app-data-migration.log`.
+  - Passwords are unaffected: they live in the macOS Keychain or Linux Secret Service, and on Windows the DPAPI files already use the correct `%AppData%` folder.
 
 ## Included Commits
+- 5402d2b Merge pull request #70 from NelsonSantos/feature/app-data-location
 - 20ed5fa Merge pull request #69 from NelsonSantos/feature/macos-dock-menu
 - f4126a1 Merge pull request #68 from NelsonSantos/feature/hide-document-tab-separator
 - a6db2df Merge pull request #67 from NelsonSantos/feature/npgsql-9
