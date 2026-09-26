@@ -51,8 +51,19 @@
   - Hides the 2 px separator that Dock's Fluent theme draws between document tab strips and their content. It turns the accent blue under the active connection or query tab. The app overrides `DockDocumentTabStripSeparatorVisible` (False) and `DockDocumentTabStripSeparatorSize` (0), so no empty gap is left behind.
   - The connection tab icon margin changes from `4,4,2,0` to `4,2,2,2`. The separator used to pad the space under the icon; now the icon is centered with the same tab height.
   - Tool tabs (Schema Explorer, Message/results) had no such line and are unchanged.
+- **#69 feat: add connections to the macOS Dock menu** (https://github.com/NelsonSantos/DataDeveloper/pull/69)
+  - On macOS, right-clicking Data Developer's Dock icon now shows (via Avalonia 12's `NativeDock.Menu`):
+  - Open connections: the active one is checked, and clicking one brings the app forward on that connection
+  - Recent connections ▸: up to 5, excluding open or deleted ones, plus "Clear menu"
+  - New query: disabled when no connection is open
+  - Load/Add connection…
+  - `DockMenu` follows the main window activated last (the app can have several) and rebuilds the menu when that window's connections, active connection or recent connections change. Saved connections are read only when the open or recent connections change, not on every tab switch.
+  - `RecentConnectionsService` keeps the last 10 opened connection ids in `Config/recent-connections.json`, the same way recent files are stored.
+  - The code that opens a connection tab is now `MainWindowViewModel.OpenConnection`, shared by the connection dialog and the Dock menu. It records the connection as recent. `OpenSavedConnectionAsync` loads the password first, for recent connections.
+  - Windows and Linux are unchanged; the menu is only installed on macOS.
 
 ## Included Commits
+- 20ed5fa Merge pull request #69 from NelsonSantos/feature/macos-dock-menu
 - f4126a1 Merge pull request #68 from NelsonSantos/feature/hide-document-tab-separator
 - a6db2df Merge pull request #67 from NelsonSantos/feature/npgsql-9
 - edb0575 Merge pull request #66 from NelsonSantos/feature/dock-layout-persistence
