@@ -31,7 +31,11 @@
             
             <FontFamily x:Key="MonospaceFont">avares://DataDeveloper/Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>            
             <FontFamily x:Key="MaterialDesignIcons">avares://DataDeveloper/Assets/Fonts/materialdesignicons-webfont.ttf#Material Design Icons</FontFamily>
-            
+
+            <!-- No separator line (accent-colored while active) between Dock's document tabs and their content. -->
+            <x:Boolean x:Key="DockDocumentTabStripSeparatorVisible">False</x:Boolean>
+            <x:Double x:Key="DockDocumentTabStripSeparatorSize">0</x:Double>
+
             <ResourceDictionary.MergedDictionaries>
 
             <ResourceInclude Source="avares://DataDeveloper/Themes/DockTabContextMenus.axaml" />
