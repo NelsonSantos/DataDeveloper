@@ -33,6 +33,28 @@ public class PostgresDatabaseProviderTests
         Assert.Equal(SslMode.Disable, builder.SslMode);
     }
 
+    [Theory]
+    [InlineData(false, false, SslMode.Disable)]
+    [InlineData(false, true, SslMode.Disable)]
+    [InlineData(true, false, SslMode.VerifyCA)]
+    [InlineData(true, true, SslMode.Require)]
+    public void GetConnection_MapsEncryptAndTrustServerCertificateToSslMode(bool encrypt, bool trustServerCertificate, SslMode expected)
+    {
+        var provider = new PostgresDatabaseProvider(new PostgresConnectionSettings
+        {
+            Server = "localhost",
+            Database = "app",
+            User = "postgres",
+            Password = "pwd",
+            Encrypt = encrypt,
+            TrustServerCertificate = trustServerCertificate
+        });
+
+        var builder = new NpgsqlConnectionStringBuilder(provider.GetConnection().ConnectionString);
+
+        Assert.Equal(expected, builder.SslMode);
+    }
+
     [Fact]
     public void GetTableStatement_UsesInformationSchemaTables()
     {
