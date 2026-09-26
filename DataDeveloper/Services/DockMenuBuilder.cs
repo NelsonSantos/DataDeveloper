@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
 using DataDeveloper.Data.Models;
-using ReactiveUI;
-using ReactiveUI.Reactive;
+using System.Windows.Input;
 
 namespace DataDeveloper.Services;
 
@@ -69,7 +68,7 @@ public static class DockMenuBuilder
                 {
                     ToggleType = MenuItemToggleType.CheckBox,
                     IsChecked = index == activeConnectionIndex,
-                    Command = ReactiveCommand.Create(() => actions.ActivateConnection(connectionIndex))
+                    Command = new MenuCommand(() => actions.ActivateConnection(connectionIndex))
                 });
             }
 
@@ -84,7 +83,7 @@ public static class DockMenuBuilder
 
     // An item with a command takes its enabled state from the command, so a disabled item gets none.
     private static NativeMenuItem ActionItem(string header, bool isEnabled, Action action) =>
-        new(header) { IsEnabled = isEnabled, Command = isEnabled ? ReactiveCommand.Create(action) : null };
+        new(header) { IsEnabled = isEnabled, Command = isEnabled ? new MenuCommand(action) : null };
 
     private static NativeMenuItem BuildRecentConnectionsItem(IReadOnlyList<ConnectionSettings> recentConnections, IDockMenuActions actions)
     {
@@ -100,14 +99,25 @@ public static class DockMenuBuilder
         {
             submenu.Items.Add(new NativeMenuItem(connection.Name)
             {
-                Command = ReactiveCommand.Create(() => actions.OpenRecentConnection(connection))
+                Command = new MenuCommand(() => actions.OpenRecentConnection(connection))
             });
         }
 
         submenu.Items.Add(new NativeMenuItemSeparator());
-        submenu.Items.Add(new NativeMenuItem("Clear menu") { Command = ReactiveCommand.Create(actions.ClearRecentConnections) });
+        submenu.Items.Add(new NativeMenuItem("Clear menu") { Command = new MenuCommand(actions.ClearRecentConnections) });
 
         item.Menu = submenu;
         return item;
+    }
+
+    // A plain synchronous command: a ReactiveCommand would report its result through the UI scheduler, which a
+    // menu click does not need.
+    private sealed class MenuCommand(Action action) : ICommand
+    {
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
+
+        public bool CanExecute(object? parameter) => true;
+
+        public void Execute(object? parameter) => action();
     }
 }
