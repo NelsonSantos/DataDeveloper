@@ -15,6 +15,8 @@
         <NativeMenu>
             <NativeMenuItem Header="About Data Developer" Click="OnAboutMenuClick" />
             <NativeMenuItemSeparator />
+            <NativeMenuItem Header="Preferences..." Gesture="Cmd+OemComma" Click="OnPreferencesMenuClick" />
+            <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit Data Developer" Click="OnQuitMenuClick" />
         </NativeMenu>
     </NativeMenu.Menu>

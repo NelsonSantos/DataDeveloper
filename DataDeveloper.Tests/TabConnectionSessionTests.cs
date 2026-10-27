@@ -840,6 +840,8 @@ public class TabConnectionSessionTests
                 return new StubSchemaCompareDialogService();
             if (serviceType == typeof(IFileImportDialogService))
                 return new StubFileImportDialogService();
+            if (serviceType == typeof(IPreferencesDialogService))
+                return new StubPreferencesDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -853,6 +855,11 @@ public class TabConnectionSessionTests
     private sealed class StubSchemaCompareDialogService : ISchemaCompareDialogService
     {
         public Task ShowDialogAsync(Avalonia.Controls.Window parentWindow) => Task.CompletedTask;
+    }
+
+    private sealed class StubPreferencesDialogService : IPreferencesDialogService
+    {
+        public Task ShowAsync(Avalonia.Controls.Window? parentWindow) => Task.CompletedTask;
     }
 
     private sealed class StubFileImportDialogService : IFileImportDialogService
