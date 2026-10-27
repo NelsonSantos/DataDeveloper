@@ -176,6 +176,32 @@ public class ClaudeCodeAiProviderTests : IDisposable
         Assert.Contains("boom", availability.Detail);
     }
 
+    [Fact]
+    public async Task SignIn_RunsTheCliLoginCommand()
+    {
+        var runner = new FakeRunner(new CliProcessResult(true, 0, "Login successful\n", string.Empty, false));
+        var provider = CreateProvider(runner);
+
+        var response = await provider.SignInAsync();
+
+        Assert.True(provider.SupportsSignIn);
+        Assert.True(response.Success);
+        Assert.Equal(["auth", "login", "--claudeai"], runner.LastRequest!.Arguments);
+        Assert.Equal(TimeSpan.FromMinutes(5), runner.LastRequest.Timeout);
+    }
+
+    [Fact]
+    public async Task SignIn_ReportsTimeoutAndFailure()
+    {
+        var timedOut = await CreateProvider(new FakeRunner(new CliProcessResult(true, -1, string.Empty, string.Empty, true))).SignInAsync();
+        var failed = await CreateProvider(new FakeRunner(new CliProcessResult(true, 1, string.Empty, "denied", false))).SignInAsync();
+
+        Assert.False(timedOut.Success);
+        Assert.Contains("5 minutes", timedOut.ErrorMessage);
+        Assert.False(failed.Success);
+        Assert.Contains("denied", failed.ErrorMessage);
+    }
+
     private sealed class FakeRunner(CliProcessResult result) : ICliProcessRunner
     {
         public CliProcessRequest? LastRequest { get; private set; }

@@ -6,7 +6,7 @@
         x:Class="DataDeveloper.Views.PreferencesDialog"
         mc:Ignorable="d"
         Title="Preferences"
-        Width="560" Height="440"
+        Width="560" Height="480"
         WindowStartupLocation="CenterOwner" CanResize="False">
 
         <views:PreferencesDialogView />

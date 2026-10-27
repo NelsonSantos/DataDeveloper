@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reactive;
 using System.Threading;
@@ -28,6 +29,7 @@ public partial class PreferencesViewModel : ViewModelBase
         SaveCommand = ReactiveCommand.Create<StyledElement>(_ => { });
         CancelCommand = ReactiveCommand.Create<StyledElement>(_ => { });
         TestCommand = ReactiveCommand.CreateFromTask(() => Task.CompletedTask);
+        SignInCommand = ReactiveCommand.CreateFromTask(() => Task.CompletedTask);
     }
 
     public PreferencesViewModel(IAiSettingsRepository settingsRepository, AiProviderFactoryService providerFactory)
@@ -44,7 +46,9 @@ public partial class PreferencesViewModel : ViewModelBase
 
         SaveCommand = ReactiveCommand.Create<StyledElement>(element => Save(element));
         CancelCommand = ReactiveCommand.Create<StyledElement>(element => element.GetParentWindow().Close());
-        TestCommand = ReactiveCommand.CreateFromTask(TestAsync, this.WhenAnyValue(vm => vm.IsTesting, testing => !testing));
+        var idle = this.WhenAnyValue(vm => vm.IsBusy, busy => !busy);
+        TestCommand = ReactiveCommand.CreateFromTask(TestAsync, idle);
+        SignInCommand = ReactiveCommand.CreateFromTask(SignInAsync, idle);
     }
 
     public string ProviderName { get; } = "Claude Code";
@@ -54,7 +58,7 @@ public partial class PreferencesViewModel : ViewModelBase
     [Reactive] private string _executablePath = string.Empty;
     [Reactive] private string _model = string.Empty;
     [Reactive] private decimal? _timeoutSeconds = AiProviderSettings.DefaultTimeoutSeconds;
-    [Reactive] private bool _isTesting;
+    [Reactive] private bool _isBusy;
     [Reactive] private string _testResult = string.Empty;
     [Reactive] private bool _testSucceeded;
     [Reactive] private bool _testFailed;
@@ -62,6 +66,9 @@ public partial class PreferencesViewModel : ViewModelBase
     public ReactiveCommand<StyledElement, Unit> SaveCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CancelCommand { get; }
     public ReactiveCommand<Unit, Unit> TestCommand { get; }
+    public ReactiveCommand<Unit, Unit> SignInCommand { get; }
+
+    public IReadOnlyList<string> ModelSuggestions { get; } = ["sonnet", "opus", "haiku"];
 
     public decimal MinTimeoutSeconds => AiProviderSettings.MinTimeoutSeconds;
     public decimal MaxTimeoutSeconds => AiProviderSettings.MaxTimeoutSeconds;
@@ -88,12 +95,50 @@ public partial class PreferencesViewModel : ViewModelBase
         element.GetParentWindow().Close(true);
     }
 
+    private async Task SignInAsync()
+    {
+        if (_providerFactory is null)
+            return;
+
+        IsBusy = true;
+        TestSucceeded = false;
+        TestFailed = false;
+        TestResult = "Waiting for the sign in to finish in your browser...";
+
+        var signedIn = false;
+        try
+        {
+            var provider = _providerFactory.Create(BuildSettings());
+            var response = await provider.SignInAsync();
+            signedIn = response.Success;
+
+            if (!signedIn)
+            {
+                TestResult = response.ErrorMessage ?? "Sign in failed.";
+                TestFailed = true;
+            }
+        }
+        catch (Exception exception)
+        {
+            TestResult = exception.Message;
+            TestFailed = true;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        // Confirm right away that the CLI now answers.
+        if (signedIn)
+            await TestAsync();
+    }
+
     private async Task TestAsync()
     {
         if (_providerFactory is null)
             return;
 
-        IsTesting = true;
+        IsBusy = true;
         TestSucceeded = false;
         TestFailed = false;
         TestResult = "Testing...";
@@ -127,7 +172,7 @@ public partial class PreferencesViewModel : ViewModelBase
         }
         finally
         {
-            IsTesting = false;
+            IsBusy = false;
         }
     }
 }

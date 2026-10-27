@@ -8,6 +8,7 @@ namespace DataDeveloper.Data.Ai;
 public abstract class CliAiProviderBase : IAiProvider
 {
     private static readonly TimeSpan AvailabilityTimeout = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan SignInTimeout = TimeSpan.FromMinutes(5);
 
     private readonly ICliProcessRunner _runner;
 
@@ -28,6 +29,11 @@ public abstract class CliAiProviderBase : IAiProvider
 
     protected virtual IReadOnlyList<string> VersionArguments => ["--version"];
 
+    /// <summary>Arguments of the CLI's own sign-in command, or null when it has none.</summary>
+    protected virtual IReadOnlyList<string>? LoginArguments => null;
+
+    public bool SupportsSignIn => LoginArguments is not null;
+
     /// <summary>The prompt goes through stdin so its size and content never reach the command line.</summary>
     protected virtual string? BuildStandardInput(AiChatRequest request) => request.Prompt;
 
@@ -47,6 +53,31 @@ public abstract class CliAiProviderBase : IAiProvider
         var version = result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .FirstOrDefault();
         return new AiProviderAvailability(true, executable, version, null);
+    }
+
+    public async Task<AiChatResponse> SignInAsync(CancellationToken cancellationToken = default)
+    {
+        var loginArguments = LoginArguments;
+        if (loginArguments is null)
+            return AiChatResponse.Fail($"{DisplayName} must be signed in from its own command line tool.");
+
+        var executable = CliExecutableLocator.Locate(CommandName, Settings.ExecutablePath);
+        if (executable is null)
+            return AiChatResponse.Fail(NotFoundMessage());
+
+        var result = await RunAsync(executable, loginArguments, null, SignInTimeout, cancellationToken);
+
+        if (!result.Started)
+            return AiChatResponse.Fail(result.StartError ?? $"{DisplayName} could not be started.");
+
+        if (result.TimedOut)
+            return AiChatResponse.Fail("Sign in was not completed within 5 minutes.");
+
+        if (result.ExitCode != 0)
+            return AiChatResponse.Fail(DescribeFailure(result, SignInTimeout));
+
+        var message = result.StandardOutput.Trim();
+        return AiChatResponse.Ok(message.Length > 0 ? message : "Signed in.");
     }
 
     public async Task<AiChatResponse> SendMessageAsync(AiChatRequest request, CancellationToken cancellationToken = default)

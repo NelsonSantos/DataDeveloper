@@ -18,6 +18,8 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
 
     protected override string CommandName => "claude";
 
+    protected override IReadOnlyList<string>? LoginArguments => ["auth", "login", "--claudeai"];
+
     protected override IReadOnlyList<string> BuildArguments(AiChatRequest request)
     {
         var arguments = new List<string>

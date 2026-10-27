@@ -38,14 +38,22 @@
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Executable path" VerticalAlignment="Center" />
                 <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
-                    <TextBox Text="{Binding ExecutablePath, Mode=TwoWay}" Watermark="Leave empty to detect automatically" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0" Text="{Binding ExecutablePath, Mode=TwoWay}" Watermark="Leave empty to detect automatically" />
+                        <Button Grid.Column="1" Content="Browse..." Classes="dialog-button" Click="OnBrowseExecutableClick" />
+                    </Grid>
                     <TextBlock FontSize="11" Opacity="0.7" TextTrimming="CharacterEllipsis">
                         <Run Text="Detected: " /><Run Text="{Binding DetectedPath}" />
                     </TextBlock>
                 </StackPanel>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Model" VerticalAlignment="Center" />
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Model, Mode=TwoWay}" Watermark="Optional (e.g. sonnet) - empty uses the CLI default" />
+                <ComboBox Grid.Row="2" Grid.Column="1"
+                          HorizontalAlignment="Stretch"
+                          IsEditable="True"
+                          PlaceholderText="CLI default (or type a full model name)"
+                          ItemsSource="{Binding ModelSuggestions}"
+                          Text="{Binding Model, Mode=TwoWay}" />
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Timeout (seconds)" VerticalAlignment="Center" />
                 <NumericUpDown Grid.Row="3" Grid.Column="1"
@@ -60,7 +68,8 @@
 
             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
                 <Button Content="Test" Classes="dialog-button" Command="{Binding TestCommand}" />
-                <TextBlock Text="Sends a short message to confirm the CLI is installed, signed in and answering."
+                <Button Content="Sign in" Classes="dialog-button" Command="{Binding SignInCommand}" />
+                <TextBlock Text="Test sends a short message to check the CLI. Sign in opens the browser to authenticate it."
                            FontSize="11" Opacity="0.7" VerticalAlignment="Center" TextWrapping="Wrap" />
             </StackPanel>
             <TextBlock Text="{Binding TestResult}"
