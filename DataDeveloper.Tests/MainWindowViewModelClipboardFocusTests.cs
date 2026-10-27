@@ -187,6 +187,8 @@ public class MainWindowViewModelClipboardFocusTests
                 return new FakeSchemaCompareDialogService();
             if (serviceType == typeof(IFileImportDialogService))
                 return new FakeFileImportDialogService();
+            if (serviceType == typeof(IPreferencesDialogService))
+                return new FakePreferencesDialogService();
 
             throw new NotSupportedException($"Service not configured for test: {serviceType}");
         }
@@ -200,6 +202,11 @@ public class MainWindowViewModelClipboardFocusTests
     private sealed class FakeSchemaCompareDialogService : ISchemaCompareDialogService
     {
         public Task ShowDialogAsync(Window parentWindow) => Task.CompletedTask;
+    }
+
+    private sealed class FakePreferencesDialogService : IPreferencesDialogService
+    {
+        public Task ShowAsync(Window? parentWindow) => Task.CompletedTask;
     }
 
     private sealed class FakeFileImportDialogService : IFileImportDialogService

@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="440"
+             x:Class="DataDeveloper.Views.PreferencesDialogView"
+             x:DataType="vm:PreferencesViewModel">
+    <Design.DataContext>
+        <vm:PreferencesViewModel />
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+
+        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10" Margin="0,16,0,0">
+            <Button Grid.Column="1"
+                    Content="Cancel"
+                    Classes="dialog-button"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+            <Button Grid.Column="2"
+                    Content="Save"
+                    Classes="dialog-button primary"
+                    Command="{Binding SaveCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}}" />
+        </Grid>
+
+        <StackPanel Spacing="12">
+            <TextBlock Text="AI Assistant" FontSize="16" FontWeight="SemiBold" />
+            <TextBlock Text="The assistant runs through the official command line tool already installed and signed in on this machine. No API key is stored by Data Developer."
+                       TextWrapping="Wrap"
+                       FontSize="12"
+                       Opacity="0.8" />
+
+            <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" Margin="0,8,0,0">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ProviderName}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Executable path" VerticalAlignment="Center" />
+                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                    <TextBox Text="{Binding ExecutablePath, Mode=TwoWay}" Watermark="Leave empty to detect automatically" />
+                    <TextBlock FontSize="11" Opacity="0.7" TextTrimming="CharacterEllipsis">
+                        <Run Text="Detected: " /><Run Text="{Binding DetectedPath}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Model" VerticalAlignment="Center" />
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Model, Mode=TwoWay}" Watermark="Optional (e.g. sonnet) - empty uses the CLI default" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Timeout (seconds)" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="3" Grid.Column="1"
+                               HorizontalAlignment="Left"
+                               Width="140"
+                               FormatString="0"
+                               Increment="10"
+                               Minimum="{Binding MinTimeoutSeconds}"
+                               Maximum="{Binding MaxTimeoutSeconds}"
+                               Value="{Binding TimeoutSeconds, Mode=TwoWay}" />
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                <Button Content="Test" Classes="dialog-button" Command="{Binding TestCommand}" />
+                <TextBlock Text="Sends a short message to confirm the CLI is installed, signed in and answering."
+                           FontSize="11" Opacity="0.7" VerticalAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+            <TextBlock Text="{Binding TestResult}"
+                       TextWrapping="Wrap"
+                       Foreground="ForestGreen"
+                       IsVisible="{Binding TestSucceeded}" />
+            <TextBlock Text="{Binding TestResult}"
+                       TextWrapping="Wrap"
+                       Foreground="IndianRed"
+                       IsVisible="{Binding TestFailed}" />
+        </StackPanel>
+    </DockPanel>
+</UserControl>

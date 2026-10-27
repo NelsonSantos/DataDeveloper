@@ -37,6 +37,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IGenerateGuidWindowService _generateGuidWindowService;
     private readonly ISchemaCompareDialogService _schemaCompareDialogService;
     private readonly IFileImportDialogService _fileImportDialogService;
+    private readonly IPreferencesDialogService _preferencesDialogService;
     private readonly IRecentFilesService _recentFilesService;
     private const int MaxRecentFiles = 20;
     private const int MaxRecentConnections = 10;
@@ -64,6 +65,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _generateGuidWindowService = _serviceProvider.GetRequiredService<IGenerateGuidWindowService>();
         _schemaCompareDialogService = _serviceProvider.GetRequiredService<ISchemaCompareDialogService>();
         _fileImportDialogService = _serviceProvider.GetRequiredService<IFileImportDialogService>();
+        _preferencesDialogService = _serviceProvider.GetRequiredService<IPreferencesDialogService>();
         _recentFilesService = _serviceProvider.GetRequiredService<IRecentFilesService>();
 
         foreach (var file in _recentFilesService.Load().Take(MaxRecentFiles))
@@ -88,6 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
         this.OpenRecentFileCommand = ReactiveCommand.CreateFromTask<string>(OpenRecentFile);
         this.ClearRecentFilesCommand = ReactiveCommand.Create(ClearRecentFiles);
         this.AboutCommand = ReactiveCommand.CreateFromTask(ShowAboutAsync);
+        this.PreferencesCommand = ReactiveCommand.CreateFromTask<StyledElement>(ShowPreferences);
         this.GenerateGuidCommand = ReactiveCommand.Create<StyledElement>(GenerateGuid);
         this.CompareSchemasCommand = ReactiveCommand.CreateFromTask<StyledElement>(CompareSchemas);
         this.ImportFileCommand = ReactiveCommand.CreateFromTask<StyledElement>(ImportFile);
@@ -295,6 +298,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool CanOpenRecentFiles => HasRecentFiles && HasConnections;
     public ReactiveCommand<Unit, Unit> AboutCommand { get; }
+    public ReactiveCommand<StyledElement, Unit> PreferencesCommand { get; }
     public ReactiveCommand<StyledElement, Unit> GenerateGuidCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CompareSchemasCommand { get; }
     public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }
@@ -352,6 +356,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool UsesMacShortcuts => OperatingSystem.IsMacOS();
     public bool ShowHelpMenu => !OperatingSystem.IsMacOS();
 
+    // On macOS Preferences lives in the application menu (Cmd+,), like every native app.
+    public bool ShowPreferencesMenu => !OperatingSystem.IsMacOS();
+
     public bool HasConnections
     {
         get => Connections.Any();
@@ -408,6 +415,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var version = ApplicationVersionHelper.GetCurrentVersion(typeof(MainWindowViewModel).Assembly);
         await _dialogService.ShowAboutAsync(version, () => _releaseUpdateService.CheckForUpdatesAsync());
+    }
+
+    private async Task ShowPreferences(StyledElement control)
+    {
+        await _preferencesDialogService.ShowAsync(control.TryGetParentWindow());
     }
 
     private void GenerateGuid(StyledElement control)

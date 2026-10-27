@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using DataDeveloper.Core;
 using DataDeveloper.Data;
+using DataDeveloper.Data.Ai;
 using DataDeveloper.Data.Services;
 using DataDeveloper.Interfaces;
 using DataDeveloper.Services;
@@ -95,6 +96,11 @@ public partial class App : Application
         services.AddSingleton<IRecentConnectionsService, RecentConnectionsService>();
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
+        services.AddSingleton<ICliProcessRunner, CliProcessRunner>();
+        services.AddSingleton<AiProviderFactoryService>();
+        services.AddSingleton<IAiSettingsRepository, SqliteAiSettingsRepository>();
+        services.AddTransient<PreferencesViewModel>();
+        services.AddTransient<IPreferencesDialogService, PreferencesDialogService>();
         services.AddTransient<StatementSplitter>();
     }
 
@@ -107,6 +113,7 @@ public partial class App : Application
         resolver.Register<ConnectionSelectorViewModel, ConnectionSelectorDialog>();
         resolver.Register<ManageConnectionGroupsViewModel, ManageConnectionGroupsDialog>();
         resolver.Register<ExportConnectionsOptionsViewModel, ExportConnectionsOptionsDialog>();
+        resolver.Register<PreferencesViewModel, PreferencesDialog>();
         resolver.Register<GenerateGuidViewModel, GenerateGuidWindow>();
         resolver.Register<SchemaCompareViewModel, SchemaCompareWindow>();
         resolver.Register<FileImportViewModel, FileImportWindow>();
@@ -119,6 +126,16 @@ public partial class App : Application
         var dialogService = ServiceProvider.GetRequiredService<IDialogService>();
         var releaseUpdateService = ServiceProvider.GetRequiredService<IReleaseUpdateService>();
         await dialogService.ShowAboutAsync(version, () => releaseUpdateService.CheckForUpdatesAsync());
+    }
+
+    private async void OnPreferencesMenuClick(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var parent = desktop.Windows.FirstOrDefault(window => window.IsActive) ?? desktop.MainWindow;
+        var preferencesDialogService = ServiceProvider.GetRequiredService<IPreferencesDialogService>();
+        await preferencesDialogService.ShowAsync(parent);
     }
 
     private async void OnMainWindowOpened(object? sender, EventArgs e)
