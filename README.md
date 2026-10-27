@@ -3,6 +3,30 @@ A desktop SQL workspace focused on database exploration, query authoring, and re
 
 DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLite, with provider-aware behavior across connection management, schema browsing, SQL completion, query execution, and result visualization.
 
+## Screenshots
+
+![DataDeveloper workspace showing the schema explorer, the SQL editor, and the result grid](docs/screenshots/workspace.png)
+
+*Schema explorer with table columns, SQL editor, and the editable result grid with export.*
+
+### Saved connections for every supported database
+
+![Connection dialog listing saved Oracle, PostgreSQL, SQL Server, SQLite, and MySQL connections](docs/screenshots/connections.png)
+
+*Organize connections in groups and configure each provider with its own connection settings.*
+
+### Provider-aware SQL completion
+
+![SQL completion suggesting columns with their data types](docs/screenshots/completion.png)
+
+*Column suggestions after `alias.`, showing the owning table and the data type of each column.*
+
+### Import data from CSV, XLS, and XLSX
+
+![Import wizard reviewing detected columns and data types](docs/screenshots/import-wizard.png)
+
+*Step-by-step import wizard that detects column names and types so you can review them before creating the table.*
+
 ## Features
 
 - Manage saved database connections for SQL Server, Oracle, MySQL, PostgreSQL, and SQLite
