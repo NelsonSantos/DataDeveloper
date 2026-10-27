@@ -166,11 +166,13 @@ public class AiChatViewModelTests : IDisposable
     public void AttachCurrentQuery_UsesTheProvider()
     {
         var viewModel = CreateViewModel();
-        viewModel.CurrentQueryProvider = () => "select 42";
+        viewModel.CurrentQueryProvider = () => ("Query 2 (selection)", "select 42");
 
         viewModel.AttachCurrentQueryCommand.Execute().Subscribe();
 
-        Assert.Equal("select 42", Assert.Single(viewModel.Attachments).TextContent);
+        var attachment = Assert.Single(viewModel.Attachments);
+        Assert.Equal("select 42", attachment.TextContent);
+        Assert.Equal("Query 2 (selection)", attachment.Name);
     }
 
     private sealed class ScriptedRunner : ICliProcessRunner

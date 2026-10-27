@@ -597,9 +597,12 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             {
                 var editor = ActiveQueryEditor;
                 if (editor is null)
-                    return null;
+                    return ((string, string)?)null;
 
-                return string.IsNullOrWhiteSpace(editor.SelectedStatement) ? editor.SqlStatement : editor.SelectedStatement;
+                // Like running with F5: the selection when there is one, the whole query otherwise.
+                return string.IsNullOrWhiteSpace(editor.SelectedStatement)
+                    ? (editor.Name, editor.SqlStatement)
+                    : ($"{editor.Name} (selection)", editor.SelectedStatement);
             },
             InsertIntoEditor = code =>
             {

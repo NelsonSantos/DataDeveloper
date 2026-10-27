@@ -69,8 +69,8 @@ public partial class AiChatViewModel : ViewModelBase
     public ObservableCollection<DbObjectRef> ObjectChoices { get; } = [];
     public IReadOnlyList<string> ModelSuggestions { get; } = ["sonnet", "opus", "haiku"];
 
-    /// <summary>Text of the active query (selection if any); set by the connection view model.</summary>
-    public Func<string?>? CurrentQueryProvider { get; set; }
+    /// <summary>Name and text of the active query (its selection if any); set by the connection view model.</summary>
+    public Func<(string Name, string Text)?>? CurrentQueryProvider { get; set; }
 
     /// <summary>Puts code into the active query editor; returns false when there is none.</summary>
     public Func<string, bool>? InsertIntoEditor { get; set; }
@@ -181,13 +181,13 @@ public partial class AiChatViewModel : ViewModelBase
     private void AttachCurrentQuery()
     {
         var query = CurrentQueryProvider?.Invoke();
-        if (string.IsNullOrWhiteSpace(query))
+        if (query is not { } current || string.IsNullOrWhiteSpace(current.Text))
         {
             StatusText = "The current query is empty.";
             return;
         }
 
-        Attachments.Add(CreateTextAttachment("current query", query));
+        Attachments.Add(CreateTextAttachment(current.Name, current.Text));
         StatusText = string.Empty;
     }
 
