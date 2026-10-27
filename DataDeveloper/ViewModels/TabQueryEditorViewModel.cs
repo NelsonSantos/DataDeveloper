@@ -96,6 +96,21 @@ public partial class TabQueryEditorViewModel : BaseTabContent
 
     public IConnectionSettings ConnectionSettings { get; }
     [Reactive] private string? _file;
+    /// <summary>Inserts code at the caret (on its own lines), or replaces the text when the editor is empty.</summary>
+    public void InsertText(string text)
+    {
+        var current = SqlStatement ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(current))
+        {
+            SqlStatement = text;
+            return;
+        }
+
+        var offset = Math.Clamp(CursorOffSet, 0, current.Length);
+        var prefix = offset > 0 && current[offset - 1] != '\n' ? "\n" : string.Empty;
+        SqlStatement = current.Insert(offset, prefix + text + "\n");
+    }
+
     [Reactive] private string _sqlStatement = string.Empty;
     [Reactive] private string _selectedStatement = string.Empty;
     [Reactive] private int _selectedStatementLength;

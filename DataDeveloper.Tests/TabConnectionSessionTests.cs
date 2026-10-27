@@ -760,9 +760,9 @@ public class TabConnectionSessionTests
             return _states.TryGetValue(connectionId, out var state) ? state : null;
         }
 
-        public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors, PanelLayoutState? schemaExplorer = null)
+        public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors, PanelLayoutState? schemaExplorer = null, PanelLayoutState? aiChat = null)
         {
-            _states[connectionId] = new ConnectionSessionState { ConnectionId = connectionId, Editors = new List<EditorTabState>(editors), SchemaExplorer = schemaExplorer };
+            _states[connectionId] = new ConnectionSessionState { ConnectionId = connectionId, Editors = new List<EditorTabState>(editors), SchemaExplorer = schemaExplorer, AiChat = aiChat };
         }
 
         public void Remove(Guid connectionId)

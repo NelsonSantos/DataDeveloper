@@ -269,7 +269,10 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         if (countClosed == count)
+        {
+            connection.CancelAiRequests();
             Connections.Remove(connection);
+        }
         else
             connection.ResumeAutosave();
 

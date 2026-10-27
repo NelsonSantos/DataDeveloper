@@ -12,7 +12,7 @@ namespace DataDeveloper.Docking;
 /// <summary>
 /// Keeps a tool dock's size (its proportion of the split it shares with one sibling) and collapsed state (its tools
 /// pinned to the root's side rail) in step with a saved <see cref="PanelLayoutState"/>: applies the saved state once,
-/// then reports every change the user makes.
+/// then reports every change the user makes. A null sibling leaves the neighbour's size to the caller.
 /// </summary>
 public sealed class ToolDockLayoutBinding : IDisposable
 {
@@ -33,7 +33,7 @@ public sealed class ToolDockLayoutBinding : IDisposable
         IFactory factory,
         IRootDock root,
         IToolDock toolDock,
-        IDockable sibling,
+        IDockable? sibling,
         PanelLayoutState? saved,
         Action<PanelLayoutState> changed)
     {
@@ -43,7 +43,8 @@ public sealed class ToolDockLayoutBinding : IDisposable
         if (saved?.Proportion is { } proportion && IsValidProportion(proportion))
         {
             toolDock.Proportion = proportion;
-            sibling.Proportion = 1 - proportion;
+            if (sibling is not null)
+                sibling.Proportion = 1 - proportion;
         }
 
         // A single pin collapses the whole dock: Dock pins its only tool, QueryDockFactory pins the results as a group.

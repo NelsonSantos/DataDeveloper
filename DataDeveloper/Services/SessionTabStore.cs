@@ -29,13 +29,14 @@ public class SessionTabStore : ISessionTabStore
         return JsonSerializer.Deserialize<ConnectionSessionState>(json, MappingExtensions.GetJsonSerializerOptions());
     }
 
-    public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors, PanelLayoutState? schemaExplorer = null)
+    public void Save(Guid connectionId, IReadOnlyList<EditorTabState> editors, PanelLayoutState? schemaExplorer = null, PanelLayoutState? aiChat = null)
     {
         var state = new ConnectionSessionState
         {
             ConnectionId = connectionId,
             Editors = editors.ToList(),
-            SchemaExplorer = schemaExplorer
+            SchemaExplorer = schemaExplorer,
+            AiChat = aiChat
         };
 
         var path = GetFilePath(connectionId);

@@ -13,6 +13,7 @@
              xmlns:recycling="using:Avalonia.Controls.Recycling"
              xmlns:dockModel="using:Dock.Model.Avalonia.Controls"
              xmlns:appModels="clr-namespace:DataDeveloper.Models"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
              x:Class="DataDeveloper.Views.TabConnectionView"
              x:Name="ConnectionRoot"
              x:DataType="vm:TabConnectionViewModel"
@@ -186,6 +187,25 @@
                         </dockModel:DocumentTemplate>
                     </dockModel:DocumentDock.DocumentTemplate>
                 </dockModel:DocumentDock>
+
+                <dockModel:ProportionalDockSplitter />
+
+                <!-- AI chat: collapsed to the right rail until the user opens it (pin/unpin, like the Schema Explorer). -->
+                <dockModel:ToolDock x:Name="AiChatDock"
+                                    Id="AiChatTools"
+                                    Alignment="Right"
+                                    AllowedDropOperations="None"
+                                    Proportion="0.3"
+                                    ItemContainerGenerator="{StaticResource DockItemGenerator}"
+                                    ItemsSource="{Binding #ConnectionRoot.AiChatTools}">
+                    <dockModel:ToolDock.ToolTemplate>
+                        <dockModel:ToolTemplate>
+                            <Grid x:DataType="dockModel:Tool">
+                                <views:AiChatView DataContext="{Binding ((appModels:AiChatToolItem)Context).Chat}" />
+                            </Grid>
+                        </dockModel:ToolTemplate>
+                    </dockModel:ToolDock.ToolTemplate>
+                </dockModel:ToolDock>
             </dockModel:ProportionalDock>
         </dockModel:RootDock>
     </dock:DockControl>

@@ -17,6 +17,9 @@ public class ConnectionSessionState
     public Guid ConnectionId { get; set; }
     public List<EditorTabState> Editors { get; set; } = new();
     public PanelLayoutState? SchemaExplorer { get; set; }
+
+    /// <summary>Null until the user first opens or resizes the AI panel; it starts collapsed.</summary>
+    public PanelLayoutState? AiChat { get; set; }
 }
 
 /// <summary>

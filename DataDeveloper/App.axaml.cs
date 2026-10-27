@@ -99,6 +99,7 @@ public partial class App : Application
         services.AddSingleton<ICliProcessRunner, CliProcessRunner>();
         services.AddSingleton<AiProviderFactoryService>();
         services.AddSingleton<IAiSettingsRepository, SqliteAiSettingsRepository>();
+        services.AddSingleton<IAiChatHistoryRepository, SqliteAiChatHistoryRepository>();
         services.AddTransient<PreferencesViewModel>();
         services.AddTransient<IPreferencesDialogService, PreferencesDialogService>();
         services.AddTransient<StatementSplitter>();

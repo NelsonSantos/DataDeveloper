@@ -35,7 +35,7 @@ public abstract class CliAiProviderBase : IAiProvider
     public bool SupportsSignIn => LoginArguments is not null;
 
     /// <summary>The prompt goes through stdin so its size and content never reach the command line.</summary>
-    protected virtual string? BuildStandardInput(AiChatRequest request) => request.Prompt;
+    protected virtual string? BuildStandardInput(AiChatRequest request) => AiTranscriptFormatter.Format(request);
 
     public async Task<AiProviderAvailability> CheckAvailabilityAsync(CancellationToken cancellationToken = default)
     {

@@ -10,6 +10,8 @@ using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia;
 using DataDeveloper.Data;
+using DataDeveloper.Data.Ai;
+using DataDeveloper.Data.Services.Metadata;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
@@ -367,13 +369,13 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             .ToList();
 
         var schemaExplorer = SchemaExplorerLayout is { IsDefault: false } layout ? layout : null;
-        if (editors.Count == 0 && schemaExplorer is null)
+        if (editors.Count == 0 && schemaExplorer is null && AiChatLayout is null)
         {
             _sessionTabStore.Remove(ConnectionSettings.Id);
             return;
         }
 
-        _sessionTabStore.Save(ConnectionSettings.Id, editors, schemaExplorer);
+        _sessionTabStore.Save(ConnectionSettings.Id, editors, schemaExplorer, AiChatLayout);
     }
 
     private static bool HasMeaningfulContent(TabQueryEditorViewModel editor)
@@ -395,7 +397,7 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
                     PersistSessionSnapshot();
             });
 
-        this.WhenAnyValue(vm => vm.SchemaExplorerLayout)
+        this.WhenAnyValue(vm => vm.SchemaExplorerLayout, vm => vm.AiChatLayout)
             .Skip(1)
             .Subscribe(_ => _sessionChangeTrigger.OnNext(Unit.Default));
 
@@ -440,6 +442,7 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     {
         var sessionState = _sessionTabStore.Get(ConnectionSettings.Id);
         SchemaExplorerLayout = sessionState?.SchemaExplorer;
+        AiChatLayout = sessionState?.AiChat;
         if (sessionState is null || sessionState.Editors.Count == 0)
         {
             AddQueryEditor();
@@ -567,6 +570,53 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     [Reactive] private int _selectedEditor;
     /// <summary>Schema Explorer size and collapsed state, saved with the session.</summary>
     [Reactive] private PanelLayoutState? _schemaExplorerLayout;
+    [Reactive] private PanelLayoutState? _aiChatLayout;
+
+    private AiChatViewModel? _aiChat;
+
+    /// <summary>The connection's AI chat; created on first use so connections that never open it pay nothing.</summary>
+    public AiChatViewModel AiChat => _aiChat ??= CreateAiChat();
+
+    public TabQueryEditorViewModel? ActiveQueryEditor =>
+        SelectedEditor >= 0 && SelectedEditor < QueryEditors.Count ? QueryEditors[SelectedEditor] : null;
+
+    private AiChatViewModel CreateAiChat()
+    {
+        var contextBuilder = new AiSqlContextBuilder(
+            new SchemaMetadataAiSchemaSource(new SchemaMetadataService(ConnectionSettings)),
+            ConnectionSettings.DatabaseType);
+
+        var chat = new AiChatViewModel(
+            ConnectionSettings,
+            ServiceProvider.GetRequiredService<AiProviderFactoryService>(),
+            ServiceProvider.GetRequiredService<IAiSettingsRepository>(),
+            ServiceProvider.GetRequiredService<IAiChatHistoryRepository>(),
+            contextBuilder)
+        {
+            CurrentQueryProvider = () =>
+            {
+                var editor = ActiveQueryEditor;
+                if (editor is null)
+                    return null;
+
+                return string.IsNullOrWhiteSpace(editor.SelectedStatement) ? editor.SqlStatement : editor.SelectedStatement;
+            },
+            InsertIntoEditor = code =>
+            {
+                var editor = ActiveQueryEditor;
+                if (editor is null)
+                    return false;
+
+                editor.InsertText(code);
+                return true;
+            }
+        };
+
+        SchemaExplorer.SchemaRefreshed += (_, _) => chat.InvalidateSchema();
+        return chat;
+    }
+
+    public void CancelAiRequests() => _aiChat?.CancelPendingRequest();
     public ReactiveCommand<string?, Unit> AddQueryEditorCommand { get; }
     public ReactiveCommand<StyledElement, Unit> CreateTableCommand { get; }
     public ReactiveCommand<StyledElement, Unit> ImportFileCommand { get; }

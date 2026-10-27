@@ -35,6 +35,7 @@ public partial class TabConnectionView : UserControl
     private bool _isSyncingActiveEditor;
     private bool _isDockPopulated;
     private ToolDockLayoutBinding? _schemaExplorerLayout;
+    private ToolDockLayoutBinding? _aiChatLayout;
 
     public TabConnectionView()
     {
@@ -62,6 +63,7 @@ public partial class TabConnectionView : UserControl
         _isDockPopulated = true;
         ActivateSelectedEditorDocument();
         BindSchemaExplorerLayout();
+        BindAiChatLayout();
     }
 
     // Restores the Schema Explorer's saved width and collapsed state, then saves the user's changes to them.
@@ -76,6 +78,30 @@ public partial class TabConnectionView : UserControl
             factory, root, SchemaTools, QueryDocuments, viewModel.SchemaExplorerLayout,
             layout => viewModel.SchemaExplorerLayout = layout);
     }
+
+    // The AI chat starts collapsed to the right rail; once the user opens or resizes it the saved state wins.
+    private void BindAiChatLayout()
+    {
+        _aiChatLayout?.Dispose();
+        _aiChatLayout = null;
+        if (_viewModel is not { } viewModel || ConnectionDock.Factory is not { } factory || ConnectionDock.Layout is not IRootDock root)
+            return;
+
+        _aiChatLayout = ToolDockLayoutBinding.Attach(
+            factory, root, AiChatDock, null, viewModel.AiChatLayout ?? new PanelLayoutState(null, true),
+            layout => viewModel.AiChatLayout = layout);
+
+        // With both side panels open the documents get what is left of the row.
+        if (viewModel.AiChatLayout is { IsCollapsed: false, Proportion: { } chat } &&
+            viewModel.SchemaExplorerLayout is not { IsCollapsed: true } &&
+            SchemaTools.Proportion is > 0 and < 1 && chat is > 0 and < 1 && SchemaTools.Proportion + chat < 1)
+        {
+            QueryDocuments.Proportion = 1 - SchemaTools.Proportion - chat;
+        }
+    }
+
+    /// <summary>Items for the AI chat tool dock (a single tool bound to this connection's chat).</summary>
+    public ObservableCollection<AiChatToolItem> AiChatTools { get; } = new();
 
     /// <summary>Items for the schema explorer tool dock (a single tool bound to this connection).</summary>
     public ObservableCollection<ConnectionToolItem> SchemaExplorerTools { get; } = new();
@@ -92,13 +118,18 @@ public partial class TabConnectionView : UserControl
 
         _viewModel = DataContext as TabConnectionViewModel;
         SchemaExplorerTools.Clear();
+        AiChatTools.Clear();
         if (_isDockPopulated)
+        {
             BindSchemaExplorerLayout();
+            BindAiChatLayout();
+        }
 
         if (_viewModel is null)
             return;
 
         SchemaExplorerTools.Add(new ConnectionToolItem("Schema Explorer", _viewModel));
+        AiChatTools.Add(new AiChatToolItem("AI Assistant", _viewModel.AiChat));
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _viewModel.QueryEditors.CollectionChanged += OnQueryEditorsChanged;
     }
