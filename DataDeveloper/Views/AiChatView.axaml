@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
              xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="600"
+             MinWidth="360"
              x:Class="DataDeveloper.Views.AiChatView"
              x:DataType="vm:AiChatViewModel">
 
