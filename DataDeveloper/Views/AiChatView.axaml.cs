@@ -16,7 +16,6 @@ namespace DataDeveloper.Views;
 public partial class AiChatView : UserControl
 {
     private AiChatViewModel? _viewModel;
-    private Flyout? _addFlyout;
 
     public AiChatView()
     {
@@ -95,7 +94,6 @@ public partial class AiChatView : UserControl
 
     private async void OnAttachFileClick(object? sender, RoutedEventArgs e)
     {
-        _addFlyout?.Hide();
         if (_viewModel is null || TopLevel.GetTopLevel(this) is not { } topLevel)
             return;
 
@@ -113,22 +111,33 @@ public partial class AiChatView : UserControl
         }
     }
 
-    private async void OnAddFlyoutOpened(object? sender, EventArgs e)
+    private void OnAttachWholeQueryClick(object? sender, RoutedEventArgs e) => Execute(_viewModel?.AttachWholeQueryCommand);
+
+    private void OnAttachSelectionClick(object? sender, RoutedEventArgs e) => Execute(_viewModel?.AttachSelectionCommand);
+
+    private static void Execute(ICommand? command)
+    {
+        if (command?.CanExecute(null) == true)
+            command.Execute(null);
+    }
+
+    private void OnPickObjectsClick(object? sender, RoutedEventArgs e)
+    {
+        if (this.Resources["ObjectPickerFlyout"] is Flyout flyout)
+            flyout.ShowAt(AddButton);
+    }
+
+    private async void OnObjectPickerOpened(object? sender, EventArgs e)
     {
         if (_viewModel is null)
             return;
 
         // Flyout content lives outside this control's tree, so it doesn't inherit the DataContext.
-        if (sender is Flyout { Content: Control content } flyout)
-        {
-            _addFlyout = flyout;
+        if (sender is Flyout { Content: Control content })
             content.DataContext = _viewModel;
-        }
 
         await _viewModel.LoadObjectChoicesAsync();
     }
-
-    private void OnAddFlyoutActionClick(object? sender, RoutedEventArgs e) => _addFlyout?.Hide();
 
     // Clicking a table adds it and keeps the popup open so several can be picked in a row.
     private void OnObjectSelected(object? sender, SelectionChangedEventArgs e)

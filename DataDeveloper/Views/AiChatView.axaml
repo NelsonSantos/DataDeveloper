@@ -9,6 +9,24 @@
              x:Class="DataDeveloper.Views.AiChatView"
              x:DataType="vm:AiChatViewModel">
 
+    <UserControl.Resources>
+        <!-- Table / view picker, shown from the "+" menu. Its content gets the DataContext in code-behind. -->
+        <Flyout x:Key="ObjectPickerFlyout" Placement="TopEdgeAlignedLeft" Opened="OnObjectPickerOpened">
+            <StackPanel Width="300" Spacing="4" x:DataType="vm:AiChatViewModel">
+                <TextBlock Text="Tables and views (click to add)" FontSize="11" Opacity="0.6" />
+                <TextBox Text="{Binding ObjectFilter, Mode=TwoWay}" Watermark="Filter..." />
+                <ListBox x:Name="ObjectList" Height="220" SelectionMode="Single"
+                         ItemsSource="{Binding ObjectChoices}" SelectionChanged="OnObjectSelected">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:DbObjectRef">
+                            <TextBlock Text="{Binding QualifiedName}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Flyout>
+    </UserControl.Resources>
+
     <UserControl.Styles>
         <Style Selector="Border.bubble">
             <Setter Property="Margin" Value="8,4" />
@@ -136,48 +154,38 @@
                     </TextBox.Resources>
                 </TextBox>
 
-                <Grid ColumnDefinitions="Auto,*,Auto">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="4">
                     <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,0" Classes="small"
                             ToolTip.Tip="Add context: file, query or tables">
                         <Button.Flyout>
-                            <Flyout Placement="TopEdgeAlignedLeft" Opened="OnAddFlyoutOpened">
-                                <StackPanel Width="300" Spacing="2" x:DataType="vm:AiChatViewModel">
-                                    <Button Content="File..." HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                            Classes="small" Click="OnAttachFileClick" />
-                                    <TextBlock Text="Query" FontSize="11" Opacity="0.6" Margin="8,6,0,0" />
-                                    <Button Content="Whole query" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                            Classes="small" Command="{Binding AttachWholeQueryCommand}" Click="OnAddFlyoutActionClick" />
-                                    <Button Content="Selection only" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                            Classes="small" Command="{Binding AttachSelectionCommand}" Click="OnAddFlyoutActionClick" />
-                                    <TextBlock Text="Tables and views (click to add)" FontSize="11" Opacity="0.6" Margin="8,6,0,0" />
-                                    <TextBox Text="{Binding ObjectFilter, Mode=TwoWay}" Watermark="Filter..." />
-                                    <ListBox x:Name="ObjectList" Height="220" SelectionMode="Single"
-                                             ItemsSource="{Binding ObjectChoices}" SelectionChanged="OnObjectSelected">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:DbObjectRef">
-                                                <TextBlock Text="{Binding QualifiedName}" />
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                </StackPanel>
-                            </Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedLeft">
+                                <MenuItem Header="File..." Click="OnAttachFileClick" />
+                                <MenuItem Header="Query">
+                                    <MenuItem Header="Whole query" Click="OnAttachWholeQueryClick" />
+                                    <MenuItem Header="Selection only" Click="OnAttachSelectionClick" />
+                                </MenuItem>
+                                <MenuItem Header="Tables / Views..." Click="OnPickObjectsClick" />
+                            </MenuFlyout>
                         </Button.Flyout>
                     </Button>
 
-                    <!-- Idle: send (with a menu to choose Enter or Cmd/Ctrl+Enter). Busy: the same spot becomes Stop. -->
-                    <SplitButton Grid.Column="2" x:Name="SendButton" Classes="primary"
-                                 Command="{Binding SendCommand}"
-                                 IsVisible="{Binding !IsBusy}"
-                                 ToolTip.Tip="Send">
-                        <TextBlock Text="&#x21B5;" FontSize="16" />
-                        <SplitButton.Flyout>
+                    <!-- Send mode: always enabled, so the mode can be changed before there is any text to send. -->
+                    <Button Grid.Column="2" x:Name="SendModeButton" Content="&#x2699;" Classes="small" Padding="8,2"
+                            ToolTip.Tip="Choose how to send: Enter or Cmd/Ctrl+Enter">
+                        <Button.Flyout>
                             <MenuFlyout Placement="TopEdgeAlignedRight" Opened="OnSendModeMenuOpened">
                                 <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick" />
                                 <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick" />
                             </MenuFlyout>
-                        </SplitButton.Flyout>
-                    </SplitButton>
-                    <Button Grid.Column="2" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Idle: send. Busy: the same spot becomes Stop. -->
+                    <Button Grid.Column="3" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
+                            Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
+                        <TextBlock Text="{Binding SendGlyph}" FontSize="15" />
+                    </Button>
+                    <Button Grid.Column="3" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
                             Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
                         <TextBlock Text="&#x25A0;" FontSize="14" />
                     </Button>
