@@ -85,49 +85,27 @@ public partial class AiChatView : UserControl
             _viewModel.SendWithModifier = true;
     }
 
-    // Built on open so the check mark follows the current model, including one typed by the user.
+    // The check mark follows the current model, including one typed by the user (which matches no item).
     private void OnModelMenuOpening(object? sender, EventArgs e)
     {
         if (_viewModel is null || sender is not MenuFlyout menu)
             return;
 
-        var items = new List<object>();
         var current = _viewModel.Model?.Trim() ?? string.Empty;
-
-        items.Add(CreateModelItem("Default model", string.Empty, current.Length == 0));
-        items.Add(new Separator());
-        foreach (var option in AiChatViewModel.ModelOptions)
-            items.Add(CreateModelItem(option.Label, option.Id, string.Equals(option.Id, current, StringComparison.OrdinalIgnoreCase)));
-
-        items.Add(new Separator());
-        var custom = new MenuItem { Header = "Other model..." };
-        custom.Click += (_, _) =>
-        {
-            if (Resources["CustomModelFlyout"] is Flyout flyout)
-                flyout.ShowAt(ModelButton);
-        };
-        items.Add(custom);
-
-        menu.Items.Clear();
-        foreach (var item in items)
-            menu.Items.Add(item);
+        foreach (var item in menu.Items.OfType<MenuItem>().Where(i => i.Tag is string))
+            item.IsChecked = string.Equals((string)item.Tag!, current, StringComparison.OrdinalIgnoreCase);
     }
 
-    private MenuItem CreateModelItem(string header, string id, bool isCurrent)
+    private void OnModelItemClick(object? sender, RoutedEventArgs e)
     {
-        var item = new MenuItem
-        {
-            Header = header,
-            ToggleType = MenuItemToggleType.Radio,
-            GroupName = "Model",
-            IsChecked = isCurrent
-        };
-        item.Click += (_, _) =>
-        {
-            if (_viewModel is not null)
-                _viewModel.Model = id;
-        };
-        return item;
+        if (_viewModel is not null && sender is MenuItem { Tag: string id })
+            _viewModel.Model = id;
+    }
+
+    private void OnOtherModelClick(object? sender, RoutedEventArgs e)
+    {
+        if (Resources["CustomModelFlyout"] is Flyout flyout)
+            flyout.ShowAt(ModelButton);
     }
 
     private void OnCustomModelOpened(object? sender, EventArgs e)

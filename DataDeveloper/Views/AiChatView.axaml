@@ -208,7 +208,7 @@
                     </Button>
 
                     <!-- Idle: send. Busy: the same spot becomes Stop. -->
-                    <Button Grid.Column="4" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
+                    <Button Grid.Column="4" x:Name="SendButton" Classes="dialog-button primary" Padding="6,6"
                             Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
                         <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="14" />
                     </Button>
