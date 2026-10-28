@@ -8,10 +8,14 @@ namespace DataDeveloper.Data.Ai;
 /// </summary>
 public static class AiTranscriptFormatter
 {
-    public const int MaxHistoryMessages = 12;
-    public const int MaxHistoryCharacters = 24_000;
+    public const int MaxHistoryMessages = 40;
+    public const int MaxHistoryCharacters = 120_000;
 
-    /// <summary>Keeps the most recent turns that fit, so a long chat never outgrows the CLI's context.</summary>
+    /// <summary>
+    /// Keeps the most recent turns that fit, so a long chat never outgrows the CLI's context. A turn is kept with the
+    /// text of its attachments while the budget allows; once it doesn't, older turns fall back to their short form
+    /// (the typed text and the names of what was attached) before any turn is dropped.
+    /// </summary>
     public static IReadOnlyList<AiChatMessage> TrimHistory(IReadOnlyList<AiChatMessage> history)
     {
         var kept = new List<AiChatMessage>();
@@ -19,11 +23,28 @@ public static class AiTranscriptFormatter
 
         for (var index = history.Count - 1; index >= 0 && kept.Count < MaxHistoryMessages; index--)
         {
-            characters += history[index].Content.Length;
-            if (characters > MaxHistoryCharacters && kept.Count > 0)
-                break;
+            var message = history[index];
+            var full = (message.ModelContent ?? message.Content).Length;
 
-            kept.Add(history[index]);
+            if (characters + full <= MaxHistoryCharacters)
+            {
+                kept.Add(message);
+                characters += full;
+                continue;
+            }
+
+            if (message.ModelContent is not null && characters + message.Content.Length <= MaxHistoryCharacters)
+            {
+                kept.Add(message with { ModelContent = null });
+                characters += message.Content.Length;
+                continue;
+            }
+
+            // The newest turn is always sent, however big; anything older that doesn't fit ends the transcript.
+            if (kept.Count == 0)
+                kept.Add(message);
+
+            break;
         }
 
         kept.Reverse();
@@ -42,7 +63,7 @@ public static class AiTranscriptFormatter
         foreach (var message in history)
         {
             builder.Append(message.Role == AiChatRole.User ? "User: " : "Assistant: ");
-            builder.AppendLine(message.Content);
+            builder.AppendLine(message.ModelContent ?? message.Content);
             builder.AppendLine();
         }
 

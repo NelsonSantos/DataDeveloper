@@ -73,6 +73,28 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task AttachedFiles_AreStillSentOnLaterTurnsButShownOnlyByName()
+    {
+        _runner.Answer("""{"result":"first"}""");
+        _runner.Answer("""{"result":"second"}""");
+        var path = Path.Combine(_folder, "notes.sql");
+        File.WriteAllText(path, "select secret_column from t");
+        var viewModel = CreateViewModel();
+
+        await viewModel.AttachFileAsync(path);
+        await viewModel.AskAsync("what does the file do?");
+        await viewModel.AskAsync("and is it safe?");
+
+        Assert.Contains("secret_column", _runner.Requests[1].StandardInput!);
+        Assert.DoesNotContain("secret_column", viewModel.Messages[0].Content);
+        Assert.Contains("(Attached: notes.sql)", viewModel.Messages[0].Content);
+
+        var reopened = CreateViewModel();
+        Assert.DoesNotContain("secret_column", reopened.Messages[0].Content);
+        Assert.Contains("secret_column", _history.LoadMessages(_history.ListChats(_connection.Id).Single().Id)[0].ModelContent);
+    }
+
+    [Fact]
     public async Task NewChat_StartsABlankChatAndTheOldOneStaysInTheList()
     {
         _runner.Answer("""{"result":"a"}""");

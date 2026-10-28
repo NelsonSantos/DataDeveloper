@@ -61,15 +61,15 @@ public class AiChatDomainTests
     [Fact]
     public void TrimHistory_KeepsTheMostRecentMessagesInOrder()
     {
-        var history = Enumerable.Range(1, 30)
+        var history = Enumerable.Range(1, 60)
             .Select(i => new AiChatMessage(AiChatRole.User, $"m{i}", DateTime.UtcNow))
             .ToList();
 
         var trimmed = AiTranscriptFormatter.TrimHistory(history);
 
         Assert.Equal(AiTranscriptFormatter.MaxHistoryMessages, trimmed.Count);
-        Assert.Equal("m30", trimmed[^1].Content);
-        Assert.Equal("m19", trimmed[0].Content);
+        Assert.Equal("m60", trimmed[^1].Content);
+        Assert.Equal("m21", trimmed[0].Content);
     }
 
     [Fact]
@@ -85,6 +85,47 @@ public class AiChatDomainTests
         var trimmed = AiTranscriptFormatter.TrimHistory(history);
 
         Assert.Equal("recent", Assert.Single(trimmed).Content);
+    }
+
+    [Fact]
+    public void Transcript_SendsWhatTheModelSawIncludingAttachmentsInsteadOfTheShortForm()
+    {
+        var history = new[]
+        {
+            new AiChatMessage(AiChatRole.User, "fix this\n\n(Attached: q.sql)", DateTime.UtcNow, "fix this\n\nAttached \"q.sql\":\nselect 1"),
+            new AiChatMessage(AiChatRole.Assistant, "done", DateTime.UtcNow)
+        };
+
+        var text = AiTranscriptFormatter.Format(new AiChatRequest("and now?", null, history));
+
+        Assert.Contains("select 1", text);
+        Assert.DoesNotContain("(Attached: q.sql)", text);
+    }
+
+    [Fact]
+    public void TrimHistory_KeepsAttachmentTextWhileItFitsInTheBudget()
+    {
+        var withAttachment = new AiChatMessage(AiChatRole.User, "short", DateTime.UtcNow, new string('a', 50_000));
+        var history = new[] { withAttachment, new AiChatMessage(AiChatRole.Assistant, "ok", DateTime.UtcNow) };
+
+        var trimmed = AiTranscriptFormatter.TrimHistory(history);
+
+        Assert.Equal(2, trimmed.Count);
+        Assert.NotNull(trimmed[0].ModelContent);
+    }
+
+    [Fact]
+    public void TrimHistory_FallsBackToTheShortFormOfOlderTurnsBeforeDroppingThem()
+    {
+        var old = new AiChatMessage(AiChatRole.User, "old question\n\n(Attached: big.log)", DateTime.UtcNow,
+            new string('a', AiTranscriptFormatter.MaxHistoryCharacters));
+        var recent = new AiChatMessage(AiChatRole.Assistant, "recent answer", DateTime.UtcNow);
+
+        var trimmed = AiTranscriptFormatter.TrimHistory([old, recent]);
+
+        Assert.Equal(2, trimmed.Count);
+        Assert.Null(trimmed[0].ModelContent);
+        Assert.Contains("(Attached: big.log)", trimmed[0].Content);
     }
 
     [Fact]

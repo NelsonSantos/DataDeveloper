@@ -23,6 +23,7 @@ public partial class AiChatViewModel : ViewModelBase
 {
     private const int MaxAttachmentFileBytes = 1_000_000;
     private const int MaxLoadedMessages = 200;
+    private const int RelevantHistoryMessages = 6;
 
     private readonly IConnectionSettings _connection;
     private readonly AiProviderFactoryService _providerFactory;
@@ -362,7 +363,11 @@ public partial class AiChatViewModel : ViewModelBase
         StatusText = string.Empty;
 
         var previous = AiTranscriptFormatter.TrimHistory(_history);
-        AddMessage(new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow), persist: true);
+        var prompt = AiPromptComposer.Compose(text, files);
+
+        // Keep what the model saw (the attached files inlined) so later turns still have it; the chat shows only the names.
+        var modelContent = files.Count > 0 ? prompt : null;
+        AddMessage(new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow, modelContent), persist: true);
         NameChatAfterFirstQuestion(text);
 
         IsBusy = true;
@@ -377,9 +382,10 @@ public partial class AiChatViewModel : ViewModelBase
 
             var provider = _providerFactory.Create(settings);
 
-            var relevantText = text + "\n" + string.Join("\n", files.Select(f => f.Content));
+            // Tables mentioned or attached in recent turns stay relevant, so their structure keeps being sent.
+            var recentText = string.Join("\n", previous.TakeLast(RelevantHistoryMessages).Select(m => m.ModelContent ?? m.Content));
+            var relevantText = text + "\n" + string.Join("\n", files.Select(f => f.Content)) + "\n" + recentText;
             var systemPrompt = await _contextBuilder.BuildSystemPromptAsync(relevantText, objects, cancellationToken);
-            var prompt = AiPromptComposer.Compose(text, files);
 
             var response = await provider.SendMessageAsync(new AiChatRequest(prompt, systemPrompt, previous), cancellationToken);
 
