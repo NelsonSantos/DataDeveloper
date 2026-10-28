@@ -178,7 +178,7 @@
                             <TextBlock Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
                         </StackPanel>
                         <Button.Flyout>
-                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opened="OnModelMenuOpened" />
+                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opening="OnModelMenuOpening" />
                         </Button.Flyout>
                     </Button>
 

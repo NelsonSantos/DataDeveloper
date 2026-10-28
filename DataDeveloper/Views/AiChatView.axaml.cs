@@ -86,7 +86,7 @@ public partial class AiChatView : UserControl
     }
 
     // Built on open so the check mark follows the current model, including one typed by the user.
-    private void OnModelMenuOpened(object? sender, EventArgs e)
+    private void OnModelMenuOpening(object? sender, EventArgs e)
     {
         if (_viewModel is null || sender is not MenuFlyout menu)
             return;
