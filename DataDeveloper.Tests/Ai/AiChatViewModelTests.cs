@@ -1,3 +1,5 @@
+using DataDeveloper.Services;
+using Microsoft.Data.Sqlite;
 using DataDeveloper.Data.Ai;
 using DataDeveloper.Data.Enums;
 using DataDeveloper.Data.Models;
@@ -12,10 +14,19 @@ public class AiChatViewModelTests : IDisposable
 {
     private readonly string _folder = Directory.CreateTempSubdirectory("ai-vm").FullName;
     private readonly ScriptedRunner _runner = new();
-    private readonly MemoryHistory _history = new();
+    private readonly SqliteAiChatHistoryRepository _history;
     private readonly SqLiteConnectionSettings _connection = new() { Id = Guid.NewGuid(), Name = "test", Database = "test.db" };
 
-    public void Dispose() => Directory.Delete(_folder, recursive: true);
+    public AiChatViewModelTests() => _history = new SqliteAiChatHistoryRepository(Path.Combine(_folder, "chat.db"));
+
+    public void Dispose()
+    {
+        SqliteConnection.ClearAllPools();
+        Directory.Delete(_folder, recursive: true);
+    }
+
+    private IReadOnlyList<AiChatMessage> StoredMessages() =>
+        _history.ListChats(_connection.Id) is [var chat, ..] ? _history.LoadMessages(chat.Id) : [];
 
     private AiChatViewModel CreateViewModel()
     {
@@ -41,7 +52,7 @@ public class AiChatViewModelTests : IDisposable
         Assert.Equal(["how do I combine tables?", "use a join"], viewModel.Messages.Select(m => m.Content));
         Assert.True(viewModel.Messages[0].IsUser);
         Assert.True(viewModel.Messages[1].IsAssistant);
-        Assert.Equal(2, _history.Load(_connection.Id).Count);
+        Assert.Equal(2, StoredMessages().Count);
         Assert.False(viewModel.IsBusy);
     }
 
@@ -74,7 +85,7 @@ public class AiChatViewModelTests : IDisposable
         var error = viewModel.Messages[^1];
         Assert.True(error.IsError);
         Assert.Contains("Failed to authenticate", error.Content);
-        Assert.Single(_history.Load(_connection.Id));
+        Assert.Single(StoredMessages());
     }
 
     [Fact]
@@ -94,8 +105,9 @@ public class AiChatViewModelTests : IDisposable
     [Fact]
     public async Task Constructor_RestoresThePersistedConversation()
     {
-        _history.Append(_connection.Id, new AiChatMessage(AiChatRole.User, "old question", DateTime.UtcNow));
-        _history.Append(_connection.Id, new AiChatMessage(AiChatRole.Assistant, "old answer", DateTime.UtcNow));
+        var chat = _history.CreateChat(_connection.Id);
+        _history.Append(chat.Id, new AiChatMessage(AiChatRole.User, "old question", DateTime.UtcNow));
+        _history.Append(chat.Id, new AiChatMessage(AiChatRole.Assistant, "old answer", DateTime.UtcNow));
 
         var viewModel = CreateViewModel();
 
@@ -114,7 +126,7 @@ public class AiChatViewModelTests : IDisposable
         viewModel.ClearCommand.Execute().Subscribe();
 
         Assert.Empty(viewModel.Messages);
-        Assert.Empty(_history.Load(_connection.Id));
+        Assert.Empty(StoredMessages());
         Assert.False(viewModel.HasMessages);
     }
 
@@ -256,18 +268,6 @@ public class AiChatViewModelTests : IDisposable
             Requests.Add(request);
             return Task.FromResult(_answers.Dequeue());
         }
-    }
-
-    private sealed class MemoryHistory : IAiChatHistoryRepository
-    {
-        private readonly List<(Guid Id, AiChatMessage Message)> _rows = [];
-
-        public IReadOnlyList<AiChatMessage> Load(Guid connectionId, int limit = 200) =>
-            _rows.Where(r => r.Id == connectionId).Select(r => r.Message).TakeLast(limit).ToList();
-
-        public void Append(Guid connectionId, AiChatMessage message) => _rows.Add((connectionId, message));
-
-        public void Clear(Guid connectionId) => _rows.RemoveAll(r => r.Id == connectionId);
     }
 
     private sealed class FixedSettings(AiProviderSettings settings) : IAiSettingsRepository

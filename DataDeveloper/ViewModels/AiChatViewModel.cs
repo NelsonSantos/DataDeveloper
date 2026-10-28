@@ -30,6 +30,7 @@ public partial class AiChatViewModel : ViewModelBase
     private readonly IAiChatHistoryRepository _historyRepository;
     private readonly AiSqlContextBuilder _contextBuilder;
     private readonly List<AiChatMessage> _history = [];
+    private Guid? _chatId;
     private IReadOnlyList<DbObjectRef> _allObjects = [];
     private CancellationTokenSource? _cancellation;
 
@@ -48,7 +49,13 @@ public partial class AiChatViewModel : ViewModelBase
 
         _model = settingsRepository.Load(ProviderType).Model ?? string.Empty;
 
-        foreach (var message in historyRepository.Load(connection.Id, MaxLoadedMessages))
+        // Until the chat picker exists the panel shows the connection's most recent conversation; it is created on first use.
+        var current = historyRepository.ListChats(connection.Id).FirstOrDefault();
+        _chatId = current?.Id;
+        if (!string.IsNullOrWhiteSpace(current?.Model))
+            _model = current.Model;
+
+        foreach (var message in current is null ? [] : historyRepository.LoadMessages(current.Id, MaxLoadedMessages))
         {
             _history.Add(message);
             Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
@@ -246,7 +253,8 @@ public partial class AiChatViewModel : ViewModelBase
 
     private void ClearHistory()
     {
-        _historyRepository.Clear(_connection.Id);
+        if (_chatId is { } chatId)
+            _historyRepository.Clear(chatId);
         _history.Clear();
         Messages.Clear();
         this.RaisePropertyChanged(nameof(HasMessages));
@@ -313,7 +321,10 @@ public partial class AiChatViewModel : ViewModelBase
     {
         _history.Add(message);
         if (persist)
-            _historyRepository.Append(_connection.Id, message);
+        {
+            _chatId ??= _historyRepository.CreateChat(_connection.Id, model: Model).Id;
+            _historyRepository.Append(_chatId.Value, message);
+        }
 
         Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
         this.RaisePropertyChanged(nameof(HasMessages));
