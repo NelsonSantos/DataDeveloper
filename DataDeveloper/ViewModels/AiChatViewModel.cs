@@ -80,18 +80,14 @@ public partial class AiChatViewModel : ViewModelBase
 
     /// <summary>
     /// Models offered in the picker. The CLI has no command that lists models (and the vendor API needs a key), so this
-    /// is a curated list. The aliases always resolve to the newest model of a family, so they never go stale; the pinned
-    /// versions need a new line here when a model is released. Anything else can be typed through "Other model...".
+    /// is a short list of aliases, which always resolve to the newest model of a family and so never go stale. Any other
+    /// model or pinned version can be typed through "Other model...".
     /// </summary>
     public static IReadOnlyList<AiModelOption> ModelOptions { get; } =
     [
         new("opus", "Opus (latest)", IsAlias: true),
         new("sonnet", "Sonnet (latest)", IsAlias: true),
-        new("haiku", "Haiku (latest)", IsAlias: true),
-        new("claude-opus-5-5", "Opus 5.5"),
-        new("claude-sonnet-5-5", "Sonnet 5.5"),
-        new("claude-haiku-5-5", "Haiku 5.5"),
-        new("claude-fable-5-1", "Fable 5.1")
+        new("haiku", "Haiku (latest)", IsAlias: true)
     ];
 
     /// <summary>Text of the model button: the friendly name when the model is known, otherwise the id typed by the user.</summary>

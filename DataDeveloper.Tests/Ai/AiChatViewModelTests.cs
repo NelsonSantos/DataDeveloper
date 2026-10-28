@@ -206,7 +206,7 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
-    public void ModelLabel_ShowsTheFriendlyNameForKnownModelsAndAliasesAndTheRawIdOtherwise()
+    public void ModelLabel_ShowsTheFriendlyNameForAliasesAndTheRawIdOtherwise()
     {
         var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), new FixedSettings(new AiProviderSettings()),
             _history, new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
@@ -214,7 +214,7 @@ public class AiChatViewModelTests : IDisposable
         Assert.Equal("Default model", viewModel.ModelLabel);
 
         viewModel.Model = "claude-sonnet-5-5";
-        Assert.Equal("Sonnet 5.5", viewModel.ModelLabel);
+        Assert.Equal("claude-sonnet-5-5", viewModel.ModelLabel);
 
         viewModel.Model = "sonnet";
         Assert.Equal("Sonnet (latest)", viewModel.ModelLabel);

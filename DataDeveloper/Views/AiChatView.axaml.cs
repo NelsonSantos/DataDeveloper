@@ -97,12 +97,7 @@ public partial class AiChatView : UserControl
         menu.Items.Add(CreateModelItem("Default model", string.Empty));
         menu.Items.Add(new Separator());
 
-        var options = AiChatViewModel.ModelOptions;
-        foreach (var option in options.Where(o => o.IsAlias))
-            menu.Items.Add(CreateModelItem(option.Label, option.Id));
-
-        menu.Items.Add(new Separator());
-        foreach (var option in options.Where(o => !o.IsAlias))
+        foreach (var option in AiChatViewModel.ModelOptions)
             menu.Items.Add(CreateModelItem(option.Label, option.Id));
 
         menu.Items.Add(new Separator());
@@ -143,8 +138,28 @@ public partial class AiChatView : UserControl
 
     private void OnCustomModelOpened(object? sender, EventArgs e)
     {
-        if (sender is Flyout { Content: Control content })
-            content.DataContext = _viewModel;
+        if (sender is not Flyout { Content: Control content })
+            return;
+
+        content.DataContext = _viewModel;
+        (content as StackPanel)?.Children.OfType<TextBox>().FirstOrDefault()?.Focus();
+    }
+
+    // Enter (or Tab, which just leaves the field) confirms the typed model and closes the popup.
+    private void OnCustomModelKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Enter or Key.Escape))
+            return;
+
+        e.Handled = true;
+        if (Resources["CustomModelFlyout"] is Flyout flyout)
+            flyout.Hide();
+    }
+
+    private void OnCustomModelDone(object? sender, RoutedEventArgs e)
+    {
+        if (Resources["CustomModelFlyout"] is Flyout flyout)
+            flyout.Hide();
     }
 
     private async void OnCopyCodeClick(object? sender, RoutedEventArgs e)

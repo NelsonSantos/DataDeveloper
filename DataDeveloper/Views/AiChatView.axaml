@@ -14,8 +14,9 @@
         <!-- Free-text model id, shown from the model menu. Its content gets the DataContext in code-behind. -->
         <Flyout x:Key="CustomModelFlyout" Placement="TopEdgeAlignedLeft" Opened="OnCustomModelOpened">
             <StackPanel Width="260" Spacing="4" x:DataType="vm:AiChatViewModel">
-                <TextBlock Text="Model id or alias (e.g. sonnet)" FontSize="11" Opacity="0.6" />
-                <TextBox Text="{Binding Model, Mode=TwoWay}" Watermark="Default" />
+                <TextBlock Text="Model id (e.g. claude-sonnet-5-5) or alias" FontSize="11" Opacity="0.6" />
+                <TextBox Text="{Binding Model, Mode=TwoWay}" Watermark="Default" KeyDown="OnCustomModelKeyDown" />
+                <Button Content="OK" Classes="dialog-button primary" HorizontalAlignment="Right" Click="OnCustomModelDone" />
             </StackPanel>
         </Flyout>
 
