@@ -113,7 +113,8 @@ public partial class TabConnectionView : UserControl
         foreach (var tool in root.RightPinnedDockables ?? [])
         {
             tool.GetPinnedBounds(out _, out _, out var width, out var currentHeight);
-            if (width < MinimumUsableAiChatWidth || currentHeight <= 0)
+            // An unset size is NaN, and every comparison with NaN is false, so test for "usable" rather than "too small".
+            if (!(width >= MinimumUsableAiChatWidth) || !(currentHeight > 0))
                 tool.SetPinnedBounds(0, 0, AiChatPinnedWidth, height);
         }
     }
