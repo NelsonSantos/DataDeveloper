@@ -24,6 +24,8 @@ public partial class AiChatView : UserControl
 
         // The TextBox handles Enter itself (new line) before a bubbling KeyDown reaches us, so listen while tunnelling.
         DraftBox.AddHandler(KeyDownEvent, OnDraftKeyDown, RoutingStrategies.Tunnel);
+
+        BuildModelMenu();
     }
 
     protected override void OnDataContextChanged(System.EventArgs e)
@@ -83,6 +85,37 @@ public partial class AiChatView : UserControl
     {
         if (_viewModel is not null)
             _viewModel.SendWithModifier = true;
+    }
+
+    // Built once from AiChatViewModel.ModelOptions, so the list lives in a single place. Items must exist before the
+    // menu opens: an empty MenuFlyout shows up as a thin empty line.
+    private void BuildModelMenu()
+    {
+        if (ModelButton.Flyout is not MenuFlyout menu)
+            return;
+
+        menu.Items.Add(CreateModelItem("Default model", string.Empty));
+        menu.Items.Add(new Separator());
+
+        var options = AiChatViewModel.ModelOptions;
+        foreach (var option in options.Where(o => o.IsAlias))
+            menu.Items.Add(CreateModelItem(option.Label, option.Id));
+
+        menu.Items.Add(new Separator());
+        foreach (var option in options.Where(o => !o.IsAlias))
+            menu.Items.Add(CreateModelItem(option.Label, option.Id));
+
+        menu.Items.Add(new Separator());
+        var other = new MenuItem { Header = "Other model..." };
+        other.Click += OnOtherModelClick;
+        menu.Items.Add(other);
+    }
+
+    private MenuItem CreateModelItem(string header, string id)
+    {
+        var item = new MenuItem { Header = header, Tag = id, ToggleType = MenuItemToggleType.Radio, GroupName = "Model" };
+        item.Click += OnModelItemClick;
+        return item;
     }
 
     // The check mark follows the current model, including one typed by the user (which matches no item).

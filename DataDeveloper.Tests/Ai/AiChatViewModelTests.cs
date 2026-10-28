@@ -206,7 +206,7 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
-    public void ModelLabel_ShowsTheFriendlyNameForKnownModelsAndTheRawIdOtherwise()
+    public void ModelLabel_ShowsTheFriendlyNameForKnownModelsAndAliasesAndTheRawIdOtherwise()
     {
         var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), new FixedSettings(new AiProviderSettings()),
             _history, new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
@@ -217,7 +217,31 @@ public class AiChatViewModelTests : IDisposable
         Assert.Equal("Sonnet 5.5", viewModel.ModelLabel);
 
         viewModel.Model = "sonnet";
-        Assert.Equal("sonnet", viewModel.ModelLabel);
+        Assert.Equal("Sonnet (latest)", viewModel.ModelLabel);
+
+        viewModel.Model = "some-custom-model";
+        Assert.Equal("some-custom-model", viewModel.ModelLabel);
+    }
+
+    [Avalonia.Headless.XUnit.AvaloniaFact]
+    public void ModelMenu_HasAnItemForEveryOptionBeforeItOpens()
+    {
+        var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), new FixedSettings(new AiProviderSettings()),
+            _history, new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
+        var view = new DataDeveloper.Views.AiChatView { DataContext = viewModel };
+        var window = new Avalonia.Controls.Window { Content = view };
+        window.Show();
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        var button = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(view)
+            .OfType<Avalonia.Controls.Button>().First(b => b.Name == "ModelButton");
+        var menu = Assert.IsType<Avalonia.Controls.MenuFlyout>(button.Flyout);
+        var labels = menu.Items.OfType<Avalonia.Controls.MenuItem>().Select(i => i.Header as string).ToList();
+
+        Assert.Contains("Default model", labels);
+        Assert.Contains("Other model...", labels);
+        foreach (var option in AiChatViewModel.ModelOptions)
+            Assert.Contains(option.Label, labels);
     }
 
     private sealed class ScriptedRunner : ICliProcessRunner

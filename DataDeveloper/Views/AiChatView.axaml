@@ -178,16 +178,7 @@
                             <TextBlock Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
                         </StackPanel>
                         <Button.Flyout>
-                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opening="OnModelMenuOpening">
-                                <MenuItem Header="Default model" Tag="" ToggleType="Radio" GroupName="Model" Click="OnModelItemClick" />
-                                <Separator />
-                                <MenuItem Header="Opus 5.5" Tag="claude-opus-5-5" ToggleType="Radio" GroupName="Model" Click="OnModelItemClick" />
-                                <MenuItem Header="Sonnet 5.5" Tag="claude-sonnet-5-5" ToggleType="Radio" GroupName="Model" Click="OnModelItemClick" />
-                                <MenuItem Header="Haiku 5.5" Tag="claude-haiku-5-5" ToggleType="Radio" GroupName="Model" Click="OnModelItemClick" />
-                                <MenuItem Header="Fable 5.1" Tag="claude-fable-5-1" ToggleType="Radio" GroupName="Model" Click="OnModelItemClick" />
-                                <Separator />
-                                <MenuItem Header="Other model..." Click="OnOtherModelClick" />
-                            </MenuFlyout>
+                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opening="OnModelMenuOpening" />
                         </Button.Flyout>
                     </Button>
 
