@@ -68,7 +68,6 @@ public partial class AiChatViewModel : ViewModelBase
         this.WhenAnyValue(vm => vm.SendWithModifier).Subscribe(_ =>
         {
             this.RaisePropertyChanged(nameof(InputHint));
-            this.RaisePropertyChanged(nameof(SendGlyph));
         });
     }
 
@@ -106,10 +105,7 @@ public partial class AiChatViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> AttachSelectionCommand { get; }
 
     /// <summary>The key that sends together with Enter on this platform: Cmd on macOS, Ctrl elsewhere.</summary>
-    public static string ModifierName => OperatingSystem.IsMacOS() ? "\u2318" : "Ctrl+";
-
-    /// <summary>Label of the send button: Enter alone, or the modifier plus Enter.</summary>
-    public string SendGlyph => SendWithModifier ? $"{ModifierName.TrimEnd('+')} + \u21B5" : "\u21B5";
+    public static string ModifierName => OperatingSystem.IsMacOS() ? "Cmd+" : "Ctrl+";
 
     public string InputHint => SendWithModifier
         ? $"Ask something... ({ModifierName}Enter sends, Enter adds a line)"

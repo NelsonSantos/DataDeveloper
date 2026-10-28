@@ -68,8 +68,6 @@ public partial class AiChatView : UserControl
 
     private void OnSendModeMenuOpened(object? sender, EventArgs e)
     {
-        EnterModeItem.Header = "Enter to send  (Shift+Enter for a new line)";
-        ModifierModeItem.Header = $"{AiChatViewModel.ModifierName}Enter to send  (Enter for a new line)";
         EnterModeItem.IsChecked = _viewModel?.SendWithModifier != true;
         ModifierModeItem.IsChecked = _viewModel?.SendWithModifier == true;
     }

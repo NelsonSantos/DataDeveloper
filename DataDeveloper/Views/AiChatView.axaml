@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
              xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
              mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="600"
              MinWidth="360"
@@ -47,7 +48,7 @@
             <Setter Property="Margin" Value="0,4" />
         </Style>
         <Style Selector="Button.small">
-            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Padding" Value="10,7" />
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
@@ -155,7 +156,7 @@
                 </TextBox>
 
                 <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="4">
-                    <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,0" Classes="small"
+                    <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,5" Classes="small"
                             ToolTip.Tip="Add context: file, query or tables">
                         <Button.Flyout>
                             <MenuFlyout Placement="TopEdgeAlignedLeft">
@@ -170,12 +171,26 @@
                     </Button>
 
                     <!-- Send mode: always enabled, so the mode can be changed before there is any text to send. -->
-                    <Button Grid.Column="2" x:Name="SendModeButton" Content="&#x2699;" Classes="small" Padding="8,2"
+                    <Button Grid.Column="2" x:Name="SendModeButton" Content="&#x2699;" Classes="small" FontSize="20"
                             ToolTip.Tip="Choose how to send: Enter or Cmd/Ctrl+Enter">
                         <Button.Flyout>
                             <MenuFlyout Placement="TopEdgeAlignedRight" Opened="OnSendModeMenuOpened">
-                                <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick" />
-                                <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick" />
+                                <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <views:KeyHintIcon ShowModifier="False" Size="16" />
+                                            <TextBlock Text="to send  (Shift+Enter for a new line)" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <views:KeyHintIcon ShowModifier="True" Size="16" />
+                                            <TextBlock Text="to send  (Enter for a new line)" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
@@ -183,12 +198,14 @@
                     <!-- Idle: send. Busy: the same spot becomes Stop. -->
                     <Button Grid.Column="3" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
                             Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
-                        <TextBlock Text="{Binding SendGlyph}" FontSize="15" />
+                        <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="18" />
                     </Button>
+
                     <Button Grid.Column="3" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
                             Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
-                        <TextBlock Text="&#x25A0;" FontSize="14" />
+                        <TextBlock Text="&#x25A0;" FontSize="16" />
                     </Button>
+
                 </Grid>
             </StackPanel>
         </Border>
