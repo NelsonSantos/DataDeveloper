@@ -11,7 +11,7 @@ public partial class KeyHintIcon : UserControl
         AvaloniaProperty.Register<KeyHintIcon, bool>(nameof(ShowModifier));
 
     public static readonly StyledProperty<double> SizeProperty =
-        AvaloniaProperty.Register<KeyHintIcon, double>(nameof(Size), 16);
+        AvaloniaProperty.Register<KeyHintIcon, double>(nameof(Size), 14);
 
     public KeyHintIcon()
     {
@@ -47,7 +47,7 @@ public partial class KeyHintIcon : UserControl
         var isMac = OperatingSystem.IsMacOS();
         CommandIcon.IsVisible = ShowModifier && isMac;
         CtrlText.IsVisible = ShowModifier && !isMac;
-        CommandIcon.Width = CommandIcon.Height = Size * 0.8;
+        CommandIcon.Width = CommandIcon.Height = Size;
         ReturnIcon.Width = ReturnIcon.Height = Size;
         CtrlText.FontSize = Size * 0.85;
     }

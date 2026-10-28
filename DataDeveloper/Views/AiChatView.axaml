@@ -178,7 +178,7 @@
                                 <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <views:KeyHintIcon ShowModifier="False" Size="16" />
+                                            <views:KeyHintIcon ShowModifier="False" Size="13" />
                                             <TextBlock Text="to send  (Shift+Enter for a new line)" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </MenuItem.Header>
@@ -186,7 +186,7 @@
                                 <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick">
                                     <MenuItem.Header>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <views:KeyHintIcon ShowModifier="True" Size="16" />
+                                            <views:KeyHintIcon ShowModifier="True" Size="13" />
                                             <TextBlock Text="to send  (Enter for a new line)" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </MenuItem.Header>
@@ -198,12 +198,12 @@
                     <!-- Idle: send. Busy: the same spot becomes Stop. -->
                     <Button Grid.Column="3" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
                             Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
-                        <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="18" />
+                        <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="14" />
                     </Button>
 
                     <Button Grid.Column="3" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
                             Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
-                        <TextBlock Text="&#x25A0;" FontSize="16" />
+                        <TextBlock Text="&#x25A0;" FontSize="13" />
                     </Button>
 
                 </Grid>
