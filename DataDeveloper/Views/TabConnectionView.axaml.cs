@@ -91,12 +91,30 @@ public partial class TabConnectionView : UserControl
             factory, root, AiChatDock, null, viewModel.AiChatLayout ?? new PanelLayoutState(null, true),
             layout => viewModel.AiChatLayout = layout);
 
+        GiveAiChatPinnedWidth(root);
+
         // With both side panels open the documents get what is left of the row.
         if (viewModel.AiChatLayout is { IsCollapsed: false, Proportion: { } chat } &&
             viewModel.SchemaExplorerLayout is not { IsCollapsed: true } &&
             SchemaTools.Proportion is > 0 and < 1 && chat is > 0 and < 1 && SchemaTools.Proportion + chat < 1)
         {
             QueryDocuments.Proportion = 1 - SchemaTools.Proportion - chat;
+        }
+    }
+
+    private const double AiChatPinnedWidth = 440;
+    private const double MinimumUsableAiChatWidth = 360;
+
+    // A tool pinned before it was ever laid out has no stored size, and Dock then opens its overlay a few dozen pixels
+    // wide. Give it a usable width; a size the user already dragged it to is kept.
+    private void GiveAiChatPinnedWidth(IRootDock root)
+    {
+        var height = Math.Max(ConnectionDock.Bounds.Height, 400);
+        foreach (var tool in root.RightPinnedDockables ?? [])
+        {
+            tool.GetPinnedBounds(out _, out _, out var width, out var currentHeight);
+            if (width < MinimumUsableAiChatWidth || currentHeight <= 0)
+                tool.SetPinnedBounds(0, 0, AiChatPinnedWidth, height);
         }
     }
 
