@@ -69,6 +69,7 @@ public partial class AiChatViewModel : ViewModelBase
         {
             this.RaisePropertyChanged(nameof(InputHint));
         });
+        this.WhenAnyValue(vm => vm.Model).Subscribe(_ => this.RaisePropertyChanged(nameof(ModelLabel)));
     }
 
     public AiProviderType ProviderType => _providerFactory.SupportedProviders[0].ProviderType;
@@ -76,7 +77,24 @@ public partial class AiChatViewModel : ViewModelBase
     public ObservableCollection<AiChatMessageViewModel> Messages { get; } = [];
     public ObservableCollection<AiAttachmentItem> Attachments { get; } = [];
     public ObservableCollection<DbObjectRef> ObjectChoices { get; } = [];
-    public IReadOnlyList<string> ModelSuggestions { get; } = ["sonnet", "opus", "haiku"];
+
+    /// <summary>
+    /// Models offered in the picker. The CLI has no command that lists models (and the vendor API needs a key), so this
+    /// is a curated list of full model ids; anything else can be typed through "Other model...".
+    /// </summary>
+    public static IReadOnlyList<AiModelOption> ModelOptions { get; } =
+    [
+        new("claude-opus-5-5", "Opus 5.5"),
+        new("claude-sonnet-5-5", "Sonnet 5.5"),
+        new("claude-haiku-5-5", "Haiku 5.5"),
+        new("claude-fable-5-1", "Fable 5.1")
+    ];
+
+    /// <summary>Text of the model button: the friendly name when the model is known, otherwise the id typed by the user.</summary>
+    public string ModelLabel => string.IsNullOrWhiteSpace(Model)
+        ? "Default model"
+        : ModelOptions.FirstOrDefault(option => string.Equals(option.Id, Model.Trim(), StringComparison.OrdinalIgnoreCase))?.Label
+          ?? Model.Trim();
 
     /// <summary>
     /// Name and text of the active query; the argument asks for the selection only (null when nothing is selected).
@@ -307,3 +325,6 @@ public partial class AiChatViewModel : ViewModelBase
         this.RaisePropertyChanged(nameof(HasMessages));
     }
 }
+
+/// <summary>A model the picker offers: the id sent to the CLI and the name shown to the user.</summary>
+public sealed record AiModelOption(string Id, string Label);

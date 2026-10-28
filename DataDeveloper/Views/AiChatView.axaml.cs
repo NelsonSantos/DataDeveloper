@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
@@ -82,6 +83,57 @@ public partial class AiChatView : UserControl
     {
         if (_viewModel is not null)
             _viewModel.SendWithModifier = true;
+    }
+
+    // Built on open so the check mark follows the current model, including one typed by the user.
+    private void OnModelMenuOpened(object? sender, EventArgs e)
+    {
+        if (_viewModel is null || sender is not MenuFlyout menu)
+            return;
+
+        var items = new List<object>();
+        var current = _viewModel.Model?.Trim() ?? string.Empty;
+
+        items.Add(CreateModelItem("Default model", string.Empty, current.Length == 0));
+        items.Add(new Separator());
+        foreach (var option in AiChatViewModel.ModelOptions)
+            items.Add(CreateModelItem(option.Label, option.Id, string.Equals(option.Id, current, StringComparison.OrdinalIgnoreCase)));
+
+        items.Add(new Separator());
+        var custom = new MenuItem { Header = "Other model..." };
+        custom.Click += (_, _) =>
+        {
+            if (Resources["CustomModelFlyout"] is Flyout flyout)
+                flyout.ShowAt(ModelButton);
+        };
+        items.Add(custom);
+
+        menu.Items.Clear();
+        foreach (var item in items)
+            menu.Items.Add(item);
+    }
+
+    private MenuItem CreateModelItem(string header, string id, bool isCurrent)
+    {
+        var item = new MenuItem
+        {
+            Header = header,
+            ToggleType = MenuItemToggleType.Radio,
+            GroupName = "Model",
+            IsChecked = isCurrent
+        };
+        item.Click += (_, _) =>
+        {
+            if (_viewModel is not null)
+                _viewModel.Model = id;
+        };
+        return item;
+    }
+
+    private void OnCustomModelOpened(object? sender, EventArgs e)
+    {
+        if (sender is Flyout { Content: Control content })
+            content.DataContext = _viewModel;
     }
 
     private async void OnCopyCodeClick(object? sender, RoutedEventArgs e)

@@ -11,6 +11,14 @@
              x:DataType="vm:AiChatViewModel">
 
     <UserControl.Resources>
+        <!-- Free-text model id, shown from the model menu. Its content gets the DataContext in code-behind. -->
+        <Flyout x:Key="CustomModelFlyout" Placement="TopEdgeAlignedLeft" Opened="OnCustomModelOpened">
+            <StackPanel Width="260" Spacing="4" x:DataType="vm:AiChatViewModel">
+                <TextBlock Text="Model id or alias (e.g. sonnet)" FontSize="11" Opacity="0.6" />
+                <TextBox Text="{Binding Model, Mode=TwoWay}" Watermark="Default" />
+            </StackPanel>
+        </Flyout>
+
         <!-- Table / view picker, shown from the "+" menu. Its content gets the DataContext in code-behind. -->
         <Flyout x:Key="ObjectPickerFlyout" Placement="TopEdgeAlignedLeft" Opened="OnObjectPickerOpened">
             <StackPanel Width="300" Spacing="4" x:DataType="vm:AiChatViewModel">
@@ -56,17 +64,9 @@
 
     <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="8,6">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="8,6">
             <TextBlock Text="AI Assistant" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <ComboBox Grid.Column="1"
-                      Width="130"
-                      FontSize="12"
-                      IsEditable="True"
-                      PlaceholderText="Model (default)"
-                      ItemsSource="{Binding ModelSuggestions}"
-                      Text="{Binding Model, Mode=TwoWay}"
-                      ToolTip.Tip="Model for this chat. Empty uses the default from Preferences." />
-            <Button Grid.Column="2" Content="Clear" Classes="small" Command="{Binding ClearCommand}" ToolTip.Tip="Delete this connection's chat history" />
+            <Button Grid.Column="1" Content="Clear" Classes="small" Command="{Binding ClearCommand}" ToolTip.Tip="Delete this connection's chat history" />
         </Grid>
 
         <ScrollViewer Grid.Row="1" x:Name="MessagesScroller" HorizontalScrollBarVisibility="Disabled">
@@ -155,7 +155,7 @@
                     </TextBox.Resources>
                 </TextBox>
 
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="4">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="4">
                     <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,5" Classes="small"
                             ToolTip.Tip="Add context: file, query or tables">
                         <Button.Flyout>
@@ -170,8 +170,20 @@
                         </Button.Flyout>
                     </Button>
 
+                    <!-- Model picker; the items are built in code-behind when it opens. -->
+                    <Button Grid.Column="1" x:Name="ModelButton" Classes="small" FontSize="12" Padding="8,7"
+                            ToolTip.Tip="Model for this chat. Default uses the one from Preferences.">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding ModelLabel}" VerticalAlignment="Center" />
+                            <TextBlock Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
+                        </StackPanel>
+                        <Button.Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opened="OnModelMenuOpened" />
+                        </Button.Flyout>
+                    </Button>
+
                     <!-- Send mode: always enabled, so the mode can be changed before there is any text to send. -->
-                    <Button Grid.Column="2" x:Name="SendModeButton" Content="&#x2699;" Classes="small" FontSize="20"
+                    <Button Grid.Column="3" x:Name="SendModeButton" Content="&#x2699;" Classes="small" FontSize="20"
                             ToolTip.Tip="Choose how to send: Enter or Cmd/Ctrl+Enter">
                         <Button.Flyout>
                             <MenuFlyout Placement="TopEdgeAlignedRight" Opened="OnSendModeMenuOpened">
@@ -196,12 +208,12 @@
                     </Button>
 
                     <!-- Idle: send. Busy: the same spot becomes Stop. -->
-                    <Button Grid.Column="3" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
+                    <Button Grid.Column="4" x:Name="SendButton" Classes="dialog-button primary" Padding="14,6"
                             Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
                         <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="14" />
                     </Button>
 
-                    <Button Grid.Column="3" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
+                    <Button Grid.Column="4" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
                             Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
                         <TextBlock Text="&#x25A0;" FontSize="13" />
                     </Button>

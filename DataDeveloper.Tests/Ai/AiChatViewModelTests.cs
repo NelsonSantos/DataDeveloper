@@ -205,6 +205,21 @@ public class AiChatViewModelTests : IDisposable
         Assert.Contains("Shift+Enter adds a line", viewModel.InputHint);
     }
 
+    [Fact]
+    public void ModelLabel_ShowsTheFriendlyNameForKnownModelsAndTheRawIdOtherwise()
+    {
+        var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), new FixedSettings(new AiProviderSettings()),
+            _history, new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
+
+        Assert.Equal("Default model", viewModel.ModelLabel);
+
+        viewModel.Model = "claude-sonnet-5-5";
+        Assert.Equal("Sonnet 5.5", viewModel.ModelLabel);
+
+        viewModel.Model = "sonnet";
+        Assert.Equal("sonnet", viewModel.ModelLabel);
+    }
+
     private sealed class ScriptedRunner : ICliProcessRunner
     {
         private readonly Queue<CliProcessResult> _answers = new();
