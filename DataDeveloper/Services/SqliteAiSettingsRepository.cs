@@ -74,6 +74,30 @@ public class SqliteAiSettingsRepository : IAiSettingsRepository
         command.ExecuteNonQuery();
     }
 
+    public bool LoadSendWithModifier()
+    {
+        EnsureInitialized();
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "select value from ai_preference where key = 'send_with_modifier';";
+        return command.ExecuteScalar() is string value && value == "1";
+    }
+
+    public void SaveSendWithModifier(bool value)
+    {
+        EnsureInitialized();
+
+        using var connection = OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+                              insert into ai_preference (key, value) values ('send_with_modifier', $value)
+                              on conflict(key) do update set value = excluded.value;
+                              """;
+        command.Parameters.AddWithValue("$value", value ? "1" : "0");
+        command.ExecuteNonQuery();
+    }
+
     private static object NullIfBlank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
 
@@ -95,6 +119,11 @@ public class SqliteAiSettingsRepository : IAiSettingsRepository
                                   executable_path text null,
                                   model text null,
                                   timeout_seconds integer not null default 120
+                              );
+                              create table if not exists ai_preference
+                              (
+                                  key text not null primary key,
+                                  value text not null
                               );
                               """;
         command.ExecuteNonQuery();

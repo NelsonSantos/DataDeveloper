@@ -593,16 +593,17 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             ServiceProvider.GetRequiredService<IAiChatHistoryRepository>(),
             contextBuilder)
         {
-            CurrentQueryProvider = () =>
+            CurrentQueryProvider = selectionOnly =>
             {
                 var editor = ActiveQueryEditor;
                 if (editor is null)
                     return ((string, string)?)null;
 
-                // Like running with F5: the selection when there is one, the whole query otherwise.
-                return string.IsNullOrWhiteSpace(editor.SelectedStatement)
-                    ? (editor.Name, editor.SqlStatement)
-                    : ($"{editor.Name} (selection)", editor.SelectedStatement);
+                var hasSelection = !string.IsNullOrWhiteSpace(editor.SelectedStatement);
+                if (selectionOnly)
+                    return hasSelection ? ($"{editor.Name} (selection)", editor.SelectedStatement) : null;
+
+                return (editor.Name, editor.SqlStatement);
             },
             InsertIntoEditor = code =>
             {

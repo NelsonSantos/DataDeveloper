@@ -35,7 +35,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
 
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="8,6">
             <TextBlock Text="AI Assistant" FontWeight="SemiBold" VerticalAlignment="Center" />
@@ -92,58 +92,97 @@
 
         <ProgressBar Grid.Row="2" IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}" />
 
-        <ItemsControl Grid.Row="3" ItemsSource="{Binding Attachments}" Margin="8,4,8,0">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:AiAttachmentItem">
-                    <Border Background="#33808080" CornerRadius="10" Padding="8,2,2,2" Margin="0,0,4,4">
-                        <StackPanel Orientation="Horizontal" Spacing="2">
-                            <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
-                            <Button Content="x" Classes="small" Padding="4,0" Command="{Binding RemoveCommand}" />
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <TextBlock Grid.Row="4" Text="{Binding StatusText}" Foreground="IndianRed" FontSize="11" Margin="10,2" TextWrapping="Wrap"
+        <TextBlock Grid.Row="3" Text="{Binding StatusText}" Foreground="IndianRed" FontSize="11" Margin="10,2" TextWrapping="Wrap"
                    IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-        <Grid Grid.Row="5" RowDefinitions="Auto,Auto" Margin="8">
-            <TextBox x:Name="DraftBox"
-                     Text="{Binding Draft, Mode=TwoWay}"
-                     AcceptsReturn="True"
-                     TextWrapping="Wrap"
-                     MinHeight="60" MaxHeight="150"
-                     Watermark="Ask something... (Enter sends, Shift+Enter adds a line)"
-                     KeyDown="OnDraftKeyDown" />
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" Margin="0,6,0,0">
-                <Button Grid.Column="0" Content="File..." Classes="small" Click="OnAttachFileClick" ToolTip.Tip="Attach a text file (.sql, .csv, logs...)" />
-                <Button Grid.Column="1" Content="Query" Classes="small" Command="{Binding AttachCurrentQueryCommand}" ToolTip.Tip="Attach the active query (or its selection)" />
-                <Button Grid.Column="2" Content="Tables..." Classes="small" ToolTip.Tip="Attach tables or views so their structure is described in detail">
-                    <Button.Flyout>
-                        <Flyout Placement="TopEdgeAlignedLeft" Opened="OnObjectsFlyoutOpened">
-                            <StackPanel Width="300" Spacing="6" x:DataType="vm:AiChatViewModel">
-                                <TextBox Text="{Binding ObjectFilter, Mode=TwoWay}" Watermark="Filter..." />
-                                <ListBox x:Name="ObjectList" Height="240" SelectionMode="Multiple,Toggle" ItemsSource="{Binding ObjectChoices}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate x:DataType="models:DbObjectRef">
-                                            <TextBlock Text="{Binding QualifiedName}" />
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                                <Button Content="Attach selected" Classes="dialog-button primary" HorizontalAlignment="Right" Click="OnAttachSelectedObjectsClick" />
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
-                <Button Grid.Column="4" Content="Stop" Classes="dialog-button" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}" />
-                <Button Grid.Column="5" Content="Send" Classes="dialog-button primary" Margin="6,0,0,0" Command="{Binding SendCommand}" />
-            </Grid>
-        </Grid>
+        <!-- Composer: attachments, the text box and, below it, "+" (add context) and the send/stop button. -->
+        <Border Grid.Row="4" Margin="8" Padding="8,6" CornerRadius="12" BorderThickness="1"
+                BorderBrush="#50808080" Background="#18808080">
+            <StackPanel Spacing="4">
+                <ItemsControl ItemsSource="{Binding Attachments}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiAttachmentItem">
+                            <Border Background="#33808080" CornerRadius="10" Padding="8,2,2,2" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                    <Button Content="x" Classes="small" Padding="4,0" Command="{Binding RemoveCommand}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBox x:Name="DraftBox"
+                         Text="{Binding Draft, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="48" MaxHeight="150"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="2"
+                         Watermark="{Binding InputHint}">
+                    <TextBox.Resources>
+                        <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                    </TextBox.Resources>
+                </TextBox>
+
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,0" Classes="small"
+                            ToolTip.Tip="Add context: file, query or tables">
+                        <Button.Flyout>
+                            <Flyout Placement="TopEdgeAlignedLeft" Opened="OnAddFlyoutOpened">
+                                <StackPanel Width="300" Spacing="2" x:DataType="vm:AiChatViewModel">
+                                    <Button Content="File..." HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                            Classes="small" Click="OnAttachFileClick" />
+                                    <TextBlock Text="Query" FontSize="11" Opacity="0.6" Margin="8,6,0,0" />
+                                    <Button Content="Whole query" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                            Classes="small" Command="{Binding AttachWholeQueryCommand}" Click="OnAddFlyoutActionClick" />
+                                    <Button Content="Selection only" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                            Classes="small" Command="{Binding AttachSelectionCommand}" Click="OnAddFlyoutActionClick" />
+                                    <TextBlock Text="Tables and views (click to add)" FontSize="11" Opacity="0.6" Margin="8,6,0,0" />
+                                    <TextBox Text="{Binding ObjectFilter, Mode=TwoWay}" Watermark="Filter..." />
+                                    <ListBox x:Name="ObjectList" Height="220" SelectionMode="Single"
+                                             ItemsSource="{Binding ObjectChoices}" SelectionChanged="OnObjectSelected">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="models:DbObjectRef">
+                                                <TextBlock Text="{Binding QualifiedName}" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Idle: send (with a menu to choose Enter or Cmd/Ctrl+Enter). Busy: the same spot becomes Stop. -->
+                    <SplitButton Grid.Column="2" x:Name="SendButton" Classes="primary"
+                                 Command="{Binding SendCommand}"
+                                 IsVisible="{Binding !IsBusy}"
+                                 ToolTip.Tip="Send">
+                        <TextBlock Text="&#x21B5;" FontSize="16" />
+                        <SplitButton.Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedRight" Opened="OnSendModeMenuOpened">
+                                <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick" />
+                                <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick" />
+                            </MenuFlyout>
+                        </SplitButton.Flyout>
+                    </SplitButton>
+                    <Button Grid.Column="2" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
+                            Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
+                        <TextBlock Text="&#x25A0;" FontSize="14" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

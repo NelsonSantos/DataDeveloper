@@ -163,16 +163,46 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
-    public void AttachCurrentQuery_UsesTheProvider()
+    public void AttachQuery_AsksTheProviderForTheWholeQueryOrTheSelection()
     {
         var viewModel = CreateViewModel();
-        viewModel.CurrentQueryProvider = () => ("Query 2 (selection)", "select 42");
+        viewModel.CurrentQueryProvider = selectionOnly =>
+            selectionOnly ? ("Query 2 (selection)", "select 42") : ("Query 2", "select 42; select 43");
 
-        viewModel.AttachCurrentQueryCommand.Execute().Subscribe();
+        viewModel.AttachWholeQueryCommand.Execute().Subscribe();
+        viewModel.AttachSelectionCommand.Execute().Subscribe();
 
-        var attachment = Assert.Single(viewModel.Attachments);
-        Assert.Equal("select 42", attachment.TextContent);
-        Assert.Equal("Query 2 (selection)", attachment.Name);
+        Assert.Equal(["Query 2", "Query 2 (selection)"], viewModel.Attachments.Select(a => a.Name));
+        Assert.Equal("select 42; select 43", viewModel.Attachments[0].TextContent);
+    }
+
+    [Fact]
+    public void AttachSelection_ExplainsWhenNothingIsSelected()
+    {
+        var viewModel = CreateViewModel();
+        viewModel.CurrentQueryProvider = _ => null;
+
+        viewModel.AttachSelectionCommand.Execute().Subscribe();
+
+        Assert.Empty(viewModel.Attachments);
+        Assert.Contains("Select some text", viewModel.StatusText);
+    }
+
+    [Fact]
+    public void SendWithModifier_IsRestoredAndPersistedAndChangesTheHint()
+    {
+        var settings = new FixedSettings(new AiProviderSettings());
+        settings.SaveSendWithModifier(true);
+        var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), settings, _history,
+            new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
+
+        Assert.True(viewModel.SendWithModifier);
+        Assert.Contains("Enter adds a line", viewModel.InputHint);
+
+        viewModel.SendWithModifier = false;
+
+        Assert.False(settings.SendWithModifier);
+        Assert.Contains("Shift+Enter adds a line", viewModel.InputHint);
     }
 
     private sealed class ScriptedRunner : ICliProcessRunner
@@ -206,6 +236,12 @@ public class AiChatViewModelTests : IDisposable
         public AiProviderSettings Load(AiProviderType providerType) => settings;
 
         public void Save(AiProviderSettings value) { }
+
+        public bool SendWithModifier { get; private set; }
+
+        public bool LoadSendWithModifier() => SendWithModifier;
+
+        public void SaveSendWithModifier(bool value) => SendWithModifier = value;
     }
 
     private sealed class EmptySource : IAiSchemaSource

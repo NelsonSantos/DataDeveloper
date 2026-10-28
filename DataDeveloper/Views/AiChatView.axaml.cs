@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
@@ -15,11 +16,14 @@ namespace DataDeveloper.Views;
 public partial class AiChatView : UserControl
 {
     private AiChatViewModel? _viewModel;
-    private Flyout? _objectsFlyout;
+    private Flyout? _addFlyout;
 
     public AiChatView()
     {
         InitializeComponent();
+
+        // The TextBox handles Enter itself (new line) before a bubbling KeyDown reaches us, so listen while tunnelling.
+        DraftBox.AddHandler(KeyDownEvent, OnDraftKeyDown, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(System.EventArgs e)
@@ -43,16 +47,44 @@ public partial class AiChatView : UserControl
             Dispatcher.UIThread.Post(MessagesScroller.ScrollToEnd, DispatcherPriority.Background);
     }
 
-    // Enter sends; Shift+Enter keeps the TextBox's own new line.
+    // Enter sends (Shift+Enter adds a line), or - when the user chose it - Cmd/Ctrl+Enter sends and Enter adds a line.
     private void OnDraftKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift) || _viewModel is null)
+        if (e.Key != Key.Enter || _viewModel is null)
+            return;
+
+        var sendModifier = OperatingSystem.IsMacOS() ? KeyModifiers.Meta : KeyModifiers.Control;
+        var shouldSend = _viewModel.SendWithModifier
+            ? e.KeyModifiers.HasFlag(sendModifier)
+            : !e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+
+        if (!shouldSend)
             return;
 
         e.Handled = true;
         ICommand send = _viewModel.SendCommand;
         if (send.CanExecute(null))
             send.Execute(null);
+    }
+
+    private void OnSendModeMenuOpened(object? sender, EventArgs e)
+    {
+        EnterModeItem.Header = "Enter to send  (Shift+Enter for a new line)";
+        ModifierModeItem.Header = $"{AiChatViewModel.ModifierName}Enter to send  (Enter for a new line)";
+        EnterModeItem.IsChecked = _viewModel?.SendWithModifier != true;
+        ModifierModeItem.IsChecked = _viewModel?.SendWithModifier == true;
+    }
+
+    private void OnEnterModeClick(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel is not null)
+            _viewModel.SendWithModifier = false;
+    }
+
+    private void OnModifierModeClick(object? sender, RoutedEventArgs e)
+    {
+        if (_viewModel is not null)
+            _viewModel.SendWithModifier = true;
     }
 
     private async void OnCopyCodeClick(object? sender, RoutedEventArgs e)
@@ -63,6 +95,7 @@ public partial class AiChatView : UserControl
 
     private async void OnAttachFileClick(object? sender, RoutedEventArgs e)
     {
+        _addFlyout?.Hide();
         if (_viewModel is null || TopLevel.GetTopLevel(this) is not { } topLevel)
             return;
 
@@ -80,7 +113,7 @@ public partial class AiChatView : UserControl
         }
     }
 
-    private async void OnObjectsFlyoutOpened(object? sender, System.EventArgs e)
+    private async void OnAddFlyoutOpened(object? sender, EventArgs e)
     {
         if (_viewModel is null)
             return;
@@ -88,22 +121,22 @@ public partial class AiChatView : UserControl
         // Flyout content lives outside this control's tree, so it doesn't inherit the DataContext.
         if (sender is Flyout { Content: Control content } flyout)
         {
-            _objectsFlyout = flyout;
+            _addFlyout = flyout;
             content.DataContext = _viewModel;
         }
 
         await _viewModel.LoadObjectChoicesAsync();
     }
 
-    private void OnAttachSelectedObjectsClick(object? sender, RoutedEventArgs e)
+    private void OnAddFlyoutActionClick(object? sender, RoutedEventArgs e) => _addFlyout?.Hide();
+
+    // Clicking a table adds it and keeps the popup open so several can be picked in a row.
+    private void OnObjectSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (_viewModel is null || sender is not Control { Parent: Panel panel })
+        if (sender is not ListBox { SelectedItem: DbObjectRef selected } list || _viewModel is null)
             return;
 
-        var list = panel.Children.OfType<ListBox>().FirstOrDefault();
-        if (list is not null)
-            _viewModel.AttachObjects(list.SelectedItems?.OfType<DbObjectRef>().ToList() ?? []);
-
-        _objectsFlyout?.Hide();
+        _viewModel.AttachObjects([selected]);
+        list.SelectedItem = null;
     }
 }

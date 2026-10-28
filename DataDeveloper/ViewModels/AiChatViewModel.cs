@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DataDeveloper.Core;
@@ -57,9 +58,14 @@ public partial class AiChatViewModel : ViewModelBase
         SendCommand = ReactiveCommand.CreateFromTask(() => SendAsync(Draft), canSend);
         StopCommand = ReactiveCommand.Create(Stop, this.WhenAnyValue(vm => vm.IsBusy));
         ClearCommand = ReactiveCommand.Create(ClearHistory, this.WhenAnyValue(vm => vm.IsBusy, busy => !busy));
-        AttachCurrentQueryCommand = ReactiveCommand.Create(AttachCurrentQuery);
+        AttachWholeQueryCommand = ReactiveCommand.Create(() => AttachCurrentQuery(selectionOnly: false));
+        AttachSelectionCommand = ReactiveCommand.Create(() => AttachCurrentQuery(selectionOnly: true));
+
+        _sendWithModifier = settingsRepository.LoadSendWithModifier();
+        this.WhenAnyValue(vm => vm.SendWithModifier).Skip(1).Subscribe(settingsRepository.SaveSendWithModifier);
 
         this.WhenAnyValue(vm => vm.ObjectFilter).Subscribe(_ => ApplyObjectFilter());
+        this.WhenAnyValue(vm => vm.SendWithModifier).Subscribe(_ => this.RaisePropertyChanged(nameof(InputHint)));
     }
 
     public AiProviderType ProviderType => _providerFactory.SupportedProviders[0].ProviderType;
@@ -69,8 +75,11 @@ public partial class AiChatViewModel : ViewModelBase
     public ObservableCollection<DbObjectRef> ObjectChoices { get; } = [];
     public IReadOnlyList<string> ModelSuggestions { get; } = ["sonnet", "opus", "haiku"];
 
-    /// <summary>Name and text of the active query (its selection if any); set by the connection view model.</summary>
-    public Func<(string Name, string Text)?>? CurrentQueryProvider { get; set; }
+    /// <summary>
+    /// Name and text of the active query; the argument asks for the selection only (null when nothing is selected).
+    /// Set by the connection view model.
+    /// </summary>
+    public Func<bool, (string Name, string Text)?>? CurrentQueryProvider { get; set; }
 
     /// <summary>Puts code into the active query editor; returns false when there is none.</summary>
     public Func<string, bool>? InsertIntoEditor { get; set; }
@@ -83,10 +92,21 @@ public partial class AiChatViewModel : ViewModelBase
     [Reactive] private string _model = string.Empty;
     [Reactive] private string _objectFilter = string.Empty;
 
+    /// <summary>True when Cmd/Ctrl+Enter sends and Enter adds a line; false (default) when Enter sends.</summary>
+    [Reactive] private bool _sendWithModifier;
+
     public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearCommand { get; }
-    public ReactiveCommand<Unit, Unit> AttachCurrentQueryCommand { get; }
+    public ReactiveCommand<Unit, Unit> AttachWholeQueryCommand { get; }
+    public ReactiveCommand<Unit, Unit> AttachSelectionCommand { get; }
+
+    /// <summary>The key that sends together with Enter on this platform: Cmd on macOS, Ctrl elsewhere.</summary>
+    public static string ModifierName => OperatingSystem.IsMacOS() ? "\u2318" : "Ctrl+";
+
+    public string InputHint => SendWithModifier
+        ? $"Ask something... ({ModifierName}Enter sends, Enter adds a line)"
+        : "Ask something... (Enter sends, Shift+Enter adds a line)";
 
     /// <summary>Forget the cached object list (after a schema refresh).</summary>
     public void InvalidateSchema()
@@ -178,12 +198,12 @@ public partial class AiChatViewModel : ViewModelBase
             StatusText = "Open a query tab to insert code into.";
     }
 
-    private void AttachCurrentQuery()
+    private void AttachCurrentQuery(bool selectionOnly)
     {
-        var query = CurrentQueryProvider?.Invoke();
+        var query = CurrentQueryProvider?.Invoke(selectionOnly);
         if (query is not { } current || string.IsNullOrWhiteSpace(current.Text))
         {
-            StatusText = "The current query is empty.";
+            StatusText = selectionOnly ? "Select some text in the query first." : "The current query is empty.";
             return;
         }
 
