@@ -57,6 +57,167 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task Ask_NamesANewChatAfterItsFirstQuestionAndKeepsTheNameAfterwards()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        _runner.Answer("""{"result":"b"}""");
+        var viewModel = CreateViewModel();
+        Assert.Equal(AiChatTitles.Default, viewModel.ChatTitle);
+
+        await viewModel.AskAsync("find duplicate customers");
+        await viewModel.AskAsync("and now by email");
+
+        Assert.Equal("find duplicate customers", viewModel.ChatTitle);
+        Assert.Equal("find duplicate customers", Assert.Single(_history.ListChats(_connection.Id)).Title);
+        Assert.Equal("find duplicate customers", Assert.Single(viewModel.Chats).Title);
+    }
+
+    [Fact]
+    public async Task NewChat_StartsABlankChatAndTheOldOneStaysInTheList()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        _runner.Answer("""{"result":"b"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("task A question");
+
+        viewModel.NewChatCommand.Execute().Subscribe();
+        Assert.Empty(viewModel.Messages);
+        Assert.Equal(AiChatTitles.Default, viewModel.ChatTitle);
+
+        await viewModel.AskAsync("task B question");
+
+        Assert.Equal(["task B question", "task A question"], viewModel.Chats.Select(c => c.Title));
+        Assert.Equal(2, _history.ListChats(_connection.Id).Count);
+    }
+
+    [Fact]
+    public async Task NewChat_DoesNotSendTheOtherChatsMessagesAsContext()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        _runner.Answer("""{"result":"b"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("secret of task A");
+
+        viewModel.NewChatCommand.Execute().Subscribe();
+        await viewModel.AskAsync("task B question");
+
+        Assert.DoesNotContain("secret of task A", _runner.Requests[1].StandardInput!);
+    }
+
+    [Fact]
+    public async Task SwitchingChats_RestoresTheirMessagesAndModel()
+    {
+        _runner.Answer("""{"result":"answer A"}""");
+        _runner.Answer("""{"result":"answer B"}""");
+        var viewModel = CreateViewModel();
+        viewModel.Model = "opus";
+        await viewModel.AskAsync("question A");
+        viewModel.NewChatCommand.Execute().Subscribe();
+        viewModel.Model = "haiku";
+        await viewModel.AskAsync("question B");
+
+        var chatA = viewModel.Chats.Single(c => c.Title == "question A");
+        chatA.SelectCommand.Execute().Subscribe();
+
+        Assert.Equal(["question A", "answer A"], viewModel.Messages.Select(m => m.Content));
+        Assert.Equal("opus", viewModel.Model);
+        Assert.Equal("question A", viewModel.ChatTitle);
+        Assert.True(viewModel.Chats.Single(c => c.Title == "question A").IsCurrent);
+
+        viewModel.Chats.Single(c => c.Title == "question B").SelectCommand.Execute().Subscribe();
+        Assert.Equal("haiku", viewModel.Model);
+    }
+
+    [Fact]
+    public async Task PickingAModel_IsRememberedForThatChatOnly()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("question");
+
+        viewModel.Model = "sonnet";
+
+        Assert.Equal("sonnet", Assert.Single(_history.ListChats(_connection.Id)).Model);
+    }
+
+    [Fact]
+    public async Task RenamingAChat_UpdatesTheListAndTheTitleWhenItIsTheCurrentOne()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("question");
+
+        var item = viewModel.Chats.Single();
+        item.BeginRenameCommand.Execute().Subscribe();
+        item.EditTitle = "Task A: orders";
+        item.CommitRenameCommand.Execute().Subscribe();
+
+        Assert.Equal("Task A: orders", viewModel.ChatTitle);
+        Assert.Equal("Task A: orders", viewModel.Chats.Single().Title);
+        Assert.Equal("Task A: orders", _history.ListChats(_connection.Id).Single().Title);
+    }
+
+    [Fact]
+    public async Task DeletingTheCurrentChat_FallsBackToTheNextMostRecentOne()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        _runner.Answer("""{"result":"b"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("older");
+        viewModel.NewChatCommand.Execute().Subscribe();
+        await viewModel.AskAsync("newer");
+
+        var current = viewModel.Chats.Single(c => c.IsCurrent);
+        current.AskDeleteCommand.Execute().Subscribe();
+        current.ConfirmDeleteCommand.Execute().Subscribe();
+
+        Assert.Equal("older", viewModel.ChatTitle);
+        Assert.Equal(["older", "a"], viewModel.Messages.Select(m => m.Content));
+        Assert.Equal("older", Assert.Single(viewModel.Chats).Title);
+    }
+
+    [Fact]
+    public async Task DeletingTheOnlyChat_LeavesABlankNewChat()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("question");
+
+        var item = viewModel.Chats.Single();
+        item.ConfirmDeleteCommand.Execute().Subscribe();
+
+        Assert.Empty(viewModel.Messages);
+        Assert.Equal(AiChatTitles.Default, viewModel.ChatTitle);
+        Assert.Empty(viewModel.Chats);
+        Assert.Empty(_history.ListChats(_connection.Id));
+    }
+
+    [Fact]
+    public async Task ANewViewModel_ReopensTheMostRecentlyActiveChat()
+    {
+        _runner.Answer("""{"result":"a"}""");
+        _runner.Answer("""{"result":"b"}""");
+        var first = CreateViewModel();
+        await first.AskAsync("older");
+        first.NewChatCommand.Execute().Subscribe();
+        await first.AskAsync("newer");
+
+        var reopened = CreateViewModel();
+
+        Assert.Equal("newer", reopened.ChatTitle);
+        Assert.Equal(["newer", "b"], reopened.Messages.Select(m => m.Content));
+    }
+
+    [Theory]
+    [InlineData(10, "just now")]
+    [InlineData(5 * 60, "5 min ago")]
+    [InlineData(3 * 3600, "3 h ago")]
+    [InlineData(30 * 3600, "yesterday")]
+    [InlineData(5 * 86400, "5 days ago")]
+    public void FormatAge_DescribesHowLongAgo(int seconds, string expected) =>
+        Assert.Equal(expected, AiChatListItem.FormatAge(TimeSpan.FromSeconds(seconds)));
+
+    [Fact]
     public async Task Ask_SendsEarlierTurnsAsContextAndTheSchemaAsSystemPrompt()
     {
         _runner.Answer("""{"result":"first"}""");

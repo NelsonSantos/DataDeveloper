@@ -8,7 +8,9 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using DataDeveloper.Data.Models;
 using DataDeveloper.ViewModels;
 
@@ -17,6 +19,7 @@ namespace DataDeveloper.Views;
 public partial class AiChatView : UserControl
 {
     private AiChatViewModel? _viewModel;
+    private Flyout? _chatListFlyout;
 
     public AiChatView()
     {
@@ -160,6 +163,50 @@ public partial class AiChatView : UserControl
     {
         if (Resources["CustomModelFlyout"] is Flyout flyout)
             flyout.Hide();
+    }
+
+    private void OnChatListOpened(object? sender, EventArgs e)
+    {
+        if (_viewModel is null)
+            return;
+
+        // Flyout content lives outside this control's tree, so it doesn't inherit the DataContext.
+        if (sender is Flyout { Content: Control content } flyout)
+        {
+            _chatListFlyout = flyout;
+            content.DataContext = _viewModel;
+        }
+
+        _viewModel.RefreshChats();
+    }
+
+    // The inline rename box takes the keyboard as soon as it appears.
+    private void OnChatRenameClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Visual button)
+            return;
+
+        var row = button.GetVisualAncestors().OfType<Control>().FirstOrDefault(c => c.Name == "ChatRow");
+        var box = row?.GetVisualDescendants().OfType<TextBox>().FirstOrDefault(t => t.Name == "ChatRenameBox");
+        if (box is null)
+            return;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            box.Focus();
+            box.SelectAll();
+        }, DispatcherPriority.Background);
+    }
+
+    private void OnChatFlyoutActionClick(object? sender, RoutedEventArgs e) => _chatListFlyout?.Hide();
+
+    private void OnChatRenameKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Enter or Key.Escape) || (sender as Control)?.DataContext is not AiChatListItem item)
+            return;
+
+        e.Handled = true;
+        Execute(e.Key == Key.Enter ? item.CommitRenameCommand : item.CancelRenameCommand);
     }
 
     private async void OnCopyCodeClick(object? sender, RoutedEventArgs e)

@@ -31,6 +31,7 @@ public partial class AiChatViewModel : ViewModelBase
     private readonly AiSqlContextBuilder _contextBuilder;
     private readonly List<AiChatMessage> _history = [];
     private Guid? _chatId;
+    private bool _isApplyingChat;
     private IReadOnlyList<DbObjectRef> _allObjects = [];
     private CancellationTokenSource? _cancellation;
 
@@ -47,24 +48,15 @@ public partial class AiChatViewModel : ViewModelBase
         _historyRepository = historyRepository;
         _contextBuilder = contextBuilder;
 
-        _model = settingsRepository.Load(ProviderType).Model ?? string.Empty;
-
-        // Until the chat picker exists the panel shows the connection's most recent conversation; it is created on first use.
-        var current = historyRepository.ListChats(connection.Id).FirstOrDefault();
-        _chatId = current?.Id;
-        if (!string.IsNullOrWhiteSpace(current?.Model))
-            _model = current.Model;
-
-        foreach (var message in current is null ? [] : historyRepository.LoadMessages(current.Id, MaxLoadedMessages))
-        {
-            _history.Add(message);
-            Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
-        }
+        // The panel opens the connection's most recently active conversation; a new one is created on first use.
+        LoadChat(historyRepository.ListChats(connection.Id).FirstOrDefault());
+        RefreshChats();
 
         var canSend = this.WhenAnyValue(vm => vm.IsBusy, vm => vm.Draft, (busy, draft) => !busy && !string.IsNullOrWhiteSpace(draft));
         SendCommand = ReactiveCommand.CreateFromTask(() => SendAsync(Draft), canSend);
         StopCommand = ReactiveCommand.Create(Stop, this.WhenAnyValue(vm => vm.IsBusy));
         ClearCommand = ReactiveCommand.Create(ClearHistory, this.WhenAnyValue(vm => vm.IsBusy, busy => !busy));
+        NewChatCommand = ReactiveCommand.Create(StartNewChat, this.WhenAnyValue(vm => vm.IsBusy, busy => !busy));
         AttachWholeQueryCommand = ReactiveCommand.Create(() => AttachCurrentQuery(selectionOnly: false));
         AttachSelectionCommand = ReactiveCommand.Create(() => AttachCurrentQuery(selectionOnly: true));
 
@@ -77,6 +69,11 @@ public partial class AiChatViewModel : ViewModelBase
             this.RaisePropertyChanged(nameof(InputHint));
         });
         this.WhenAnyValue(vm => vm.Model).Subscribe(_ => this.RaisePropertyChanged(nameof(ModelLabel)));
+        this.WhenAnyValue(vm => vm.Model).Skip(1).Subscribe(model =>
+        {
+            if (!_isApplyingChat && _chatId is { } chatId)
+                _historyRepository.SetChatModel(chatId, model);
+        });
     }
 
     public AiProviderType ProviderType => _providerFactory.SupportedProviders[0].ProviderType;
@@ -84,6 +81,9 @@ public partial class AiChatViewModel : ViewModelBase
     public ObservableCollection<AiChatMessageViewModel> Messages { get; } = [];
     public ObservableCollection<AiAttachmentItem> Attachments { get; } = [];
     public ObservableCollection<DbObjectRef> ObjectChoices { get; } = [];
+
+    /// <summary>The connection's conversations as listed in the picker, most recently active first.</summary>
+    public ObservableCollection<AiChatListItem> Chats { get; } = [];
 
     /// <summary>
     /// Models offered in the picker. The CLI has no command that lists models (and the vendor API needs a key), so this
@@ -120,12 +120,16 @@ public partial class AiChatViewModel : ViewModelBase
     [Reactive] private string _model = string.Empty;
     [Reactive] private string _objectFilter = string.Empty;
 
+    /// <summary>Title of the conversation being shown ("New chat" until its first question names it).</summary>
+    [Reactive] private string _chatTitle = AiChatTitles.Default;
+
     /// <summary>True when Cmd/Ctrl+Enter sends and Enter adds a line; false (default) when Enter sends.</summary>
     [Reactive] private bool _sendWithModifier;
 
     public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewChatCommand { get; }
     public ReactiveCommand<Unit, Unit> AttachWholeQueryCommand { get; }
     public ReactiveCommand<Unit, Unit> AttachSelectionCommand { get; }
 
@@ -251,6 +255,88 @@ public partial class AiChatViewModel : ViewModelBase
 
     private void Stop() => _cancellation?.Cancel();
 
+    /// <summary>Reloads the picker's list; call when it opens so the times and counts are current.</summary>
+    public void RefreshChats()
+    {
+        var now = DateTime.UtcNow;
+        Chats.Clear();
+        foreach (var chat in _historyRepository.ListChats(_connection.Id))
+            Chats.Add(new AiChatListItem(chat, chat.Id == _chatId, now, SwitchToChat, RenameChat, DeleteChat));
+    }
+
+    // Shows a conversation (null = a brand new one that is only stored when its first question is sent).
+    private void LoadChat(AiChatInfo? chat)
+    {
+        _isApplyingChat = true;
+        _chatId = chat?.Id;
+        ChatTitle = chat?.Title ?? AiChatTitles.Default;
+        Model = !string.IsNullOrWhiteSpace(chat?.Model) ? chat.Model : _settingsRepository.Load(ProviderType).Model ?? string.Empty;
+        _isApplyingChat = false;
+
+        _history.Clear();
+        Messages.Clear();
+        Attachments.Clear();
+        StatusText = string.Empty;
+
+        if (chat is not null)
+        {
+            foreach (var message in _historyRepository.LoadMessages(chat.Id, MaxLoadedMessages))
+            {
+                _history.Add(message);
+                Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
+            }
+        }
+
+        this.RaisePropertyChanged(nameof(HasMessages));
+    }
+
+    private void StartNewChat()
+    {
+        // An empty conversation is already a blank page.
+        if (_chatId is null || _history.Count == 0)
+        {
+            if (_chatId is null)
+                LoadChat(null);
+            return;
+        }
+
+        LoadChat(null);
+        RefreshChats();
+    }
+
+    private void SwitchToChat(AiChatListItem item)
+    {
+        if (IsBusy || item.Id == _chatId)
+            return;
+
+        LoadChat(_historyRepository.ListChats(_connection.Id).FirstOrDefault(chat => chat.Id == item.Id));
+        RefreshChats();
+    }
+
+    private void RenameChat(AiChatListItem item)
+    {
+        if (IsBusy && item.Id == _chatId)
+            return;
+
+        _historyRepository.RenameChat(item.Id, item.EditTitle);
+        if (item.Id == _chatId)
+            ChatTitle = AiChatTitles.FromText(item.EditTitle);
+
+        RefreshChats();
+    }
+
+    private void DeleteChat(AiChatListItem item)
+    {
+        if (IsBusy && item.Id == _chatId)
+            return;
+
+        _historyRepository.DeleteChat(item.Id);
+        if (item.Id == _chatId)
+            LoadChat(_historyRepository.ListChats(_connection.Id).FirstOrDefault());
+
+        RefreshChats();
+    }
+
     private void ClearHistory()
     {
         if (_chatId is { } chatId)
@@ -277,6 +363,7 @@ public partial class AiChatViewModel : ViewModelBase
 
         var previous = AiTranscriptFormatter.TrimHistory(_history);
         AddMessage(new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow), persist: true);
+        NameChatAfterFirstQuestion(text);
 
         IsBusy = true;
         _cancellation = new CancellationTokenSource();
@@ -315,6 +402,17 @@ public partial class AiChatViewModel : ViewModelBase
             _cancellation.Dispose();
             _cancellation = null;
         }
+    }
+
+    private void NameChatAfterFirstQuestion(string text)
+    {
+        if (_chatId is not { } chatId || ChatTitle != AiChatTitles.Default)
+            return;
+
+        var title = AiChatTitles.FromText(text);
+        _historyRepository.RenameChat(chatId, title);
+        ChatTitle = title;
+        RefreshChats();
     }
 
     private void AddMessage(AiChatMessage message, bool persist)

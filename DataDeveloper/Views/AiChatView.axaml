@@ -65,9 +65,60 @@
 
     <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
 
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="8,6">
-            <TextBlock Text="AI Assistant" FontWeight="SemiBold" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Clear" Classes="small" Command="{Binding ClearCommand}" ToolTip.Tip="Delete this connection's chat history" />
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4" Margin="8,6">
+            <!-- Conversation picker: the title of the current chat opens the list of this connection's chats. -->
+            <Button Grid.Column="0" Classes="small" Padding="8,7" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    ToolTip.Tip="Switch between this connection's chats">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                    <TextBlock Text="{Binding ChatTitle}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
+                </Grid>
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft" Opened="OnChatListOpened">
+                        <StackPanel Width="340" Spacing="4" x:DataType="vm:AiChatViewModel">
+                            <Button Content="+  New chat" Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Command="{Binding NewChatCommand}" Click="OnChatFlyoutActionClick" />
+                            <Border Height="1" Background="#40808080" />
+                            <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Chats}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AiChatListItem">
+                                            <Grid Name="ChatRow" Margin="0,1">
+                                                <TextBox Name="ChatRenameBox" Text="{Binding EditTitle, Mode=TwoWay}" IsVisible="{Binding IsEditing}"
+                                                         KeyDown="OnChatRenameKeyDown" />
+                                                <Grid IsVisible="{Binding !IsEditing}">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding !IsConfirmingDelete}">
+                                                        <Button Classes="small" Padding="8,5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                                Command="{Binding SelectCommand}" Click="OnChatFlyoutActionClick">
+                                                            <Grid ColumnDefinitions="16,*">
+                                                                <TextBlock Text="&#x2713;" IsVisible="{Binding IsCurrent}" VerticalAlignment="Center" />
+                                                                <StackPanel Grid.Column="1">
+                                                                    <TextBlock Text="{Binding Title}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Text="{Binding Subtitle}" FontSize="11" Opacity="0.6" />
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Button>
+                                                        <Button Grid.Column="1" Content="Rename" Classes="small" Padding="6,5" Command="{Binding BeginRenameCommand}" Click="OnChatRenameClick" />
+                                                        <Button Grid.Column="2" Content="Delete" Classes="small" Padding="6,5" Command="{Binding AskDeleteCommand}" />
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsConfirmingDelete}">
+                                                        <TextBlock Text="Delete this chat and its messages?" FontSize="12" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis" />
+                                                        <Button Grid.Column="1" Content="Delete" Classes="small" Padding="8,5" Foreground="IndianRed" Command="{Binding ConfirmDeleteCommand}" />
+                                                        <Button Grid.Column="2" Content="Cancel" Classes="small" Padding="8,5" Command="{Binding CancelDeleteCommand}" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+            <Button Grid.Column="1" Content="+" FontSize="16" Classes="small" Padding="10,5" Command="{Binding NewChatCommand}"
+                    ToolTip.Tip="Start a new chat" />
+            <Button Grid.Column="2" Content="Clear" Classes="small" Command="{Binding ClearCommand}" ToolTip.Tip="Delete the messages of this chat" />
         </Grid>
 
         <ScrollViewer Grid.Row="1" x:Name="MessagesScroller" HorizontalScrollBarVisibility="Disabled">
