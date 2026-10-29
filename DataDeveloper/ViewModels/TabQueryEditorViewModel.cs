@@ -158,6 +158,28 @@ public partial class TabQueryEditorViewModel : BaseTabContent
             await activeLoad.CancelLoadingAsync();
     }
 
+    /// <summary>True when there is SQL (a selection, or else the whole editor) to ask the AI assistant about.</summary>
+    public bool CanAskAi => !string.IsNullOrWhiteSpace(SelectedStatementLength > 0 ? SelectedStatement : SqlStatement);
+
+    /// <summary>Sends the selection (or the whole editor) to the connection's AI chat with a ready-made request.</summary>
+    public void AskAi(AiEditorAction action)
+    {
+        if (!CanAskAi)
+            return;
+
+        var hasSelection = SelectedStatementLength > 0;
+        var sql = hasSelection ? SelectedStatement : SqlStatement;
+        var prompt = action switch
+        {
+            AiEditorAction.Explain => "Explain what the attached SQL does, step by step, and point out anything risky or unusual.",
+            AiEditorAction.Fix => "Review the attached SQL for mistakes (syntax, wrong columns or tables, logic) and give a corrected version.",
+            _ => "Optimize the attached SQL for this database. Keep the result identical and explain each change."
+        };
+
+        _eventAggregatorService.Publish(new AskAiEvent(
+            ConnectionSettings.Id, prompt, hasSelection ? $"{Name} (selection)" : Name, sql));
+    }
+
     private async Task ExecuteQuery()
     {
         using var queryCancellationTokenSource = new CancellationTokenSource();
