@@ -133,6 +133,7 @@ public partial class TabConnectionView : UserControl
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _viewModel.QueryEditors.CollectionChanged -= OnQueryEditorsChanged;
+            _viewModel.AiChatRevealRequested -= OnAiChatRevealRequested;
         }
 
         _viewModel = DataContext as TabConnectionViewModel;
@@ -151,6 +152,17 @@ public partial class TabConnectionView : UserControl
         AiChatTools.Add(new AiChatToolItem("AI Assistant", _viewModel.AiChat));
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _viewModel.QueryEditors.CollectionChanged += OnQueryEditorsChanged;
+        _viewModel.AiChatRevealRequested += OnAiChatRevealRequested;
+    }
+
+    // A collapsed chat is shown as the rail's overlay; an open one is already in sight.
+    private void OnAiChatRevealRequested(object? sender, EventArgs e)
+    {
+        if (ConnectionDock.Factory is not { } factory || AiChatDock.VisibleDockables?.FirstOrDefault() is not { } tool)
+            return;
+
+        if (ConnectionDock.Layout is IRootDock { RightPinnedDockables.Count: > 0 })
+            factory.PreviewPinnedDockable(tool);
     }
 
     // Closing a query document must go through the view model so unsaved changes prompt the user;

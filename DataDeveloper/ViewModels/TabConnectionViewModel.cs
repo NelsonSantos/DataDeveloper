@@ -74,6 +74,17 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
             editor.ShowCursorData();
         });
 
+        _eventAggregatorService.Subscribe<AskAiEvent>(
+            this,
+            async message =>
+            {
+                AiChatRevealRequested?.Invoke(this, EventArgs.Empty);
+                await AiChat.AskAsync(
+                    message.Prompt,
+                    [AiChat.CreateTextAttachment(message.AttachmentName, message.AttachmentContent)]);
+            },
+            message => message.ConnectionId == ConnectionSettings.Id);
+
         _eventAggregatorService.Subscribe<RefreshSchemaExplorerEvent>(
             this,
             async message =>
@@ -571,6 +582,9 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
     /// <summary>Schema Explorer size and collapsed state, saved with the session.</summary>
     [Reactive] private PanelLayoutState? _schemaExplorerLayout;
     [Reactive] private PanelLayoutState? _aiChatLayout;
+
+    /// <summary>Raised when something asks the chat a question, so the view can bring the panel into sight.</summary>
+    public event EventHandler? AiChatRevealRequested;
 
     private AiChatViewModel? _aiChat;
 

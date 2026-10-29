@@ -59,7 +59,7 @@ public partial class TabQueryEditorViewModel : BaseTabContent
         CloseTabResultCommand = ReactiveCommand.CreateFromTask<BaseTabContent>(CloseTabResult);
         ShowResultCommand = ReactiveCommand.Create(() => { });
 
-        Tabs.Add(new TabMessageViewModel("Message", false, filterId: this.Id, this.ServiceProvider));
+        Tabs.Add(new TabMessageViewModel("Message", false, filterId: this.Id, this.ServiceProvider, ConnectionSettings.Id));
 
         this.WhenAnyValue(vm => vm.StatementIsRunning).Subscribe(SetEditorOperationState);
         this.WhenAnyValue(vm => vm.CursorOffSet).Subscribe(_ => ShowCursorData());
@@ -168,12 +168,14 @@ public partial class TabQueryEditorViewModel : BaseTabContent
         _eventAggregatorService.Publish(new ShowExecutionStatusEvent(true, "Executing query..."));
         await Task.Delay(100);
 
+        string? failedStatement = null;
         try
         {
             _activeStatementExecutor = _statementExecutor;
             var previousResultTabs = Tabs.OfType<TabDataGridViewModel>().ToList();
             var cleanupWatcher = Stopwatch.StartNew();
             var statementToExecute = SelectedStatementLength > 0 ? SelectedStatement : SqlStatement;
+            failedStatement = statementToExecute;
             var parameterValues = BuildParameterValuesForExecution(statementToExecute);
 
             if (previousResultTabs.Count > 0)
@@ -298,7 +300,7 @@ public partial class TabQueryEditorViewModel : BaseTabContent
         }
         catch (Exception ex)
         {
-            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, ex.Message));
+            _eventAggregatorService.Publish(new ShowResultMessageEvent(this.Id, ex.Message, failedStatement));
             this.SelectedTabIndex = 0;
         }
         finally
