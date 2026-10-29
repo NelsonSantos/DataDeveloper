@@ -52,3 +52,12 @@ Npgsql 10. O projeto está no Npgsql 9. No 10, as colunas `date` e `time` do Pos
 
 - [ ] Tratar `DateOnly` e `TimeOnly` na grade (formatação, editor, cópia, exportação e gravação na edição de dados) antes de atualizar
 - [ ] Atualizar para o Npgsql 10 e validar com os testes de integração do PostgreSQL
+
+Assistente de IA.
+
+- [ ] Idioma da resposta: com uma pergunta em inglês e tabelas com nomes em português (`teste`), o modelo respondeu em português. Reforçar a regra do prompt fixo (idioma da última mensagem, ignorando nomes de tabelas, colunas e anexos) e validar na CLI; avaliar uma configuração de idioma nas Preferências e pedidos prontos do app (Explain, Fix, Optimize, erro) no idioma da interface
+- [ ] Anexar arquivos e imagens na pasta da conexão (`ai-sessions/<id>`) com `Read` restrito, validando que a restrição se mantém
+- [ ] Avisar antes de inserir no editor um SQL destrutivo sugerido pela IA (DROP, DELETE/UPDATE sem WHERE, TRUNCATE)
+- [ ] Anexar definições de procedures, functions e views, e diagnósticos somente leitura (sessões bloqueadas, queries lentas, índices ausentes, planos) para os cinco bancos
+- [ ] Codex e Gemini CLI (PR C), anexo de imagens, janela flutuante e arrastar objetos do Schema Explorer para o chat
+- [ ] Porcentagem de uso da sessão e da semana: a CLI só informa estado e horário de reset, sem consumo

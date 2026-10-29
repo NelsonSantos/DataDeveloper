@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -68,7 +69,7 @@ public partial class PreferencesViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> TestCommand { get; }
     public ReactiveCommand<Unit, Unit> SignInCommand { get; }
 
-    public IReadOnlyList<string> ModelSuggestions { get; } = ["sonnet", "opus", "haiku"];
+    public IReadOnlyList<string> ModelSuggestions { get; } = AiChatViewModel.ModelOptions.Select(option => option.Id).ToList();
 
     public decimal MinTimeoutSeconds => AiProviderSettings.MinTimeoutSeconds;
     public decimal MaxTimeoutSeconds => AiProviderSettings.MaxTimeoutSeconds;

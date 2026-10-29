@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DataDeveloper.Views.KeyHintIcon">
+    <!-- Drawn as vectors: the glyphs for Command and Return are tiny and sit off-centre in most fonts. -->
+    <StackPanel x:Name="Root" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+        <Viewbox x:Name="CommandIcon">
+            <Canvas Width="24" Height="24">
+                <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                      Stroke="{Binding $parent[UserControl].Foreground}"
+                      Data="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+            </Canvas>
+        </Viewbox>
+        <TextBlock x:Name="CtrlText" Text="Ctrl" FontWeight="SemiBold" VerticalAlignment="Center" />
+        <Viewbox x:Name="ReturnIcon">
+            <Canvas Width="24" Height="24">
+                <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                      Stroke="{Binding $parent[UserControl].Foreground}"
+                      Data="M20 4v7a4 4 0 0 1-4 4H4 M9 10l-5 5 5 5" />
+            </Canvas>
+        </Viewbox>
+    </StackPanel>
+</UserControl>

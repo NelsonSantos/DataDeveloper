@@ -17,13 +17,16 @@ public class ConnectionSessionState
     public Guid ConnectionId { get; set; }
     public List<EditorTabState> Editors { get; set; } = new();
     public PanelLayoutState? SchemaExplorer { get; set; }
+
+    /// <summary>Null until the user first opens or resizes the AI panel; it starts collapsed.</summary>
+    public PanelLayoutState? AiChat { get; set; }
 }
 
 /// <summary>
 /// A docked panel's size (its share of the split, between 0 and 1; null keeps the default) and whether it is
-/// collapsed to the side rail.
+/// collapsed to the side rail. PinnedWidth is the width of the overlay it opens as while collapsed (null keeps the default).
 /// </summary>
-public sealed record PanelLayoutState(double? Proportion, bool IsCollapsed)
+public sealed record PanelLayoutState(double? Proportion, bool IsCollapsed, double? PinnedWidth = null)
 {
-    public bool IsDefault => Proportion is null && !IsCollapsed;
+    public bool IsDefault => Proportion is null && !IsCollapsed && PinnedWidth is null;
 }

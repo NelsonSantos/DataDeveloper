@@ -42,6 +42,19 @@ public class SqliteAiSettingsRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void SendWithModifier_DefaultsToEnterAndRoundTrips()
+    {
+        var repository = CreateRepository();
+        Assert.False(repository.LoadSendWithModifier());
+
+        repository.SaveSendWithModifier(true);
+        Assert.True(CreateRepository().LoadSendWithModifier());
+
+        repository.SaveSendWithModifier(false);
+        Assert.False(CreateRepository().LoadSendWithModifier());
+    }
+
+    [Fact]
     public void Factory_CreatesClaudeCodeProvider()
     {
         var provider = new AiProviderFactoryService(new CliProcessRunner()).Create(new AiProviderSettings());

@@ -1,0 +1,339 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:DataDeveloper.ViewModels"
+             xmlns:views="clr-namespace:DataDeveloper.Views"
+             xmlns:models="clr-namespace:DataDeveloper.Data.Models;assembly=DataDeveloper.Data"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="600"
+             MinWidth="360"
+             x:Class="DataDeveloper.Views.AiChatView"
+             x:DataType="vm:AiChatViewModel">
+
+    <UserControl.Resources>
+        <StreamGeometry x:Key="PencilIcon">M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z</StreamGeometry>
+        <StreamGeometry x:Key="TrashIcon">M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z</StreamGeometry>
+        <!-- Free-text model id, shown from the model menu. Its content gets the DataContext in code-behind. -->
+        <Flyout x:Key="CustomModelFlyout" Placement="TopEdgeAlignedLeft" Opened="OnCustomModelOpened">
+            <StackPanel Width="260" Spacing="4" x:DataType="vm:AiChatViewModel">
+                <TextBlock Text="Model id (e.g. claude-sonnet-5-5) or alias" FontSize="11" Opacity="0.6" />
+                <TextBox Text="{Binding Model, Mode=TwoWay}" Watermark="CLI default" KeyDown="OnCustomModelKeyDown" />
+                <Button Content="OK" Classes="dialog-button primary" HorizontalAlignment="Right" Click="OnCustomModelDone" />
+            </StackPanel>
+        </Flyout>
+
+        <!-- Table / view picker, shown from the "+" menu. Its content gets the DataContext in code-behind. -->
+        <Flyout x:Key="ObjectPickerFlyout" Placement="TopEdgeAlignedLeft" Opened="OnObjectPickerOpened">
+            <StackPanel Width="300" Spacing="4" x:DataType="vm:AiChatViewModel">
+                <TextBlock Text="Tables and views (click to add)" FontSize="11" Opacity="0.6" />
+                <TextBox Text="{Binding ObjectFilter, Mode=TwoWay}" Watermark="Filter..." />
+                <ListBox x:Name="ObjectList" Height="220" SelectionMode="Single"
+                         ItemsSource="{Binding ObjectChoices}" SelectionChanged="OnObjectSelected">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:DbObjectRef">
+                            <TextBlock Text="{Binding QualifiedName}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+        </Flyout>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Border.bubble">
+            <Setter Property="Margin" Value="8,4" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="#26808080" />
+        </Style>
+        <Style Selector="Border.bubble.user">
+            <Setter Property="Background" Value="#3A4C78C8" />
+        </Style>
+        <Style Selector="Border.bubble.error">
+            <Setter Property="Background" Value="#40CD5C5C" />
+        </Style>
+        <Style Selector="Border.code">
+            <Setter Property="Background" Value="#40000000" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
+        <Style Selector="TextBlock.warning">
+            <Setter Property="Foreground" Value="IndianRed" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="Button.small">
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4" Margin="8,6">
+            <!-- Conversation picker: the title of the current chat opens the list of this connection's chats. -->
+            <Button Grid.Column="0" Classes="small" Padding="8,7" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    ToolTip.Tip="Switch between this connection's chats">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                    <TextBlock Text="{Binding ChatTitle}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
+                </Grid>
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft" Opened="OnChatListOpened">
+                        <StackPanel Width="340" Spacing="4" x:DataType="vm:AiChatViewModel">
+                            <Button Content="+  New chat" Classes="small" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Command="{Binding NewChatCommand}" Click="OnChatFlyoutActionClick" />
+                            <Border Height="1" Background="#40808080" />
+                            <ScrollViewer MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Chats}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AiChatListItem">
+                                            <Grid Name="ChatRow" Margin="0,1">
+                                                <TextBox Name="ChatRenameBox" Text="{Binding EditTitle, Mode=TwoWay}" IsVisible="{Binding IsEditing}"
+                                                         KeyDown="OnChatRenameKeyDown" />
+                                                <Grid IsVisible="{Binding !IsEditing}">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding !IsConfirmingDelete}">
+                                                        <Button Classes="small" Padding="8,5" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                                Command="{Binding SelectCommand}" Click="OnChatFlyoutActionClick">
+                                                            <Grid ColumnDefinitions="16,*">
+                                                                <TextBlock Text="&#x2713;" IsVisible="{Binding IsCurrent}" VerticalAlignment="Center" />
+                                                                <StackPanel Grid.Column="1">
+                                                                    <TextBlock Text="{Binding Title}" FontSize="12" TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock Text="{Binding Subtitle}" FontSize="11" Opacity="0.6" />
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Button>
+                                                        <Button Grid.Column="1" Classes="small" Padding="6,5" Command="{Binding BeginRenameCommand}" Click="OnChatRenameClick"
+                                                                ToolTip.Tip="Rename chat">
+                                                            <PathIcon Data="{StaticResource PencilIcon}" Width="13" Height="13" />
+                                                        </Button>
+                                                        <Button Grid.Column="2" Classes="small" Padding="6,5" Command="{Binding AskDeleteCommand}"
+                                                                ToolTip.Tip="Delete chat">
+                                                            <PathIcon Data="{StaticResource TrashIcon}" Width="13" Height="13" />
+                                                        </Button>
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsConfirmingDelete}">
+                                                        <TextBlock Text="Delete this chat and its messages?" FontSize="12" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis" />
+                                                        <Button Grid.Column="1" Content="Delete" Classes="small" Padding="8,5" Foreground="IndianRed" Command="{Binding ConfirmDeleteCommand}" />
+                                                        <Button Grid.Column="2" Content="Cancel" Classes="small" Padding="8,5" Command="{Binding CancelDeleteCommand}" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+            <Button Grid.Column="1" Content="+" FontSize="16" Classes="small" Padding="10,5" Command="{Binding NewChatCommand}"
+                    ToolTip.Tip="Start a new chat" />
+            <Button Grid.Column="2" Content="Clear" Classes="small" Command="{Binding ClearCommand}" ToolTip.Tip="Delete the messages of this chat" />
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" x:Name="MessagesScroller" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiChatMessageViewModel">
+                            <Border Classes="bubble" Classes.user="{Binding IsUser}" Classes.error="{Binding IsError}">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding Author}" FontSize="11" Opacity="0.7" />
+                                    <ItemsControl ItemsSource="{Binding Segments}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AiMessageSegmentViewModel">
+                                                <Grid>
+                                                    <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" IsVisible="{Binding IsProse}" />
+                                                    <Border Classes="code" IsVisible="{Binding IsCode}">
+                                                        <StackPanel>
+                                                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                                                <TextBlock Text="{Binding Language}" FontSize="11" Opacity="0.6" VerticalAlignment="Center" />
+                                                                <Button Grid.Column="1" Content="Copy" Classes="small" Click="OnCopyCodeClick" />
+                                                                <Button Grid.Column="2" Content="Insert in editor" Classes="small"
+                                                                        IsVisible="{Binding CanInsert}"
+                                                                        Command="{Binding InsertCommand}" />
+                                                            </Grid>
+                                                            <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"
+                                                                                 FontFamily="Menlo,Consolas,Monospace" FontSize="12" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Shown over the empty message list; centred, and transparent to the mouse. -->
+        <StackPanel Grid.Row="1" Margin="20,12" Spacing="8" VerticalAlignment="Center" MaxWidth="420"
+                    IsHitTestVisible="False" IsVisible="{Binding !HasMessages}">
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.85" FontWeight="SemiBold"
+                       Text="The assistant suggests, you run." />
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
+                       Text="Nothing is ever executed on your database: answers contain scripts that you review and run yourself." />
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
+                       Text="Only the structure of the tables it needs is sent (names, columns, types), never row data. For the best answers, mention the table names in your question or add them with + > Tables / Views. Without them the assistant has to guess the columns." />
+            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
+                       Text="Ask a question, paste an error, or use the + next to the message box to add a file, the current query or tables as context. The + at the top starts a new chat." />
+        </StackPanel>
+
+
+        <ProgressBar Grid.Row="2" IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}" />
+
+        <TextBlock Grid.Row="3" Text="{Binding StatusText}" Foreground="IndianRed" FontSize="11" Margin="10,2" TextWrapping="Wrap"
+                   IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <!-- Composer: attachments, the text box and, below it, "+" (add context) and the send/stop button. -->
+        <Border Grid.Row="4" Margin="8" Padding="8,6" CornerRadius="12" BorderThickness="1"
+                BorderBrush="#50808080" Background="#18808080">
+            <StackPanel Spacing="4">
+                <ItemsControl ItemsSource="{Binding Attachments}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiAttachmentItem">
+                            <Border Background="#33808080" CornerRadius="10" Padding="8,2,2,2" Margin="0,0,4,4">
+                                <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                    <Button Content="x" Classes="small" Padding="4,0" Command="{Binding RemoveCommand}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBox x:Name="DraftBox"
+                         Text="{Binding Draft, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="48" MaxHeight="150"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Padding="2"
+                         Watermark="{Binding InputHint}">
+                    <TextBox.Resources>
+                        <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                    </TextBox.Resources>
+                </TextBox>
+
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="4">
+                    <Button Grid.Column="0" x:Name="AddButton" Content="+" FontSize="18" Padding="10,5" Classes="small"
+                            ToolTip.Tip="Add context: file, query or tables">
+                        <Button.Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedLeft">
+                                <MenuItem Header="File..." Click="OnAttachFileClick" />
+                                <MenuItem Header="Query">
+                                    <MenuItem Header="Whole query" Click="OnAttachWholeQueryClick" />
+                                    <MenuItem Header="Selection only" Click="OnAttachSelectionClick" />
+                                </MenuItem>
+                                <MenuItem Header="Tables / Views..." Click="OnPickObjectsClick" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Model picker; the items are built in code-behind when it opens. -->
+                    <Button Grid.Column="1" x:Name="ModelButton" Classes="small" FontSize="12" Padding="8,7"
+                            ToolTip.Tip="Model for this chat. Default uses the one from Preferences.">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Binding ModelLabel}" VerticalAlignment="Center" />
+                            <TextBlock Text="&#x25BE;" VerticalAlignment="Center" Opacity="0.7" />
+                        </StackPanel>
+                        <Button.Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedLeft" Opening="OnModelMenuOpening" />
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Context ring: how full the model's context is; the popover has the details and the account's usage windows. -->
+                    <Button Grid.Column="2" x:Name="UsageButton" Classes="small" Padding="8,7" HorizontalAlignment="Left"
+                            ToolTip.Tip="Context and usage">
+                        <views:UsageRing Width="16" Height="16" Fraction="{Binding ContextFraction}" IsWarning="{Binding UsageNeedsAttention}" />
+                        <Button.Flyout>
+                            <Flyout Placement="TopEdgeAlignedLeft" Opened="OnUsageOpened">
+                                <StackPanel Width="300" Spacing="8" x:DataType="vm:AiChatViewModel">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock Text="Context window" FontSize="11" Opacity="0.6" />
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding ContextFraction}" Height="6" />
+                                        <TextBlock Text="{Binding ContextText}" FontSize="12" />
+                                    </StackPanel>
+                                    <Border Height="1" Background="#40808080" />
+                                    <ItemsControl ItemsSource="{Binding UsageLimits}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AiUsageLimitItem">
+                                                <StackPanel Margin="0,0,0,6">
+                                                    <TextBlock Text="{Binding Label}" FontSize="12" />
+                                                    <TextBlock Text="{Binding Detail}" FontSize="11" Opacity="0.65" TextWrapping="Wrap"
+                                                               Classes.warning="{Binding IsWarning}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="Open usage in Claude" Classes="small" HorizontalAlignment="Left" Click="OnOpenUsageClick"
+                                            ToolTip.Tip="Percentages of your plan limits are only shown by the Claude app." />
+                                    <StackPanel Spacing="2" IsVisible="{Binding LastAnswerText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <Border Height="1" Background="#40808080" Margin="0,0,0,4" />
+                                        <TextBlock Text="{Binding LastAnswerText}" FontSize="10" Opacity="0.6" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding SessionUsageText}" FontSize="10" Opacity="0.6" TextWrapping="Wrap" />
+                                        <TextBlock Text="Prices are API-equivalent estimates reported by the CLI; a subscription is not billed for them, but the tokens count against its limits."
+                                                   FontSize="10" Opacity="0.45" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Send mode: always enabled, so the mode can be changed before there is any text to send. -->
+                    <Button Grid.Column="3" x:Name="SendModeButton" Content="&#x2699;" Classes="small" FontSize="20"
+                            ToolTip.Tip="Choose how to send: Enter or Cmd/Ctrl+Enter">
+                        <Button.Flyout>
+                            <MenuFlyout Placement="TopEdgeAlignedRight" Opened="OnSendModeMenuOpened">
+                                <MenuItem x:Name="EnterModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnEnterModeClick">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <views:KeyHintIcon ShowModifier="False" Size="13" />
+                                            <TextBlock Text="to send  (Shift+Enter for a new line)" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                                <MenuItem x:Name="ModifierModeItem" ToggleType="Radio" GroupName="SendMode" Click="OnModifierModeClick">
+                                    <MenuItem.Header>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <views:KeyHintIcon ShowModifier="True" Size="13" />
+                                            <TextBlock Text="to send  (Enter for a new line)" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </MenuItem.Header>
+                                </MenuItem>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Idle: send. Busy: the same spot becomes Stop. -->
+                    <Button Grid.Column="4" x:Name="SendButton" Classes="dialog-button primary" Padding="6,6"
+                            Command="{Binding SendCommand}" IsVisible="{Binding !IsBusy}" ToolTip.Tip="Send">
+                        <views:KeyHintIcon ShowModifier="{Binding SendWithModifier}" Size="14" />
+                    </Button>
+
+                    <Button Grid.Column="4" Command="{Binding StopCommand}" IsVisible="{Binding IsBusy}"
+                            Classes="dialog-button" Padding="14,6" ToolTip.Tip="Stop">
+                        <TextBlock Text="&#x25A0;" FontSize="13" />
+                    </Button>
+
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

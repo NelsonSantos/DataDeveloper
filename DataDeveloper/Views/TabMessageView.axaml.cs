@@ -10,4 +10,7 @@ public partial class TabMessageView : UserControl
     {
         InitializeComponent();
     }
+
+    private void OnAskAiClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
+        (DataContext as ViewModels.TabMessageViewModel)?.AskAi();
 }

@@ -509,10 +509,32 @@ public partial class TabQueryEditorView : UserControl
             return;
 
         var contextMenu = new ContextMenu();
-        contextMenu.Opening += (_, _) => UpdateActiveEditorState();
+        var askAiMenu = BuildAskAiMenu();
+        contextMenu.Opening += (_, _) =>
+        {
+            UpdateActiveEditorState();
+            askAiMenu.IsEnabled = _viewModel?.CanAskAi == true;
+        };
 
-        contextMenu.ItemsSource = BuildContextMenuItems(mainWindowViewModel);
+        contextMenu.ItemsSource = BuildContextMenuItems(mainWindowViewModel).Concat([new Separator(), askAiMenu]).ToList();
         SqlEditor.ContextMenu = contextMenu;
+    }
+
+    // The AI assistant only suggests; its answer lands in the chat panel and the user decides what to run.
+    private MenuItem BuildAskAiMenu()
+    {
+        var menu = new MenuItem { Header = "Ask _AI" };
+        menu.Items.Add(CreateAskAiItem("_Explain", AiEditorAction.Explain));
+        menu.Items.Add(CreateAskAiItem("_Fix", AiEditorAction.Fix));
+        menu.Items.Add(CreateAskAiItem("_Optimize", AiEditorAction.Optimize));
+        return menu;
+    }
+
+    private MenuItem CreateAskAiItem(string header, AiEditorAction action)
+    {
+        var item = new MenuItem { Header = header };
+        item.Click += (_, _) => _viewModel?.AskAi(action);
+        return item;
     }
 
     private static IReadOnlyList<object> BuildContextMenuItems(MainWindowViewModel viewModel)

@@ -10,5 +10,10 @@
     <Design.DataContext>
         <viewModels:TabMessageViewModel />
     </Design.DataContext>
-    <SelectableTextBlock Margin="4" Text="{Binding Message}"/>
+    <DockPanel>
+        <Button DockPanel.Dock="Top" Classes="small" Margin="4,4,4,0" HorizontalAlignment="Left"
+                Content="Ask AI about this error" IsVisible="{Binding CanAskAi}" Click="OnAskAiClick"
+                ToolTip.Tip="Send the failed statement and its error to the AI assistant" />
+        <SelectableTextBlock Margin="4" Text="{Binding Message}"/>
+    </DockPanel>
 </UserControl>
