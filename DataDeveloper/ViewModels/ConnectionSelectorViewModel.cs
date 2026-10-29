@@ -77,6 +77,8 @@ public class ConnectionSelectorViewModel : ViewModelBase
     private readonly ObservableCollection<ConnectionSettings> _allConnections = new();
     private readonly ObservableCollection<string> _availableDatabaseNames = new();
 
+    private readonly IAiConnectionCleanup? _aiConnectionCleanup;
+
     public ConnectionSelectorViewModel(
         IConnectionSettingsRepository connectionSettingsRepository,
         IConnectionGroupRepository connectionGroupRepository,
@@ -86,8 +88,10 @@ public class ConnectionSelectorViewModel : ViewModelBase
         IExportConnectionsOptionsDialogService exportConnectionsOptionsDialogService,
         DatabaseProviderFactoryService databaseProviderFactoryService,
         ISecretStore secretStore,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        IAiConnectionCleanup? aiConnectionCleanup = null)
     {
+        _aiConnectionCleanup = aiConnectionCleanup;
         _connectionSettingsRepository = connectionSettingsRepository;
         _connectionGroupRepository = connectionGroupRepository;
         _connectionGroupDialogService = connectionGroupDialogService;
@@ -273,7 +277,11 @@ public class ConnectionSelectorViewModel : ViewModelBase
 
         foreach (var connection in selectedConnections)
         {
-            await Task.Run(() => _connectionSettingsRepository.Delete(connection));
+            await Task.Run(() =>
+            {
+                _connectionSettingsRepository.Delete(connection);
+                _aiConnectionCleanup?.Forget(connection.Id);
+            });
             _allConnections.Remove(connection);
         }
 

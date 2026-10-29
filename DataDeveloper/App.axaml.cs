@@ -103,6 +103,7 @@ public partial class App : Application
             System.IO.Path.Combine(AppDataFileService.AppDataDirectory, "ai-sessions")));
         services.AddSingleton<IAiSettingsRepository, SqliteAiSettingsRepository>();
         services.AddSingleton<IAiChatHistoryRepository, SqliteAiChatHistoryRepository>();
+        services.AddSingleton<IAiConnectionCleanup, AiConnectionCleanup>();
         services.AddTransient<PreferencesViewModel>();
         services.AddTransient<IPreferencesDialogService, PreferencesDialogService>();
         services.AddTransient<StatementSplitter>();
