@@ -11,6 +11,8 @@
              x:DataType="vm:AiChatViewModel">
 
     <UserControl.Resources>
+        <StreamGeometry x:Key="PencilIcon">M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z</StreamGeometry>
+        <StreamGeometry x:Key="TrashIcon">M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z</StreamGeometry>
         <!-- Free-text model id, shown from the model menu. Its content gets the DataContext in code-behind. -->
         <Flyout x:Key="CustomModelFlyout" Placement="TopEdgeAlignedLeft" Opened="OnCustomModelOpened">
             <StackPanel Width="260" Spacing="4" x:DataType="vm:AiChatViewModel">
@@ -102,8 +104,14 @@
                                                                 </StackPanel>
                                                             </Grid>
                                                         </Button>
-                                                        <Button Grid.Column="1" Content="Rename" Classes="small" Padding="6,5" Command="{Binding BeginRenameCommand}" Click="OnChatRenameClick" />
-                                                        <Button Grid.Column="2" Content="Delete" Classes="small" Padding="6,5" Command="{Binding AskDeleteCommand}" />
+                                                        <Button Grid.Column="1" Classes="small" Padding="6,5" Command="{Binding BeginRenameCommand}" Click="OnChatRenameClick"
+                                                                ToolTip.Tip="Rename chat">
+                                                            <PathIcon Data="{StaticResource PencilIcon}" Width="13" Height="13" />
+                                                        </Button>
+                                                        <Button Grid.Column="2" Classes="small" Padding="6,5" Command="{Binding AskDeleteCommand}"
+                                                                ToolTip.Tip="Delete chat">
+                                                            <PathIcon Data="{StaticResource TrashIcon}" Width="13" Height="13" />
+                                                        </Button>
                                                     </Grid>
                                                     <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsConfirmingDelete}">
                                                         <TextBlock Text="Delete this chat and its messages?" FontSize="12" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis" />
