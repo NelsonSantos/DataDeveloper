@@ -163,9 +163,6 @@
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <TextBlock Text="{Binding UsageText}" FontSize="10" Opacity="0.55" TextWrapping="Wrap"
-                                               IsVisible="{Binding UsageText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                               ToolTip.Tip="Tokens read and written by this answer. The price is the API-equivalent value reported by the CLI; subscriptions are not billed for it but it counts against the plan limits." />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
@@ -174,15 +171,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2">
-            <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}" />
-            <TextBlock Text="{Binding RateLimitText}" FontSize="10" Margin="12,2,12,0" TextWrapping="Wrap"
-                       Opacity="0.6" Classes.warning="{Binding IsRateLimitWarning}"
-                       IsVisible="{Binding RateLimitText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                       ToolTip.Tip="Usage window of your account as reported by the Claude CLI. Percentages are only shown in the Claude app." />
-            <TextBlock Text="{Binding UsageSummary}" FontSize="10" Margin="12,0,12,2" TextWrapping="Wrap" Opacity="0.6"
-                       IsVisible="{Binding UsageSummary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        </StackPanel>
+        <ProgressBar Grid.Row="2" IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}" />
 
         <TextBlock Grid.Row="3" Text="{Binding StatusText}" Foreground="IndianRed" FontSize="11" Margin="10,2" TextWrapping="Wrap"
                    IsVisible="{Binding StatusText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -252,6 +241,44 @@
                         </StackPanel>
                         <Button.Flyout>
                             <MenuFlyout Placement="TopEdgeAlignedLeft" Opening="OnModelMenuOpening" />
+                        </Button.Flyout>
+                    </Button>
+
+                    <!-- Context ring: how full the model's context is; the popover has the details and the account's usage windows. -->
+                    <Button Grid.Column="2" x:Name="UsageButton" Classes="small" Padding="8,7" HorizontalAlignment="Left"
+                            ToolTip.Tip="Context and usage">
+                        <views:UsageRing Width="16" Height="16" Fraction="{Binding ContextFraction}" IsWarning="{Binding UsageNeedsAttention}" />
+                        <Button.Flyout>
+                            <Flyout Placement="TopEdgeAlignedLeft" Opened="OnUsageOpened">
+                                <StackPanel Width="300" Spacing="8" x:DataType="vm:AiChatViewModel">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock Text="Context window" FontSize="11" Opacity="0.6" />
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding ContextFraction}" Height="6" />
+                                        <TextBlock Text="{Binding ContextText}" FontSize="12" />
+                                    </StackPanel>
+                                    <Border Height="1" Background="#40808080" />
+                                    <ItemsControl ItemsSource="{Binding UsageLimits}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:AiUsageLimitItem">
+                                                <StackPanel Margin="0,0,0,6">
+                                                    <TextBlock Text="{Binding Label}" FontSize="12" />
+                                                    <TextBlock Text="{Binding Detail}" FontSize="11" Opacity="0.65" TextWrapping="Wrap"
+                                                               Classes.warning="{Binding IsWarning}" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Content="Open usage in Claude" Classes="small" HorizontalAlignment="Left" Click="OnOpenUsageClick"
+                                            ToolTip.Tip="Percentages of your plan limits are only shown by the Claude app." />
+                                    <StackPanel Spacing="2" IsVisible="{Binding LastAnswerText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <Border Height="1" Background="#40808080" Margin="0,0,0,4" />
+                                        <TextBlock Text="{Binding LastAnswerText}" FontSize="10" Opacity="0.6" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding SessionUsageText}" FontSize="10" Opacity="0.6" TextWrapping="Wrap" />
+                                        <TextBlock Text="Prices are API-equivalent estimates reported by the CLI; a subscription is not billed for them, but the tokens count against its limits."
+                                                   FontSize="10" Opacity="0.45" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Flyout>
                         </Button.Flyout>
                     </Button>
 

@@ -238,6 +238,21 @@ public class ClaudeCodeAiProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task SendMessage_NamesTheModelThatDidTheWorkAndItsContextWindow()
+    {
+        // The CLI also runs a small model for housekeeping, which must not be mistaken for the answering model.
+        const string output = """
+            {"type":"result","is_error":false,"result":"ok","usage":{"input_tokens":5,"output_tokens":5},"modelUsage":{"claude-haiku-4-5":{"inputTokens":300,"outputTokens":20,"contextWindow":200000},"claude-sonnet-5":{"inputTokens":9000,"outputTokens":400,"contextWindow":1000000}}}
+            """;
+
+        var response = await CreateProvider(new FakeRunner(new CliProcessResult(true, 0, output, string.Empty, false)))
+            .SendMessageAsync(new AiChatRequest("hi"));
+
+        Assert.Equal("claude-sonnet-5", response.Usage!.Model);
+        Assert.Equal(1_000_000, response.Usage.ContextWindow);
+    }
+
+    [Fact]
     public async Task SendMessage_KeepsTheLatestStateOfEachUsageWindow()
     {
         const string output = """

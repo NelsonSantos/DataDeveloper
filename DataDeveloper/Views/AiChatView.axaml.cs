@@ -165,6 +165,19 @@ public partial class AiChatView : UserControl
             flyout.Hide();
     }
 
+    private void OnUsageOpened(object? sender, EventArgs e)
+    {
+        // Flyout content lives outside this control's tree, so it doesn't inherit the DataContext.
+        if (sender is Flyout { Content: Control content })
+            content.DataContext = _viewModel;
+    }
+
+    private async void OnOpenUsageClick(object? sender, RoutedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is { } topLevel)
+            await topLevel.Launcher.LaunchUriAsync(new Uri("https://claude.ai/settings/usage"));
+    }
+
     private void OnChatListOpened(object? sender, EventArgs e)
     {
         if (_viewModel is null)

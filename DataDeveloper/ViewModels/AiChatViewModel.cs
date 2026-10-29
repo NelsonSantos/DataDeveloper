@@ -36,6 +36,8 @@ public partial class AiChatViewModel : ViewModelBase
     private IReadOnlyList<DbObjectRef> _allObjects = [];
     private CancellationTokenSource? _cancellation;
     private AiUsage? _sessionUsage;
+    private AiUsage? _lastUsage;
+    private long? _contextWindow;
     private readonly Dictionary<string, AiRateLimit> _rateLimits = new(StringComparer.OrdinalIgnoreCase);
 
     public AiChatViewModel(
@@ -123,20 +125,32 @@ public partial class AiChatViewModel : ViewModelBase
 
     public bool HasMessages => Messages.Count > 0;
 
+    /// <summary>The account's usage windows as last reported by the CLI; the CLI gives their state and reset time, not a percentage.</summary>
+    public ObservableCollection<AiUsageLimitItem> UsageLimits { get; } = [];
+
+    private const string NoUsageYet = "Appears after the first answer.";
+    private const double ContextWarningFraction = 0.8;
+
     [Reactive] private string _draft = string.Empty;
     [Reactive] private bool _isBusy;
     [Reactive] private string _statusText = string.Empty;
     [Reactive] private string _model = string.Empty;
     [Reactive] private string _objectFilter = string.Empty;
 
+    /// <summary>How full the model's context is for this chat, 0 to 1; drives the ring next to the model button.</summary>
+    [Reactive] private double _contextFraction;
+
+    /// <summary>"35.1k / 1.0M · 3%", or a hint until the first answer reports it.</summary>
+    [Reactive] private string _contextText = NoUsageYet;
+
+    /// <summary>True when a usage window is not "allowed", extra usage is being spent or the context is nearly full.</summary>
+    [Reactive] private bool _usageNeedsAttention;
+
+    /// <summary>What the latest answer consumed, empty until the first answer.</summary>
+    [Reactive] private string _lastAnswerText = string.Empty;
+
     /// <summary>What the answers of this session consumed so far, empty until the first answer.</summary>
-    [Reactive] private string _usageSummary = string.Empty;
-
-    /// <summary>State of the account's usage windows as last reported by the CLI ("Session (5h): ok · resets 7:00 PM").</summary>
-    [Reactive] private string _rateLimitText = string.Empty;
-
-    /// <summary>True when a usage window is not "allowed" or extra usage is being spent, so the text should stand out.</summary>
-    [Reactive] private bool _isRateLimitWarning;
+    [Reactive] private string _sessionUsageText = string.Empty;
 
     /// <summary>Title of the conversation being shown ("New chat" until its first question names it).</summary>
     [Reactive] private string _chatTitle = AiChatTitles.Default;
@@ -298,6 +312,10 @@ public partial class AiChatViewModel : ViewModelBase
         Attachments.Clear();
         StatusText = string.Empty;
 
+        // The context belongs to the conversation, so it starts over until the next answer reports it.
+        _lastUsage = null;
+        RefreshUsage();
+
         if (chat is not null)
         {
             foreach (var message in _historyRepository.LoadMessages(chat.Id, MaxLoadedMessages))
@@ -410,8 +428,7 @@ public partial class AiChatViewModel : ViewModelBase
             RecordUsage(response);
 
             if (response.Success)
-                AddMessage(new AiChatMessage(AiChatRole.Assistant, response.Content, DateTime.UtcNow), persist: true,
-                    response.Usage is { } usage ? AiUsageFormatter.Describe(usage) : null);
+                AddMessage(new AiChatMessage(AiChatRole.Assistant, response.Content, DateTime.UtcNow), persist: true);
             else
                 AddError($"{response.ErrorMessage} (Check Preferences > AI Assistant.)");
         }
@@ -442,27 +459,64 @@ public partial class AiChatViewModel : ViewModelBase
         RefreshChats();
     }
 
-    // Keeps the running total of the session and the latest state of each usage window the CLI reported.
+    // Keeps the running total of the session, the size of the context and the latest state of each usage window the CLI reported.
     private void RecordUsage(AiChatResponse response)
     {
         if (response.Usage is { } usage)
         {
             _sessionUsage = _sessionUsage is null ? usage : _sessionUsage.Add(usage);
-            UsageSummary = "This session: " + AiUsageFormatter.Describe(_sessionUsage);
+            _lastUsage = usage;
+            _contextWindow = usage.ContextWindow ?? _contextWindow;
         }
 
         if (response.RateLimits is { Count: > 0 } limits)
         {
             foreach (var limit in limits)
                 _rateLimits[limit.WindowType ?? string.Empty] = limit;
-
-            var now = DateTime.Now;
-            RateLimitText = string.Join("   ", _rateLimits.Values.OrderBy(l => l.WindowType).Select(l => AiUsageFormatter.DescribeRateLimit(l, now)));
-            IsRateLimitWarning = _rateLimits.Values.Any(l => !l.IsAllowed || l.IsUsingOverage);
         }
+
+        RefreshUsage();
     }
 
-    private void AddMessage(AiChatMessage message, bool persist, string? usageText = null)
+    private void RefreshUsage()
+    {
+        if (_lastUsage is { } last)
+        {
+            ContextFraction = AiUsageFormatter.ContextFraction(last.ContextTokens, _contextWindow);
+            ContextText = _contextWindow is { } window
+                ? AiUsageFormatter.DescribeContext(last.ContextTokens, window)
+                : $"{AiUsageFormatter.FormatTokens(last.ContextTokens)} tokens";
+            LastAnswerText = "Last answer: " + AiUsageFormatter.Describe(last);
+        }
+        else
+        {
+            ContextFraction = 0;
+            ContextText = NoUsageYet;
+            LastAnswerText = string.Empty;
+        }
+
+        SessionUsageText = _sessionUsage is { } session ? "This session: " + AiUsageFormatter.Describe(session) : string.Empty;
+
+        var now = DateTime.Now;
+        UsageLimits.Clear();
+        AddLimitRow("five_hour", now);
+        AddLimitRow("seven_day", now);
+        foreach (var other in _rateLimits.Values.Where(l => l.WindowType is not ("five_hour" or "seven_day")).OrderBy(l => l.WindowType))
+            UsageLimits.Add(new AiUsageLimitItem(AiUsageFormatter.DescribeWindow(other.WindowType), AiUsageFormatter.DescribeRateLimitState(other, now), !other.IsAllowed || other.IsUsingOverage));
+
+        UsageNeedsAttention = ContextFraction >= ContextWarningFraction || UsageLimits.Any(l => l.IsWarning);
+    }
+
+    private void AddLimitRow(string windowType, DateTime now)
+    {
+        var label = AiUsageFormatter.DescribeWindow(windowType);
+        if (_rateLimits.TryGetValue(windowType, out var limit))
+            UsageLimits.Add(new AiUsageLimitItem(label, AiUsageFormatter.DescribeRateLimitState(limit, now), !limit.IsAllowed || limit.IsUsingOverage));
+        else
+            UsageLimits.Add(new AiUsageLimitItem(label, _rateLimits.Count == 0 ? NoUsageYet : "Not reported by the CLI.", false));
+    }
+
+    private void AddMessage(AiChatMessage message, bool persist)
     {
         _history.Add(message);
         if (persist)
@@ -471,7 +525,7 @@ public partial class AiChatViewModel : ViewModelBase
             _historyRepository.Append(_chatId.Value, message);
         }
 
-        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode, usageText));
+        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
         this.RaisePropertyChanged(nameof(HasMessages));
     }
 

@@ -24,11 +24,13 @@ public static class AiUsageFormatter
         return string.Join(" · ", parts);
     }
 
-    /// <summary>"Session (5h): ok · resets 7:00 PM"; a window that is not "allowed" is spelled out so it stands out.</summary>
-    public static string DescribeRateLimit(AiRateLimit limit, DateTime nowLocal)
+    public static string DescribeRateLimit(AiRateLimit limit, DateTime nowLocal) =>
+        $"{DescribeWindow(limit.WindowType)}: {DescribeRateLimitState(limit, nowLocal)}";
+
+    /// <summary>"within the limit · resets Thu 12:00 AM"; a window that is not "allowed" is spelled out so it stands out.</summary>
+    public static string DescribeRateLimitState(AiRateLimit limit, DateTime nowLocal)
     {
-        var state = limit.IsAllowed ? "ok" : limit.Status.Replace('_', ' ');
-        var text = $"{DescribeWindow(limit.WindowType)}: {state}";
+        var text = limit.IsAllowed ? "within the limit" : limit.Status.Replace('_', ' ');
 
         if (limit.IsUsingOverage)
             text += " · using extra usage";
@@ -41,6 +43,18 @@ public static class AiUsageFormatter
         }
 
         return text;
+    }
+
+    /// <summary>Share of the context window in use, 0 to 1; 0 while the window is unknown.</summary>
+    public static double ContextFraction(long usedTokens, long? window) =>
+        window is > 0 ? Math.Clamp(usedTokens / (double)window.Value, 0, 1) : 0;
+
+    /// <summary>"35.1k / 1.0M · 3%".</summary>
+    public static string DescribeContext(long usedTokens, long window)
+    {
+        var percent = ContextFraction(usedTokens, window) * 100;
+        var text = percent > 0 && percent < 1 ? "<1%" : $"{percent:0}%";
+        return $"{FormatTokens(usedTokens)} / {FormatTokens(window)} · {text}";
     }
 
     public static string DescribeWindow(string? windowType) => windowType?.ToLowerInvariant() switch

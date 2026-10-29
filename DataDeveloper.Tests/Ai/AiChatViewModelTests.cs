@@ -41,25 +41,34 @@ public class AiChatViewModelTests : IDisposable
             new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
     }
 
+    private const string AnswerWithUsage = """
+        {"type":"rate_limit_event","rate_limit_info":{"status":"allowed","resetsAt":1793242800,"rateLimitType":"five_hour"}}
+        {"type":"result","is_error":false,"result":"use a join","total_cost_usd":0.01,"usage":{"input_tokens":1000,"cache_read_input_tokens":99000,"cache_creation_input_tokens":0,"output_tokens":0},"modelUsage":{"claude-sonnet-5":{"inputTokens":1000,"cacheReadInputTokens":99000,"outputTokens":0,"contextWindow":1000000}}}
+        """;
+
     [Fact]
-    public async Task Ask_ShowsUsagePerAnswerAndSessionTotalAndRateLimit()
+    public async Task Ask_FillsTheContextRingAndTheUsagePopover()
     {
-        const string answer = """
-            {"type":"rate_limit_event","rate_limit_info":{"status":"allowed","resetsAt":1793242800,"rateLimitType":"five_hour"}}
-            {"type":"result","is_error":false,"result":"use a join","total_cost_usd":0.01,"usage":{"input_tokens":100,"cache_read_input_tokens":900,"cache_creation_input_tokens":0,"output_tokens":50}}
-            """;
-        _runner.Answer(answer);
-        _runner.Answer(answer);
+        _runner.Answer(AnswerWithUsage);
+        _runner.Answer(AnswerWithUsage);
         var viewModel = CreateViewModel();
+
+        Assert.Equal(0, viewModel.ContextFraction);
+        Assert.Equal(2, viewModel.UsageLimits.Count);
 
         await viewModel.AskAsync("first");
         await viewModel.AskAsync("second");
 
-        Assert.Null(viewModel.Messages[0].UsageText);
-        Assert.Equal("1.0k in (900 cached) \u00B7 50 out \u00B7 \u2248 $0.01", viewModel.Messages[1].UsageText);
-        Assert.Equal("This session: 2.0k in (1.8k cached) \u00B7 100 out \u00B7 \u2248 $0.02", viewModel.UsageSummary);
-        Assert.StartsWith("Session (5h): ok", viewModel.RateLimitText);
-        Assert.False(viewModel.IsRateLimitWarning);
+        Assert.Equal(0.1, viewModel.ContextFraction, 3);
+        Assert.Equal("100k / 1.0M \u00B7 10%", viewModel.ContextText);
+        Assert.False(viewModel.UsageNeedsAttention);
+
+        Assert.Equal(["Session (5h)", "Weekly"], viewModel.UsageLimits.Select(l => l.Label));
+        Assert.StartsWith("within the limit", viewModel.UsageLimits[0].Detail);
+        Assert.Equal("Not reported by the CLI.", viewModel.UsageLimits[1].Detail);
+
+        Assert.StartsWith("Last answer: claude-sonnet-5 \u00B7 100k in (99.0k cached)", viewModel.LastAnswerText);
+        Assert.StartsWith("This session: claude-sonnet-5 \u00B7 200k in", viewModel.SessionUsageText);
     }
 
     [Fact]
@@ -73,8 +82,24 @@ public class AiChatViewModelTests : IDisposable
 
         await viewModel.AskAsync("hello");
 
-        Assert.True(viewModel.IsRateLimitWarning);
-        Assert.Contains("rejected", viewModel.RateLimitText);
+        Assert.True(viewModel.UsageNeedsAttention);
+        Assert.True(viewModel.UsageLimits[0].IsWarning);
+        Assert.Contains("rejected", viewModel.UsageLimits[0].Detail);
+    }
+
+    [Fact]
+    public async Task NewChat_ResetsTheContextButKeepsTheSessionTotal()
+    {
+        _runner.Answer(AnswerWithUsage);
+        var viewModel = CreateViewModel();
+        await viewModel.AskAsync("first");
+
+        viewModel.NewChatCommand.Execute().Subscribe();
+
+        Assert.Equal(0, viewModel.ContextFraction);
+        Assert.Equal("Appears after the first answer.", viewModel.ContextText);
+        Assert.Empty(viewModel.LastAnswerText);
+        Assert.StartsWith("This session:", viewModel.SessionUsageText);
     }
 
     [Fact]

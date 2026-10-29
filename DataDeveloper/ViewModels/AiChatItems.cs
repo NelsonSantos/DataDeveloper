@@ -31,12 +31,11 @@ public sealed class AiMessageSegmentViewModel : ViewModelBase
 
 public sealed class AiChatMessageViewModel : ViewModelBase
 {
-    public AiChatMessageViewModel(AiChatRole role, string content, bool isError, Action<string>? insert, string? usageText = null)
+    public AiChatMessageViewModel(AiChatRole role, string content, bool isError, Action<string>? insert)
     {
         Role = role;
         Content = content;
         IsError = isError;
-        UsageText = usageText;
         Segments = role == AiChatRole.Assistant && !isError
             ? AiMessageSegments.Parse(content).Select(segment => new AiMessageSegmentViewModel(segment, insert)).ToList()
             : [new AiMessageSegmentViewModel(new AiMessageSegment(false, content), insert)];
@@ -45,14 +44,14 @@ public sealed class AiChatMessageViewModel : ViewModelBase
     public AiChatRole Role { get; }
     public string Content { get; }
     public bool IsError { get; }
-
-    /// <summary>What this answer consumed ("1.2k in (900 cached) · 340 out"); null for messages loaded from history.</summary>
-    public string? UsageText { get; }
     public bool IsUser => Role == AiChatRole.User;
     public bool IsAssistant => Role == AiChatRole.Assistant && !IsError;
     public string Author => IsUser ? "You" : IsError ? "Assistant (error)" : "Assistant";
     public System.Collections.Generic.IReadOnlyList<AiMessageSegmentViewModel> Segments { get; }
 }
+
+/// <summary>One usage window of the account ("Session (5h)") as listed in the usage popover.</summary>
+public sealed record AiUsageLimitItem(string Label, string Detail, bool IsWarning);
 
 /// <summary>Something added to the next message: the text of a file, the current query, or a database object.</summary>
 public sealed class AiAttachmentItem : ViewModelBase

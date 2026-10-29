@@ -34,9 +34,13 @@ public sealed record AiUsage(
     long CacheCreationTokens,
     long OutputTokens,
     decimal? CostUsd = null,
-    string? Model = null)
+    string? Model = null,
+    long? ContextWindow = null)
 {
     public long TotalInputTokens => InputTokens + CacheReadTokens + CacheCreationTokens;
+
+    /// <summary>How much of the model's context the call filled: everything it read plus what it wrote.</summary>
+    public long ContextTokens => TotalInputTokens + OutputTokens;
 
     public AiUsage Add(AiUsage other) => new(
         InputTokens + other.InputTokens,
@@ -44,7 +48,8 @@ public sealed record AiUsage(
         CacheCreationTokens + other.CacheCreationTokens,
         OutputTokens + other.OutputTokens,
         CostUsd is null && other.CostUsd is null ? null : (CostUsd ?? 0) + (other.CostUsd ?? 0),
-        Model == other.Model ? Model : null);
+        Model == other.Model ? Model : null,
+        other.ContextWindow ?? ContextWindow);
 }
 
 /// <summary>State of one of the account's usage windows as reported by the CLI (for example the 5 hour session).</summary>

@@ -125,9 +125,24 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
             ? amount
             : null;
 
+        // The CLI may also run a small model for housekeeping (a summary of the turn), so modelUsage can list several
+        // models; the one that did the most work is the one that answered.
         string? model = null;
+        long? contextWindow = null;
         if (result.TryGetProperty("modelUsage", out var models) && models.ValueKind == JsonValueKind.Object)
-            model = models.EnumerateObject().Select(property => property.Name).FirstOrDefault();
+        {
+            var main = models.EnumerateObject()
+                .Where(property => property.Value.ValueKind == JsonValueKind.Object)
+                .OrderByDescending(property => ReadLong(property.Value, "inputTokens") + ReadLong(property.Value, "cacheReadInputTokens") +
+                                               ReadLong(property.Value, "cacheCreationInputTokens") + ReadLong(property.Value, "outputTokens"))
+                .Cast<JsonProperty?>()
+                .FirstOrDefault();
+            if (main is { } found)
+            {
+                model = found.Name;
+                contextWindow = ReadLong(found.Value, "contextWindow") is > 0 and var window ? window : null;
+            }
+        }
 
         return new AiUsage(
             ReadLong(usage, "input_tokens"),
@@ -135,7 +150,8 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
             ReadLong(usage, "cache_creation_input_tokens"),
             ReadLong(usage, "output_tokens"),
             cost,
-            model);
+            model,
+            contextWindow);
     }
 
     private static AiRateLimit? ReadRateLimit(JsonElement eventElement)

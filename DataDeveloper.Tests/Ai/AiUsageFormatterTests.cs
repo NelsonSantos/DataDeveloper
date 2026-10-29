@@ -51,7 +51,7 @@ public class AiUsageFormatterTests
 
         var text = AiUsageFormatter.DescribeRateLimit(new AiRateLimit("allowed", resets, "five_hour"), now);
 
-        Assert.StartsWith("Session (5h): ok \u00B7 resets ", text);
+        Assert.StartsWith("Session (5h): within the limit \u00B7 resets ", text);
     }
 
     [Fact]
@@ -60,5 +60,19 @@ public class AiUsageFormatterTests
         var text = AiUsageFormatter.DescribeRateLimit(new AiRateLimit("rejected", null, "seven_day", IsUsingOverage: true), DateTime.Now);
 
         Assert.Equal("Weekly: rejected \u00B7 using extra usage", text);
+    }
+
+    [Theory]
+    [InlineData(35_100, 1_000_000, "35.1k / 1.0M \u00B7 4%")]
+    [InlineData(500, 1_000_000, "500 / 1.0M \u00B7 <1%")]
+    [InlineData(258_400, 258_400, "258k / 258k \u00B7 100%")]
+    public void DescribeContext_ShowsUsedWindowAndPercent(long used, long window, string expected) =>
+        Assert.Equal(expected, AiUsageFormatter.DescribeContext(used, window));
+
+    [Fact]
+    public void ContextFraction_IsZeroWithoutAWindowAndNeverAboveOne()
+    {
+        Assert.Equal(0, AiUsageFormatter.ContextFraction(500, null));
+        Assert.Equal(1, AiUsageFormatter.ContextFraction(5_000, 1_000));
     }
 }
