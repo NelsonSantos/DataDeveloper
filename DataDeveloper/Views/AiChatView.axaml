@@ -179,7 +179,7 @@
             <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
                        Text="Nothing is ever executed on your database: answers contain scripts that you review and run yourself." />
             <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
-                       Text="Only the structure of the relevant tables is sent (names, columns, types), never row data." />
+                       Text="Only the structure of the tables it needs is sent (names, columns, types), never row data. For the best answers, mention the table names in your question or add them with + > Tables / Views. Without them the assistant has to guess the columns." />
             <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.65"
                        Text="Ask a question, paste an error, or use the + next to the message box to add a file, the current query or tables as context. The + at the top starts a new chat." />
         </StackPanel>

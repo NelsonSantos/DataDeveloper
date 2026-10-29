@@ -39,6 +39,22 @@ public class AiSqlContextBuilderTests
         Assert.DoesNotContain("Table dbo.Orders:", prompt);
     }
 
+    [Theory]
+    [InlineData(DatabaseType.SqlServer)]
+    [InlineData(DatabaseType.PostgresSql)]
+    [InlineData(DatabaseType.Oracle)]
+    [InlineData(DatabaseType.MySql)]
+    [InlineData(DatabaseType.SqLite)]
+    public async Task StablePrompt_TellsTheModelToAskForTablesInsteadOfGuessingColumns(DatabaseType databaseType)
+    {
+        var builder = new AiSqlContextBuilder(CreateSource(), databaseType);
+
+        var prompt = await builder.BuildStableSystemPromptAsync();
+
+        Assert.Contains("do not guess them", prompt);
+        Assert.Contains("Tables / Views", prompt);
+    }
+
     [Fact]
     public async Task Prompt_DescribesObjectsMentionedInTheText()
     {

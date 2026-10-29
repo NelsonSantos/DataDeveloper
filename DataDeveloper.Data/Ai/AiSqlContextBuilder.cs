@@ -83,6 +83,7 @@ public sealed partial class AiSqlContextBuilder
         builder.AppendLine($"You are an assistant inside Data Developer, a SQL client. The connected database is {DatabaseName(_databaseType)}; write SQL in that dialect.");
         builder.AppendLine("Be concise. Put every SQL script in a ```sql fenced block. Answer in the language of the user's message.");
         builder.AppendLine("Use only the objects and columns listed below; if you need something that is not listed, say so instead of guessing.");
+        builder.AppendLine("Columns are known only for objects described under \"Structure of the objects relevant to this message\" in the conversation. If the request needs the columns of a table that was never described, do not guess them: ask which tables to use and tell the user to mention their names or add them with + > Tables / Views.");
         builder.AppendLine("You cannot run anything: the user reviews and runs scripts themselves.");
 
         IReadOnlyList<DbObjectRef> objects;
