@@ -76,7 +76,8 @@ public partial class TabConnectionView : UserControl
 
         _schemaExplorerLayout = ToolDockLayoutBinding.Attach(
             factory, root, SchemaTools, QueryDocuments, viewModel.SchemaExplorerLayout,
-            layout => viewModel.SchemaExplorerLayout = layout);
+            layout => viewModel.SchemaExplorerLayout = layout,
+            new ToolDockLayoutBinding.PinnedWidthOptions(SchemaExplorerPinnedWidth, MinimumUsableSchemaExplorerWidth, () => ConnectionDock.Bounds.Height));
     }
 
     // The AI chat starts collapsed to the right rail; once the user opens or resizes it the saved state wins.
@@ -89,9 +90,8 @@ public partial class TabConnectionView : UserControl
 
         _aiChatLayout = ToolDockLayoutBinding.Attach(
             factory, root, AiChatDock, null, viewModel.AiChatLayout ?? new PanelLayoutState(null, true),
-            layout => viewModel.AiChatLayout = layout);
-
-        GiveAiChatPinnedWidth(root);
+            layout => viewModel.AiChatLayout = layout,
+            new ToolDockLayoutBinding.PinnedWidthOptions(AiChatPinnedWidth, MinimumUsableAiChatWidth, () => ConnectionDock.Bounds.Height));
 
         // With both side panels open the documents get what is left of the row.
         if (viewModel.AiChatLayout is { IsCollapsed: false, Proportion: { } chat } &&
@@ -104,20 +104,8 @@ public partial class TabConnectionView : UserControl
 
     private const double AiChatPinnedWidth = 440;
     private const double MinimumUsableAiChatWidth = 360;
-
-    // A tool pinned before it was ever laid out has no stored size, and Dock then opens its overlay a few dozen pixels
-    // wide. Give it a usable width; a size the user already dragged it to is kept.
-    private void GiveAiChatPinnedWidth(IRootDock root)
-    {
-        var height = Math.Max(ConnectionDock.Bounds.Height, 400);
-        foreach (var tool in root.RightPinnedDockables ?? [])
-        {
-            tool.GetPinnedBounds(out _, out _, out var width, out var currentHeight);
-            // An unset size is NaN, and every comparison with NaN is false, so test for "usable" rather than "too small".
-            if (!(width >= MinimumUsableAiChatWidth) || !(currentHeight > 0))
-                tool.SetPinnedBounds(0, 0, AiChatPinnedWidth, height);
-        }
-    }
+    private const double SchemaExplorerPinnedWidth = 320;
+    private const double MinimumUsableSchemaExplorerWidth = 240;
 
     /// <summary>Items for the AI chat tool dock (a single tool bound to this connection's chat).</summary>
     public ObservableCollection<AiChatToolItem> AiChatTools { get; } = new();
@@ -134,6 +122,7 @@ public partial class TabConnectionView : UserControl
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _viewModel.QueryEditors.CollectionChanged -= OnQueryEditorsChanged;
             _viewModel.AiChatRevealRequested -= OnAiChatRevealRequested;
+            _viewModel.CaptureLayouts = null;
         }
 
         _viewModel = DataContext as TabConnectionViewModel;
@@ -153,7 +142,25 @@ public partial class TabConnectionView : UserControl
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _viewModel.QueryEditors.CollectionChanged += OnQueryEditorsChanged;
         _viewModel.AiChatRevealRequested += OnAiChatRevealRequested;
+        _viewModel.CaptureLayouts = CaptureSidePanelLayouts;
     }
+
+    private void CaptureSidePanelLayouts()
+    {
+        if (_viewModel is null)
+            return;
+
+        // Only the overlay width is taken over, so a panel the user never touched still counts as default.
+        if (_schemaExplorerLayout is not null)
+            _viewModel.SchemaExplorerLayout = WithPinnedWidth(_viewModel.SchemaExplorerLayout, _schemaExplorerLayout.Current);
+        if (_aiChatLayout is not null)
+            _viewModel.AiChatLayout = WithPinnedWidth(_viewModel.AiChatLayout, _aiChatLayout.Current);
+    }
+
+    private static PanelLayoutState? WithPinnedWidth(PanelLayoutState? saved, PanelLayoutState current) =>
+        saved?.PinnedWidth == current.PinnedWidth
+            ? saved
+            : (saved ?? new PanelLayoutState(null, false)) with { PinnedWidth = current.PinnedWidth };
 
     // A collapsed chat is shown as the rail's overlay; an open one is already in sight.
     private void OnAiChatRevealRequested(object? sender, EventArgs e)

@@ -82,6 +82,60 @@ public class ToolDockLayoutBindingTests
         Assert.Empty(layout.Changes);
     }
 
+    private static readonly ToolDockLayoutBinding.PinnedWidthOptions Width = new(320, 240, () => 600);
+
+    private static double PinnedWidthOf(Tool tool)
+    {
+        tool.GetPinnedBounds(out _, out _, out var width, out _);
+        return width;
+    }
+
+    [AvaloniaFact]
+    public void Attach_GivesACollapsedDockADefaultOverlayWidth_WhenNothingIsSaved()
+    {
+        var layout = CreateLayout();
+
+        using var binding = layout.Attach(new PanelLayoutState(null, true), Width);
+
+        Assert.Equal(320, PinnedWidthOf(layout.Tool));
+        Assert.Null(binding.Current.PinnedWidth);
+    }
+
+    [AvaloniaFact]
+    public void Attach_RestoresTheSavedOverlayWidth()
+    {
+        var layout = CreateLayout();
+
+        using var binding = layout.Attach(new PanelLayoutState(null, true, 500), Width);
+
+        Assert.Equal(500, PinnedWidthOf(layout.Tool));
+        Assert.Equal(500, binding.Current.PinnedWidth);
+    }
+
+    [AvaloniaFact]
+    public void CollapsingLater_GivesTheOverlayTheDefaultWidth()
+    {
+        var layout = CreateLayout();
+        using var binding = layout.Attach(null, Width);
+
+        layout.Factory.PinDockable(layout.Tool);
+
+        Assert.Equal(320, PinnedWidthOf(layout.Tool));
+    }
+
+    [AvaloniaFact]
+    public void Current_ReportsAnOverlayWidthTheUserDraggedTo_ButNotTheDefault()
+    {
+        var layout = CreateLayout();
+        using var binding = layout.Attach(new PanelLayoutState(null, true), Width);
+
+        Assert.Null(binding.Current.PinnedWidth);
+
+        layout.Tool.SetPinnedBounds(0, 0, 450, 600);
+
+        Assert.Equal(450, binding.Current.PinnedWidth);
+    }
+
     private static TestLayout CreateLayout()
     {
         var factory = new Factory();
@@ -98,7 +152,7 @@ public class ToolDockLayoutBindingTests
     {
         public List<PanelLayoutState> Changes { get; } = new();
 
-        public ToolDockLayoutBinding Attach(PanelLayoutState? saved) =>
-            ToolDockLayoutBinding.Attach(Factory, Root, Tools, Documents, saved, Changes.Add);
+        public ToolDockLayoutBinding Attach(PanelLayoutState? saved, ToolDockLayoutBinding.PinnedWidthOptions? width = null) =>
+            ToolDockLayoutBinding.Attach(Factory, Root, Tools, Documents, saved, Changes.Add, width);
     }
 }

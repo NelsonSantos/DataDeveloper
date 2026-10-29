@@ -20,14 +20,28 @@ public sealed class ToolDockLayoutBinding : IDisposable
     private readonly IRootDock _root;
     private readonly DockableBase _toolDock;
     private readonly Action<PanelLayoutState> _changed;
+    private readonly PinnedWidthOptions? _pinnedWidth;
+    private readonly List<DockableBase> _tools;
 
-    private ToolDockLayoutBinding(IFactory factory, IRootDock root, DockableBase toolDock, Action<PanelLayoutState> changed)
+    private ToolDockLayoutBinding(
+        IFactory factory, IRootDock root, DockableBase toolDock, Action<PanelLayoutState> changed, PinnedWidthOptions? pinnedWidth,
+        List<DockableBase> tools)
     {
         _factory = factory;
         _root = root;
         _toolDock = toolDock;
         _changed = changed;
+        _pinnedWidth = pinnedWidth;
+        _tools = tools;
     }
+
+    /// <summary>
+    /// Makes the overlay a collapsed dock opens as remember its width. A tool pinned before it was ever laid out has no
+    /// stored size and Dock then opens its overlay a few dozen pixels wide, so an unset or too narrow one gets
+    /// <see cref="Default"/>; a width the user dragged it to is kept. Dock raises no event while the overlay is resized, so the width is read from
+    /// <see cref="Current"/> whenever the layout is saved.
+    /// </summary>
+    public sealed record PinnedWidthOptions(double Default, double Minimum, Func<double> Height);
 
     public static ToolDockLayoutBinding Attach(
         IFactory factory,
@@ -35,10 +49,14 @@ public sealed class ToolDockLayoutBinding : IDisposable
         IToolDock toolDock,
         IDockable? sibling,
         PanelLayoutState? saved,
-        Action<PanelLayoutState> changed)
+        Action<PanelLayoutState> changed,
+        PinnedWidthOptions? pinnedWidth = null)
     {
         if (toolDock is not DockableBase toolDockBase)
             throw new ArgumentException("The tool dock must be an Avalonia dock model.", nameof(toolDock));
+
+        // Taken before the pin below, which moves the tools out of the dock's visible list.
+        var tools = toolDock.VisibleDockables?.OfType<DockableBase>().ToList() ?? [];
 
         if (saved?.Proportion is { } proportion && IsValidProportion(proportion))
         {
@@ -51,7 +69,8 @@ public sealed class ToolDockLayoutBinding : IDisposable
         if (saved?.IsCollapsed == true && toolDock.VisibleDockables?.FirstOrDefault() is { } tool)
             factory.PinDockable(tool);
 
-        var binding = new ToolDockLayoutBinding(factory, root, toolDockBase, changed);
+        var binding = new ToolDockLayoutBinding(factory, root, toolDockBase, changed, pinnedWidth, tools);
+        binding.ApplyPinnedWidth(saved?.PinnedWidth);
         toolDockBase.PropertyChanged += binding.OnToolDockPropertyChanged;
         factory.DockablePinned += binding.OnPinnedChanged;
         factory.DockableUnpinned += binding.OnPinnedChanged;
@@ -60,13 +79,42 @@ public sealed class ToolDockLayoutBinding : IDisposable
 
     public PanelLayoutState Current => new(
         IsValidProportion(_toolDock.Proportion) ? _toolDock.Proportion : null,
-        GetPinnedDockables()?.Count > 0);
+        GetPinnedDockables()?.Count > 0,
+        CurrentPinnedWidth());
 
     public void Dispose()
     {
         _toolDock.PropertyChanged -= OnToolDockPropertyChanged;
         _factory.DockablePinned -= OnPinnedChanged;
         _factory.DockableUnpinned -= OnPinnedChanged;
+    }
+
+    // Only a width the user chose is saved: the default is what an unset one falls back to anyway.
+    private double? CurrentPinnedWidth()
+    {
+        if (_pinnedWidth is null || _tools.Count == 0)
+            return null;
+
+        _tools[0].GetPinnedBounds(out _, out _, out var width, out _);
+        return width >= _pinnedWidth.Minimum && Math.Abs(width - _pinnedWidth.Default) > 0.5 ? width : null;
+    }
+
+    // An unset size is NaN, and every comparison with NaN is false, so test for "usable" rather than "too small".
+    private void ApplyPinnedWidth(double? saved)
+    {
+        if (_pinnedWidth is null)
+            return;
+
+        var height = Math.Max(_pinnedWidth.Height(), 400);
+        foreach (var tool in _tools)
+        {
+            tool.GetPinnedBounds(out _, out _, out var width, out var currentHeight);
+            var usable = width >= _pinnedWidth.Minimum && currentHeight > 0;
+            if (saved is { } savedWidth && savedWidth >= _pinnedWidth.Minimum)
+                tool.SetPinnedBounds(0, 0, savedWidth, height);
+            else if (!usable)
+                tool.SetPinnedBounds(0, 0, _pinnedWidth.Default, height);
+        }
     }
 
     private void OnToolDockPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -76,7 +124,12 @@ public sealed class ToolDockLayoutBinding : IDisposable
             _changed(Current);
     }
 
-    private void OnPinnedChanged(object? sender, EventArgs e) => _changed(Current);
+    private void OnPinnedChanged(object? sender, EventArgs e)
+    {
+        // Pinning may hand the tool an unset size; the width that was in effect is kept, else the default is given.
+        ApplyPinnedWidth(null);
+        _changed(Current);
+    }
 
     // Each layout has a single tool dock, so its side of the root's rail holds only that dock's pinned tools.
     private IList<IDockable>? GetPinnedDockables() => ((IToolDock)_toolDock).Alignment switch

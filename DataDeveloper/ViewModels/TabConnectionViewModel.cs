@@ -365,8 +365,15 @@ public partial class TabConnectionViewModel : BaseTabContent, ISchemaNodeLoader
         return remove;
     }
 
+    /// <summary>
+    /// Set by the view: copies the side panels' current layout (including the width of their overlays, which Dock
+    /// changes without any notification) into <see cref="SchemaExplorerLayout"/> and <see cref="AiChatLayout"/>.
+    /// </summary>
+    public Action? CaptureLayouts { get; set; }
+
     public void PersistSessionSnapshot()
     {
+        CaptureLayouts?.Invoke();
         var editors = QueryEditors
             .Where(HasMeaningfulContent)
             .Select(editor => new EditorTabState
