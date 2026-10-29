@@ -42,6 +42,48 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task Ask_ShowsUsagePerAnswerAndSessionTotalAndRateLimit()
+    {
+        const string answer = """
+            {"type":"rate_limit_event","rate_limit_info":{"status":"allowed","resetsAt":1793242800,"rateLimitType":"five_hour"}}
+            {"type":"result","is_error":false,"result":"use a join","total_cost_usd":0.01,"usage":{"input_tokens":100,"cache_read_input_tokens":900,"cache_creation_input_tokens":0,"output_tokens":50}}
+            """;
+        _runner.Answer(answer);
+        _runner.Answer(answer);
+        var viewModel = CreateViewModel();
+
+        await viewModel.AskAsync("first");
+        await viewModel.AskAsync("second");
+
+        Assert.Null(viewModel.Messages[0].UsageText);
+        Assert.Equal("1.0k in (900 cached) \u00B7 50 out \u00B7 \u2248 $0.01", viewModel.Messages[1].UsageText);
+        Assert.Equal("This session: 2.0k in (1.8k cached) \u00B7 100 out \u00B7 \u2248 $0.02", viewModel.UsageSummary);
+        Assert.StartsWith("Session (5h): ok", viewModel.RateLimitText);
+        Assert.False(viewModel.IsRateLimitWarning);
+    }
+
+    [Fact]
+    public async Task Ask_FlagsALimitedUsageWindow()
+    {
+        _runner.Answer("""
+            {"type":"rate_limit_event","rate_limit_info":{"status":"rejected","rateLimitType":"five_hour"}}
+            {"type":"result","is_error":true,"result":"limit reached"}
+            """);
+        var viewModel = CreateViewModel();
+
+        await viewModel.AskAsync("hello");
+
+        Assert.True(viewModel.IsRateLimitWarning);
+        Assert.Contains("rejected", viewModel.RateLimitText);
+    }
+
+    [Fact]
+    public void NewChat_StartsOnSonnetUnlessPreferencesChooseAnotherModel()
+    {
+        Assert.Equal("sonnet", CreateViewModel().Model);
+    }
+
+    [Fact]
     public async Task Ask_AddsUserAndAssistantMessagesAndPersistsThem()
     {
         _runner.Answer("""{"result":"use a join"}""");
@@ -406,7 +448,10 @@ public class AiChatViewModelTests : IDisposable
         var viewModel = new AiChatViewModel(_connection, new AiProviderFactoryService(_runner), new FixedSettings(new AiProviderSettings()),
             _history, new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
 
-        Assert.Equal("Default model", viewModel.ModelLabel);
+        Assert.Equal("Sonnet (latest)", viewModel.ModelLabel);
+
+        viewModel.Model = string.Empty;
+        Assert.Equal("CLI default", viewModel.ModelLabel);
 
         viewModel.Model = "claude-sonnet-5-5";
         Assert.Equal("claude-sonnet-5-5", viewModel.ModelLabel);
@@ -433,7 +478,7 @@ public class AiChatViewModelTests : IDisposable
         var menu = Assert.IsType<Avalonia.Controls.MenuFlyout>(button.Flyout);
         var labels = menu.Items.OfType<Avalonia.Controls.MenuItem>().Select(i => i.Header as string).ToList();
 
-        Assert.Contains("Default model", labels);
+        Assert.Contains("CLI default", labels);
         Assert.Contains("Other model...", labels);
         foreach (var option in AiChatViewModel.ModelOptions)
             Assert.Contains(option.Label, labels);

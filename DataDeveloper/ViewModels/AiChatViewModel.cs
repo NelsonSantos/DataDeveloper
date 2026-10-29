@@ -35,6 +35,8 @@ public partial class AiChatViewModel : ViewModelBase
     private bool _isApplyingChat;
     private IReadOnlyList<DbObjectRef> _allObjects = [];
     private CancellationTokenSource? _cancellation;
+    private AiUsage? _sessionUsage;
+    private readonly Dictionary<string, AiRateLimit> _rateLimits = new(StringComparer.OrdinalIgnoreCase);
 
     public AiChatViewModel(
         IConnectionSettings connection,
@@ -91,6 +93,12 @@ public partial class AiChatViewModel : ViewModelBase
     /// is a short list of aliases, which always resolve to the newest model of a family and so never go stale. Any other
     /// model or pinned version can be typed through "Other model...".
     /// </summary>
+    /// <summary>
+    /// The model a chat starts with when neither the chat nor Preferences chose one. The CLI's own default depends on the
+    /// plan (some default to the most expensive family), so the app picks a balanced one instead.
+    /// </summary>
+    public const string DefaultModel = "sonnet";
+
     public static IReadOnlyList<AiModelOption> ModelOptions { get; } =
     [
         new("opus", "Opus (latest)", IsAlias: true),
@@ -100,7 +108,7 @@ public partial class AiChatViewModel : ViewModelBase
 
     /// <summary>Text of the model button: the friendly name when the model is known, otherwise the id typed by the user.</summary>
     public string ModelLabel => string.IsNullOrWhiteSpace(Model)
-        ? "Default model"
+        ? "CLI default"
         : ModelOptions.FirstOrDefault(option => string.Equals(option.Id, Model.Trim(), StringComparison.OrdinalIgnoreCase))?.Label
           ?? Model.Trim();
 
@@ -120,6 +128,15 @@ public partial class AiChatViewModel : ViewModelBase
     [Reactive] private string _statusText = string.Empty;
     [Reactive] private string _model = string.Empty;
     [Reactive] private string _objectFilter = string.Empty;
+
+    /// <summary>What the answers of this session consumed so far, empty until the first answer.</summary>
+    [Reactive] private string _usageSummary = string.Empty;
+
+    /// <summary>State of the account's usage windows as last reported by the CLI ("Session (5h): ok · resets 7:00 PM").</summary>
+    [Reactive] private string _rateLimitText = string.Empty;
+
+    /// <summary>True when a usage window is not "allowed" or extra usage is being spent, so the text should stand out.</summary>
+    [Reactive] private bool _isRateLimitWarning;
 
     /// <summary>Title of the conversation being shown ("New chat" until its first question names it).</summary>
     [Reactive] private string _chatTitle = AiChatTitles.Default;
@@ -271,7 +288,9 @@ public partial class AiChatViewModel : ViewModelBase
         _isApplyingChat = true;
         _chatId = chat?.Id;
         ChatTitle = chat?.Title ?? AiChatTitles.Default;
-        Model = !string.IsNullOrWhiteSpace(chat?.Model) ? chat.Model : _settingsRepository.Load(ProviderType).Model ?? string.Empty;
+        Model = !string.IsNullOrWhiteSpace(chat?.Model) ? chat.Model
+            : !string.IsNullOrWhiteSpace(_settingsRepository.Load(ProviderType).Model) ? _settingsRepository.Load(ProviderType).Model!
+            : DefaultModel;
         _isApplyingChat = false;
 
         _history.Clear();
@@ -388,9 +407,11 @@ public partial class AiChatViewModel : ViewModelBase
             var systemPrompt = await _contextBuilder.BuildSystemPromptAsync(relevantText, objects, cancellationToken);
 
             var response = await provider.SendMessageAsync(new AiChatRequest(prompt, systemPrompt, previous), cancellationToken);
+            RecordUsage(response);
 
             if (response.Success)
-                AddMessage(new AiChatMessage(AiChatRole.Assistant, response.Content, DateTime.UtcNow), persist: true);
+                AddMessage(new AiChatMessage(AiChatRole.Assistant, response.Content, DateTime.UtcNow), persist: true,
+                    response.Usage is { } usage ? AiUsageFormatter.Describe(usage) : null);
             else
                 AddError($"{response.ErrorMessage} (Check Preferences > AI Assistant.)");
         }
@@ -421,7 +442,27 @@ public partial class AiChatViewModel : ViewModelBase
         RefreshChats();
     }
 
-    private void AddMessage(AiChatMessage message, bool persist)
+    // Keeps the running total of the session and the latest state of each usage window the CLI reported.
+    private void RecordUsage(AiChatResponse response)
+    {
+        if (response.Usage is { } usage)
+        {
+            _sessionUsage = _sessionUsage is null ? usage : _sessionUsage.Add(usage);
+            UsageSummary = "This session: " + AiUsageFormatter.Describe(_sessionUsage);
+        }
+
+        if (response.RateLimits is { Count: > 0 } limits)
+        {
+            foreach (var limit in limits)
+                _rateLimits[limit.WindowType ?? string.Empty] = limit;
+
+            var now = DateTime.Now;
+            RateLimitText = string.Join("   ", _rateLimits.Values.OrderBy(l => l.WindowType).Select(l => AiUsageFormatter.DescribeRateLimit(l, now)));
+            IsRateLimitWarning = _rateLimits.Values.Any(l => !l.IsAllowed || l.IsUsingOverage);
+        }
+    }
+
+    private void AddMessage(AiChatMessage message, bool persist, string? usageText = null)
     {
         _history.Add(message);
         if (persist)
@@ -430,7 +471,7 @@ public partial class AiChatViewModel : ViewModelBase
             _historyRepository.Append(_chatId.Value, message);
         }
 
-        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
+        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode, usageText));
         this.RaisePropertyChanged(nameof(HasMessages));
     }
 

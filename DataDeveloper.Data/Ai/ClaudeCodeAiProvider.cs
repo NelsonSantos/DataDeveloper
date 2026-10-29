@@ -25,7 +25,8 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
         var arguments = new List<string>
         {
             "-p",
-            "--output-format", "json",
+            "--output-format", "stream-json",
+            "--verbose",
             "--tools", "",
             "--no-session-persistence",
             "--disable-slash-commands"
@@ -48,33 +49,110 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
 
     protected override AiChatResponse ParseOutput(string standardOutput)
     {
-        try
+        // stream-json prints one JSON event per line; a single JSON object (the older `json` format) is the same with one line.
+        JsonElement? resultEvent = null;
+        var rateLimits = new Dictionary<string, AiRateLimit>(StringComparer.OrdinalIgnoreCase);
+        var parsedAnyJson = false;
+
+        foreach (var line in standardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            using var document = JsonDocument.Parse(standardOutput);
-            var root = document.RootElement;
+            if (line[0] != '{')
+                continue;
 
-            if (root.ValueKind == JsonValueKind.Object)
+            try
             {
-                var result = root.TryGetProperty("result", out var resultElement) && resultElement.ValueKind == JsonValueKind.String
-                    ? resultElement.GetString()
-                    : null;
-                var isError = root.TryGetProperty("is_error", out var errorElement) && errorElement.ValueKind == JsonValueKind.True;
+                using var document = JsonDocument.Parse(line);
+                var root = document.RootElement.Clone();
+                if (root.ValueKind != JsonValueKind.Object)
+                    continue;
 
-                if (isError)
-                    return AiChatResponse.Fail(string.IsNullOrWhiteSpace(result) ? "Claude Code reported an error." : result.Trim());
-
-                if (result is not null)
-                    return AiChatResponse.Ok(result.Trim());
+                parsedAnyJson = true;
+                var type = ReadString(root, "type");
+                if (type == "rate_limit_event")
+                {
+                    if (ReadRateLimit(root) is { } limit)
+                        rateLimits[limit.WindowType ?? string.Empty] = limit;
+                }
+                else if (type == "result" || (type is null && root.TryGetProperty("result", out _)))
+                {
+                    resultEvent = root;
+                }
+            }
+            catch (JsonException)
+            {
+                // A line that is not JSON is ignored; the raw text fallback below covers output with no JSON at all.
             }
         }
-        catch (JsonException)
+
+        var limits = rateLimits.Count > 0 ? rateLimits.Values.ToList() : null;
+
+        if (resultEvent is { } root1)
         {
-            // Output format changed or the CLI printed plain text: fall back to the raw text below.
+            var result = ReadString(root1, "result");
+            var isError = root1.TryGetProperty("is_error", out var errorElement) && errorElement.ValueKind == JsonValueKind.True;
+
+            if (isError)
+                return AiChatResponse.Fail(string.IsNullOrWhiteSpace(result) ? "Claude Code reported an error." : result.Trim(), limits);
+
+            if (result is not null)
+                return AiChatResponse.Ok(result.Trim(), ReadUsage(root1), limits);
         }
+
+        if (parsedAnyJson)
+            return AiChatResponse.Fail("Claude Code returned an answer in a format this app does not understand.", limits);
 
         var raw = standardOutput.Trim();
         return raw.Length > 0
             ? AiChatResponse.Ok(raw)
             : AiChatResponse.Fail("Claude Code returned an empty answer.");
+    }
+
+    private static string? ReadString(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+
+    private static long ReadLong(JsonElement element, string name) =>
+        element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var number)
+            ? number
+            : 0;
+
+    private static AiUsage? ReadUsage(JsonElement result)
+    {
+        if (!result.TryGetProperty("usage", out var usage) || usage.ValueKind != JsonValueKind.Object)
+            return null;
+
+        decimal? cost = result.TryGetProperty("total_cost_usd", out var costElement) && costElement.ValueKind == JsonValueKind.Number &&
+                        costElement.TryGetDecimal(out var amount)
+            ? amount
+            : null;
+
+        string? model = null;
+        if (result.TryGetProperty("modelUsage", out var models) && models.ValueKind == JsonValueKind.Object)
+            model = models.EnumerateObject().Select(property => property.Name).FirstOrDefault();
+
+        return new AiUsage(
+            ReadLong(usage, "input_tokens"),
+            ReadLong(usage, "cache_read_input_tokens"),
+            ReadLong(usage, "cache_creation_input_tokens"),
+            ReadLong(usage, "output_tokens"),
+            cost,
+            model);
+    }
+
+    private static AiRateLimit? ReadRateLimit(JsonElement eventElement)
+    {
+        if (!eventElement.TryGetProperty("rate_limit_info", out var info) || info.ValueKind != JsonValueKind.Object)
+            return null;
+
+        var status = ReadString(info, "status");
+        if (status is null)
+            return null;
+
+        DateTime? resetsAt = info.TryGetProperty("resetsAt", out var resets) && resets.ValueKind == JsonValueKind.Number &&
+                             resets.TryGetInt64(out var epochSeconds) && epochSeconds is > 0 and < 253_402_300_799
+            ? DateTimeOffset.FromUnixTimeSeconds(epochSeconds).UtcDateTime
+            : null;
+        var usingOverage = info.TryGetProperty("isUsingOverage", out var overage) && overage.ValueKind == JsonValueKind.True;
+
+        return new AiRateLimit(status, resetsAt, ReadString(info, "rateLimitType"), usingOverage);
     }
 }

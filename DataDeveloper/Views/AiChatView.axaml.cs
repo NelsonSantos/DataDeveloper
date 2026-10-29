@@ -97,7 +97,7 @@ public partial class AiChatView : UserControl
         if (ModelButton.Flyout is not MenuFlyout menu)
             return;
 
-        menu.Items.Add(CreateModelItem("Default model", string.Empty));
+        menu.Items.Add(CreateModelItem("CLI default", string.Empty));
         menu.Items.Add(new Separator());
 
         foreach (var option in AiChatViewModel.ModelOptions)

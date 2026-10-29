@@ -31,11 +31,12 @@ public sealed class AiMessageSegmentViewModel : ViewModelBase
 
 public sealed class AiChatMessageViewModel : ViewModelBase
 {
-    public AiChatMessageViewModel(AiChatRole role, string content, bool isError, Action<string>? insert)
+    public AiChatMessageViewModel(AiChatRole role, string content, bool isError, Action<string>? insert, string? usageText = null)
     {
         Role = role;
         Content = content;
         IsError = isError;
+        UsageText = usageText;
         Segments = role == AiChatRole.Assistant && !isError
             ? AiMessageSegments.Parse(content).Select(segment => new AiMessageSegmentViewModel(segment, insert)).ToList()
             : [new AiMessageSegmentViewModel(new AiMessageSegment(false, content), insert)];
@@ -44,6 +45,9 @@ public sealed class AiChatMessageViewModel : ViewModelBase
     public AiChatRole Role { get; }
     public string Content { get; }
     public bool IsError { get; }
+
+    /// <summary>What this answer consumed ("1.2k in (900 cached) · 340 out"); null for messages loaded from history.</summary>
+    public string? UsageText { get; }
     public bool IsUser => Role == AiChatRole.User;
     public bool IsAssistant => Role == AiChatRole.Assistant && !IsError;
     public string Author => IsUser ? "You" : IsError ? "Assistant (error)" : "Assistant";
