@@ -36,7 +36,8 @@ public class SqliteAiChatHistoryRepository : IAiChatHistoryRepository
         using var command = connection.CreateCommand();
         command.CommandText = """
                               select c.id, c.connection_id, c.title, c.model, c.created_at, c.updated_at,
-                                     (select count(*) from ai_chat_message m where m.chat_id = c.id)
+                                     (select count(*) from ai_chat_message m where m.chat_id = c.id),
+                                     c.cli_session_started
                               from ai_chat c
                               where c.connection_id = $connectionId
                               order by c.updated_at desc, c.created_at desc;
@@ -54,7 +55,8 @@ public class SqliteAiChatHistoryRepository : IAiChatHistoryRepository
                 reader.IsDBNull(3) ? null : reader.GetString(3),
                 ParseTime(reader.GetString(4)),
                 ParseTime(reader.GetString(5)),
-                reader.GetInt32(6)));
+                reader.GetInt32(6),
+                reader.GetInt32(7) != 0));
         }
 
         return chats;
@@ -90,6 +92,15 @@ public class SqliteAiChatHistoryRepository : IAiChatHistoryRepository
         command.Parameters.AddWithValue("$model", string.IsNullOrWhiteSpace(model) ? DBNull.Value : model.Trim());
         command.Parameters.AddWithValue("$id", chatId.ToString());
         command.ExecuteNonQuery();
+    }
+
+    public void SetSessionStarted(Guid chatId, bool started)
+    {
+        EnsureInitialized();
+
+        using var connection = OpenConnection();
+        Execute(connection, null, "update ai_chat set cli_session_started = $started where id = $id;",
+            ("$started", started ? 1 : 0), ("$id", chatId.ToString()));
     }
 
     public void DeleteChat(Guid chatId)
@@ -183,7 +194,10 @@ public class SqliteAiChatHistoryRepository : IAiChatHistoryRepository
         EnsureInitialized();
 
         using var connection = OpenConnection();
-        Execute(connection, null, "delete from ai_chat_message where chat_id = $id;", ("$id", chatId.ToString()));
+        using var transaction = connection.BeginTransaction();
+        Execute(connection, transaction, "delete from ai_chat_message where chat_id = $id;", ("$id", chatId.ToString()));
+        Execute(connection, transaction, "update ai_chat set cli_session_started = 0 where id = $id;", ("$id", chatId.ToString()));
+        transaction.Commit();
     }
 
     private void EnsureInitialized()
@@ -219,6 +233,10 @@ public class SqliteAiChatHistoryRepository : IAiChatHistoryRepository
                                          );
                                          create index if not exists ix_ai_chat_message_connection on ai_chat_message (connection_id, id);
                                          """);
+
+        var chatColumns = GetColumns(connection, transaction, "ai_chat");
+        if (!chatColumns.Contains("cli_session_started"))
+            Execute(connection, transaction, "alter table ai_chat add column cli_session_started integer not null default 0;");
 
         // Databases created before conversations existed have messages keyed by connection only.
         var columns = GetColumns(connection, transaction, "ai_chat_message");

@@ -16,7 +16,7 @@ public class ClaudeCodeAiProviderTests : IDisposable
 
     public void Dispose() => Directory.Delete(_folder, recursive: true);
 
-    private ClaudeCodeAiProvider CreateProvider(FakeRunner runner, Action<AiProviderSettings>? configure = null)
+    private ClaudeCodeAiProvider CreateProvider(ICliProcessRunner runner, Action<AiProviderSettings>? configure = null)
     {
         var settings = new AiProviderSettings { ExecutablePath = _executable };
         configure?.Invoke(settings);
@@ -309,6 +309,151 @@ public class ClaudeCodeAiProviderTests : IDisposable
 
         Assert.False(response.Success);
         Assert.Contains("format", response.ErrorMessage);
+    }
+
+    private const string OkAnswer = """{"type":"result","is_error":false,"result":"ok"}""";
+
+    private static AiChatRequest SessionRequest(bool started, string workingDirectory, Guid? id = null) => new(
+        "new question",
+        "system",
+        [new AiChatMessage(AiChatRole.User, "earlier question", DateTime.UtcNow), new AiChatMessage(AiChatRole.Assistant, "earlier answer", DateTime.UtcNow)],
+        new AiSession(id ?? Guid.NewGuid(), started, workingDirectory),
+        "new question with all structures");
+
+    [Fact]
+    public async Task Session_FirstCallCreatesItAndTellsTheWholeConversation()
+    {
+        var runner = new SequenceRunner(OkAnswer);
+        var folder = Path.Combine(_folder, "connection");
+        var request = SessionRequest(started: false, folder);
+
+        var response = await CreateProvider(runner).SendMessageAsync(request);
+
+        Assert.True(response.Success);
+        var call = Assert.Single(runner.Requests);
+        var arguments = call.Arguments.ToList();
+        Assert.Equal(request.Session!.Id.ToString(), arguments[arguments.IndexOf("--session-id") + 1]);
+        Assert.DoesNotContain("--resume", arguments);
+        Assert.DoesNotContain("--no-session-persistence", arguments);
+        Assert.Contains("earlier answer", call.StandardInput);
+        Assert.EndsWith("new question with all structures", call.StandardInput);
+        Assert.Equal(folder, call.WorkingDirectory);
+        Assert.True(Directory.Exists(folder));
+    }
+
+    [Fact]
+    public async Task Session_LaterCallsResumeAndSendOnlyTheNewMessage()
+    {
+        var runner = new SequenceRunner(OkAnswer);
+        var request = SessionRequest(started: true, Path.Combine(_folder, "connection"));
+
+        await CreateProvider(runner).SendMessageAsync(request);
+
+        var call = Assert.Single(runner.Requests);
+        var arguments = call.Arguments.ToList();
+        Assert.Equal(request.Session!.Id.ToString(), arguments[arguments.IndexOf("--resume") + 1]);
+        Assert.DoesNotContain("--session-id", arguments);
+        Assert.Equal("new question", call.StandardInput);
+    }
+
+    [Fact]
+    public async Task Session_ALostSessionIsRebuiltFromTheConversation()
+    {
+        var runner = new SequenceRunner(
+            """
+            {"type":"result","subtype":"error_during_execution","is_error":true,"errors":["No conversation found with session ID: abc"]}
+            """,
+            OkAnswer);
+
+        var response = await CreateProvider(runner).SendMessageAsync(SessionRequest(started: true, Path.Combine(_folder, "connection")));
+
+        Assert.True(response.Success);
+        Assert.Equal(2, runner.Requests.Count);
+        Assert.Contains("--resume", runner.Requests[0].Arguments);
+        Assert.Contains("--session-id", runner.Requests[1].Arguments);
+        Assert.Contains("earlier answer", runner.Requests[1].StandardInput);
+    }
+
+    [Fact]
+    public async Task Session_OtherFailuresAreNotRetried()
+    {
+        var runner = new SequenceRunner("""{"type":"result","is_error":true,"result":"Failed to authenticate"}""", OkAnswer);
+
+        var response = await CreateProvider(runner).SendMessageAsync(SessionRequest(started: true, Path.Combine(_folder, "connection")));
+
+        Assert.False(response.Success);
+        Assert.Equal("Failed to authenticate", response.ErrorMessage);
+        Assert.Single(runner.Requests);
+    }
+
+    [Fact]
+    public async Task Session_AnExistingSessionWeDidNotKnowAboutIsReplaced()
+    {
+        var configFolder = Path.Combine(_folder, "claude-config");
+        var request = SessionRequest(started: false, Path.Combine(_folder, "connection"));
+        var stored = Path.Combine(configFolder, "projects", "some-project", request.Session!.Id + ".jsonl");
+        Directory.CreateDirectory(Path.GetDirectoryName(stored)!);
+        File.WriteAllText(stored, "{}");
+
+        var runner = new SequenceRunner(OkAnswer);
+        runner.FirstResult = new CliProcessResult(true, 1, string.Empty, $"Error: Session ID {request.Session.Id} is already in use.", false);
+
+        var previous = Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR");
+        Environment.SetEnvironmentVariable("CLAUDE_CONFIG_DIR", configFolder);
+        try
+        {
+            var response = await CreateProvider(runner).SendMessageAsync(request);
+
+            Assert.True(response.Success);
+            Assert.Equal(2, runner.Requests.Count);
+            Assert.False(File.Exists(stored));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("CLAUDE_CONFIG_DIR", previous);
+        }
+    }
+
+    [Fact]
+    public async Task Session_WithoutOneEveryCallIsIndependent()
+    {
+        var runner = new SequenceRunner(OkAnswer);
+
+        await CreateProvider(runner).SendMessageAsync(new AiChatRequest("question"));
+
+        var arguments = Assert.Single(runner.Requests).Arguments;
+        Assert.Contains("--no-session-persistence", arguments);
+        Assert.DoesNotContain("--resume", arguments);
+        Assert.DoesNotContain("--session-id", arguments);
+    }
+
+    [Fact]
+    public async Task SendMessage_ShowsTheCliErrorListWhenThereIsNoResultText()
+    {
+        const string output = """{"type":"result","is_error":true,"errors":["first problem","second problem"]}""";
+
+        var response = await CreateProvider(new FakeRunner(new CliProcessResult(true, 1, output, string.Empty, false)))
+            .SendMessageAsync(new AiChatRequest("hi"));
+
+        Assert.Equal("first problem; second problem", response.ErrorMessage);
+    }
+
+    private sealed class SequenceRunner(params string[] outputs) : ICliProcessRunner
+    {
+        private int _next;
+
+        public List<CliProcessRequest> Requests { get; } = [];
+        public CliProcessResult? FirstResult { get; set; }
+
+        public Task<CliProcessResult> RunAsync(CliProcessRequest request, CancellationToken cancellationToken = default)
+        {
+            Requests.Add(request);
+            if (Requests.Count == 1 && FirstResult is not null)
+                return Task.FromResult(FirstResult);
+
+            var output = outputs[Math.Min(_next++, outputs.Length - 1)];
+            return Task.FromResult(new CliProcessResult(true, 0, output, string.Empty, false));
+        }
     }
 
     private sealed class FakeRunner(CliProcessResult result) : ICliProcessRunner

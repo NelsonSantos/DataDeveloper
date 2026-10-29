@@ -18,6 +18,9 @@ public interface IAiChatHistoryRepository
     /// <summary>Remembers the model picked for the conversation; null or blank means "default".</summary>
     void SetChatModel(Guid chatId, string? model);
 
+    /// <summary>Remembers whether the CLI holds a session for the conversation (so the next call can resume it).</summary>
+    void SetSessionStarted(Guid chatId, bool started);
+
     /// <summary>Removes the conversation and its messages.</summary>
     void DeleteChat(Guid chatId);
 
@@ -29,7 +32,7 @@ public interface IAiChatHistoryRepository
 
     void Append(Guid chatId, AiChatMessage message);
 
-    /// <summary>Removes the messages but keeps the conversation.</summary>
+    /// <summary>Removes the messages but keeps the conversation; the CLI session, which remembered them, is no longer valid.</summary>
     void Clear(Guid chatId);
 }
 

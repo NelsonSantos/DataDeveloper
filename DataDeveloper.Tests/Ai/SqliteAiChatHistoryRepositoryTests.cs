@@ -127,6 +127,40 @@ public class SqliteAiChatHistoryRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void SessionStarted_IsPersistedAndResetByClear()
+    {
+        var repository = CreateRepository();
+        var chat = repository.CreateChat(Guid.NewGuid());
+        Assert.False(chat.SessionStarted);
+
+        repository.SetSessionStarted(chat.Id, true);
+        Assert.True(CreateRepository().ListChats(chat.ConnectionId).Single().SessionStarted);
+
+        repository.Clear(chat.Id);
+        Assert.False(CreateRepository().ListChats(chat.ConnectionId).Single().SessionStarted);
+    }
+
+    [Fact]
+    public void Initialization_AddsTheSessionColumnToAnExistingChatTable()
+    {
+        using (var connection = new SqliteConnection($"Data Source={DatabasePath}"))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = """
+                                  create table ai_chat (id text primary key, connection_id text not null, title text not null, model text null, created_at text not null, updated_at text not null);
+                                  insert into ai_chat values ('0f8fad5b-d9cb-469f-a165-70867728950e', '7c9e6679-7425-40de-944b-e07fc1f90ae7', 'Old', null, '2026-10-01T00:00:00.0000000Z', '2026-10-01T00:00:00.0000000Z');
+                                  """;
+            command.ExecuteNonQuery();
+        }
+
+        var chat = CreateRepository().ListChats(Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7")).Single();
+
+        Assert.Equal("Old", chat.Title);
+        Assert.False(chat.SessionStarted);
+    }
+
+    [Fact]
     public void Clear_RemovesTheMessagesButKeepsTheChat()
     {
         var repository = CreateRepository();

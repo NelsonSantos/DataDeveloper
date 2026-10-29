@@ -21,10 +21,30 @@ public sealed record AiChatInfo(
     string? Model,
     DateTime CreatedAtUtc,
     DateTime UpdatedAtUtc,
-    int MessageCount);
+    int MessageCount,
+    bool SessionStarted = false);
 
-/// <param name="History">Earlier turns of the conversation, oldest first, not including <paramref name="Prompt"/>.</param>
-public sealed record AiChatRequest(string Prompt, string? SystemPrompt = null, IReadOnlyList<AiChatMessage>? History = null);
+/// <summary>
+/// A conversation kept by the CLI itself, so each call sends only the new message and the CLI reuses what it already
+/// read. The session id is the chat id.
+/// </summary>
+/// <param name="Started">True once the CLI has stored this session; false means the next call must create it.</param>
+/// <param name="WorkingDirectory">Folder the CLI runs in, which is what keeps its sessions apart from the user's own projects.</param>
+public sealed record AiSession(Guid Id, bool Started, string? WorkingDirectory);
+
+/// <param name="Prompt">The new message. With a started session it is all that is sent.</param>
+/// <param name="History">Earlier turns, oldest first, not including <paramref name="Prompt"/>; sent when there is no session to resume.</param>
+/// <param name="Session">When set the call uses a CLI session; otherwise every call is independent and carries the history.</param>
+/// <param name="FreshPrompt">
+/// The new message as it must read when the CLI has no memory of the conversation (a session being created or lost):
+/// it repeats context that a resumed session already has. Falls back to <paramref name="Prompt"/>.
+/// </param>
+public sealed record AiChatRequest(
+    string Prompt,
+    string? SystemPrompt = null,
+    IReadOnlyList<AiChatMessage>? History = null,
+    AiSession? Session = null,
+    string? FreshPrompt = null);
 
 /// <summary>What one CLI call consumed. Input counts everything the model read, cached or not.</summary>
 /// <param name="CostUsd">API-equivalent price reported by the CLI; subscriptions are not billed for it but it is a fair relative weight.</param>

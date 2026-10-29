@@ -20,7 +20,15 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
 
     protected override IReadOnlyList<string>? LoginArguments => ["auth", "login", "--claudeai"];
 
-    protected override IReadOnlyList<string> BuildArguments(AiChatRequest request)
+    protected override bool SupportsSessions => true;
+
+    protected override bool IsMissingSession(AiChatResponse response) =>
+        response.ErrorMessage?.Contains("No conversation found", StringComparison.OrdinalIgnoreCase) == true;
+
+    protected override bool IsSessionInUse(AiChatResponse response) =>
+        response.ErrorMessage?.Contains("already in use", StringComparison.OrdinalIgnoreCase) == true;
+
+    protected override IReadOnlyList<string> BuildArguments(AiChatRequest request, AiSessionMode mode)
     {
         var arguments = new List<string>
         {
@@ -28,9 +36,23 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
             "--output-format", "stream-json",
             "--verbose",
             "--tools", "",
-            "--no-session-persistence",
             "--disable-slash-commands"
         };
+
+        switch (mode)
+        {
+            case AiSessionMode.Create when request.Session is { } created:
+                arguments.Add("--session-id");
+                arguments.Add(created.Id.ToString());
+                break;
+            case AiSessionMode.Resume when request.Session is { } resumed:
+                arguments.Add("--resume");
+                arguments.Add(resumed.Id.ToString());
+                break;
+            default:
+                arguments.Add("--no-session-persistence");
+                break;
+        }
 
         if (!string.IsNullOrWhiteSpace(Settings.Model))
         {
@@ -45,6 +67,36 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
         }
 
         return arguments;
+    }
+
+    /// <summary>Deletes the stored session, which the CLI keeps as <c>projects/&lt;folder&gt;/&lt;id&gt;.jsonl</c> in its config folder.</summary>
+    public override void ForgetSession(Guid sessionId)
+    {
+        try
+        {
+            var configFolder = Environment.GetEnvironmentVariable("CLAUDE_CONFIG_DIR");
+            if (string.IsNullOrWhiteSpace(configFolder))
+                configFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude");
+
+            var projects = Path.Combine(configFolder, "projects");
+            if (!Directory.Exists(projects))
+                return;
+
+            foreach (var project in Directory.EnumerateDirectories(projects))
+            {
+                var file = Path.Combine(project, sessionId + ".jsonl");
+                if (File.Exists(file))
+                    File.Delete(file);
+
+                var folder = Path.Combine(project, sessionId.ToString());
+                if (Directory.Exists(folder))
+                    Directory.Delete(folder, recursive: true);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Cleaning up is best effort: a leftover session file is harmless and has an id nothing will resume.
+        }
     }
 
     protected override AiChatResponse ParseOutput(string standardOutput)
@@ -89,6 +141,9 @@ public sealed class ClaudeCodeAiProvider : CliAiProviderBase
         if (resultEvent is { } root1)
         {
             var result = ReadString(root1, "result");
+            if (string.IsNullOrWhiteSpace(result) && root1.TryGetProperty("errors", out var errors) && errors.ValueKind == JsonValueKind.Array)
+                result = string.Join("; ", errors.EnumerateArray().Where(e => e.ValueKind == JsonValueKind.String).Select(e => e.GetString()));
+
             var isError = root1.TryGetProperty("is_error", out var errorElement) && errorElement.ValueKind == JsonValueKind.True;
 
             if (isError)

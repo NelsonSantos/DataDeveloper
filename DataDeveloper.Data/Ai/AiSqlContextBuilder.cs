@@ -68,6 +68,17 @@ public sealed partial class AiSqlContextBuilder
         IEnumerable<DbObjectRef> explicitObjects,
         CancellationToken cancellationToken = default)
     {
+        var prompt = await BuildStableSystemPromptAsync(cancellationToken);
+        var structure = await BuildStructureContextAsync(relevantText, explicitObjects, null, cancellationToken);
+        return structure.Length == 0 ? prompt : prompt + "\n" + structure;
+    }
+
+    /// <summary>
+    /// The system prompt that does not depend on the message: the dialect, the rules and the list of object names. It only
+    /// changes when the schema does, so the CLI can keep reading it from its cache on every call.
+    /// </summary>
+    public async Task<string> BuildStableSystemPromptAsync(CancellationToken cancellationToken = default)
+    {
         var builder = new StringBuilder();
         builder.AppendLine($"You are an assistant inside Data Developer, a SQL client. The connected database is {DatabaseName(_databaseType)}; write SQL in that dialect.");
         builder.AppendLine("Be concise. Put every SQL script in a ```sql fenced block. Answer in the language of the user's message.");
@@ -95,13 +106,61 @@ public sealed partial class AiSqlContextBuilder
         if (objects.Count > MaxListedObjects)
             builder.AppendLine($"(and {objects.Count - MaxListedObjects} more)");
 
-        foreach (var table in SelectDetailed(objects, relevantText, explicitObjects))
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// The columns and keys of the objects that matter to this message, which travel with the message itself so the
+    /// system prompt stays the same. Objects in <paramref name="alreadyDescribed"/> are skipped because the conversation
+    /// already contains their structure. Empty when there is nothing to add.
+    /// </summary>
+    public async Task<string> BuildStructureContextAsync(
+        string relevantText,
+        IEnumerable<DbObjectRef> explicitObjects,
+        ISet<string>? alreadyDescribed,
+        CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<DbObjectRef> objects;
+        try
+        {
+            objects = await GetObjectsAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return $"(The database structure could not be read: {exception.Message})";
+        }
+
+        var pending = SelectDetailed(objects, relevantText, explicitObjects)
+            .Where(table => alreadyDescribed is null || !alreadyDescribed.Contains(table.QualifiedName))
+            .ToList();
+        if (pending.Count == 0)
+            return string.Empty;
+
+        var builder = new StringBuilder();
+        builder.AppendLine("Structure of the objects relevant to this message:");
+        foreach (var table in pending)
         {
             builder.AppendLine();
             builder.Append(await DescribeAsync(table, cancellationToken));
         }
 
-        return builder.ToString();
+        return builder.ToString().TrimEnd();
+    }
+
+    /// <summary>Names of the objects whose structure already appears in the given conversation texts.</summary>
+    public static ISet<string> FindDescribedObjects(IEnumerable<string?> conversationTexts)
+    {
+        var described = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var text in conversationTexts)
+        {
+            if (string.IsNullOrEmpty(text))
+                continue;
+
+            foreach (Match match in DescribedHeaderRegex().Matches(text))
+                described.Add(match.Groups[1].Value);
+        }
+
+        return described;
     }
 
     public static IReadOnlyList<DbObjectRef> SelectDetailed(
@@ -197,4 +256,8 @@ public sealed partial class AiSqlContextBuilder
 
     [GeneratedRegex(@"[A-Za-z_][A-Za-z0-9_$#]*")]
     private static partial Regex IdentifierRegex();
+
+    // The header line DescribeAsync writes before each object's columns.
+    [GeneratedRegex(@"^(?:Table|View) (\S+):\s*$", RegexOptions.Multiline)]
+    private static partial Regex DescribedHeaderRegex();
 }

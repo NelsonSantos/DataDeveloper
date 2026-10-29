@@ -28,17 +28,19 @@ public class AiChatViewModelTests : IDisposable
     private IReadOnlyList<AiChatMessage> StoredMessages() =>
         _history.ListChats(_connection.Id) is [var chat, ..] ? _history.LoadMessages(chat.Id) : [];
 
-    private AiChatViewModel CreateViewModel()
+    private string SessionsRoot => Path.Combine(_folder, "sessions");
+
+    private AiChatViewModel CreateViewModel(bool withSessions = false, IAiSchemaSource? source = null)
     {
         var executable = Path.Combine(_folder, "claude");
         File.WriteAllText(executable, string.Empty);
 
         return new AiChatViewModel(
             _connection,
-            new AiProviderFactoryService(_runner),
+            new AiProviderFactoryService(_runner, withSessions ? SessionsRoot : null),
             new FixedSettings(new AiProviderSettings { ExecutablePath = executable }),
             _history,
-            new AiSqlContextBuilder(new EmptySource(), DatabaseType.SqLite));
+            new AiSqlContextBuilder(source ?? new EmptySource(), DatabaseType.SqLite));
     }
 
     private const string AnswerWithUsage = """
@@ -106,6 +108,117 @@ public class AiChatViewModelTests : IDisposable
     public void NewChat_StartsOnSonnetUnlessPreferencesChooseAnotherModel()
     {
         Assert.Equal("sonnet", CreateViewModel().Model);
+    }
+
+    private const string PlainAnswer = """{"type":"result","is_error":false,"result":"ok"}""";
+
+    [Fact]
+    public async Task Session_IsCreatedOnTheFirstQuestionAndResumedAfterwards()
+    {
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: true);
+
+        await viewModel.AskAsync("first question");
+        await viewModel.AskAsync("second question");
+
+        var chat = _history.ListChats(_connection.Id).Single();
+        Assert.True(chat.SessionStarted);
+
+        var first = _runner.Requests[0];
+        Assert.Equal(chat.Id.ToString(), first.Arguments[first.Arguments.ToList().IndexOf("--session-id") + 1]);
+        Assert.Equal(Path.Combine(SessionsRoot, _connection.Id.ToString("N")), first.WorkingDirectory);
+
+        var second = _runner.Requests[1];
+        Assert.Equal(chat.Id.ToString(), second.Arguments[second.Arguments.ToList().IndexOf("--resume") + 1]);
+        Assert.Equal("second question", second.StandardInput);
+    }
+
+    [Fact]
+    public async Task Session_StartsFromTheStoredConversationWhenTheChatHadNoSessionYet()
+    {
+        var chat = _history.CreateChat(_connection.Id);
+        _history.Append(chat.Id, new AiChatMessage(AiChatRole.User, "old question", DateTime.UtcNow));
+        _history.Append(chat.Id, new AiChatMessage(AiChatRole.Assistant, "old answer", DateTime.UtcNow));
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: true);
+
+        await viewModel.AskAsync("follow up");
+
+        var call = Assert.Single(_runner.Requests);
+        Assert.Contains("--session-id", call.Arguments);
+        Assert.Contains("old answer", call.StandardInput);
+        Assert.True(_history.ListChats(_connection.Id).Single().SessionStarted);
+    }
+
+    [Fact]
+    public async Task Session_ClearingTheChatStartsANewOne()
+    {
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: true);
+        await viewModel.AskAsync("first question");
+
+        viewModel.ClearCommand.Execute().Subscribe();
+        Assert.False(_history.ListChats(_connection.Id).Single().SessionStarted);
+
+        await viewModel.AskAsync("after clearing");
+
+        Assert.Contains("--session-id", _runner.Requests[1].Arguments);
+        Assert.DoesNotContain("first question", _runner.Requests[1].StandardInput);
+    }
+
+    [Fact]
+    public async Task Session_ANewChatHasASessionOfItsOwn()
+    {
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: true);
+        await viewModel.AskAsync("task A");
+
+        viewModel.NewChatCommand.Execute().Subscribe();
+        await viewModel.AskAsync("task B");
+
+        var ids = _runner.Requests.Select(r => r.Arguments[r.Arguments.ToList().IndexOf("--session-id") + 1]).ToList();
+        Assert.Equal(2, ids.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task Structure_IsSentOncePerConversationAndAgainAfterASchemaChange()
+    {
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: true, new TableSource());
+
+        await viewModel.AskAsync("how many rows does Orders have?");
+        await viewModel.AskAsync("and which Orders are late?");
+        viewModel.InvalidateSchema();
+        await viewModel.AskAsync("what about Orders again?");
+
+        Assert.Contains("Table Orders:", _runner.Requests[0].StandardInput);
+        Assert.Contains("amount decimal", _runner.Requests[0].StandardInput);
+        Assert.DoesNotContain("Table Orders:", _runner.Requests[1].StandardInput);
+        Assert.Contains("Table Orders:", _runner.Requests[2].StandardInput);
+
+        // The system prompt carries no per-message structure, so it stays the same and cacheable.
+        string SystemPrompt(CliProcessRequest r) => r.Arguments[r.Arguments.ToList().IndexOf("--system-prompt") + 1];
+        Assert.Equal(SystemPrompt(_runner.Requests[0]), SystemPrompt(_runner.Requests[1]));
+        Assert.DoesNotContain("amount decimal", SystemPrompt(_runner.Requests[0]));
+    }
+
+    [Fact]
+    public async Task Structure_WithoutASessionStillGoesWithEveryMessage()
+    {
+        _runner.Answer(PlainAnswer);
+        _runner.Answer(PlainAnswer);
+        var viewModel = CreateViewModel(withSessions: false, new TableSource());
+
+        await viewModel.AskAsync("how many rows does Orders have?");
+        await viewModel.AskAsync("and which Orders are late?");
+
+        Assert.Contains("--no-session-persistence", _runner.Requests[1].Arguments);
+        Assert.EndsWith("Table Orders:\n  - id int, primary key, not null\n  - amount decimal\n\nand which Orders are late?", _runner.Requests[1].StandardInput!.Replace("\r\n", "\n"));
     }
 
     [Fact]
@@ -534,6 +647,24 @@ public class AiChatViewModelTests : IDisposable
         public bool LoadSendWithModifier() => SendWithModifier;
 
         public void SaveSendWithModifier(bool value) => SendWithModifier = value;
+    }
+
+    private sealed class TableSource : IAiSchemaSource
+    {
+        private static readonly DbObjectRef Orders = new(DbObjectKind.Table, null, "Orders");
+
+        public Task<IReadOnlyList<DbObjectRef>> ListTablesAndViewsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<DbObjectRef>>([Orders]);
+
+        public Task<IReadOnlyList<ColumnModel>> GetColumnsAsync(DbObjectRef table, CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<ColumnModel>>(
+            [
+                new ColumnModel { Name = "id", DataType = "int", IsPrimaryKey = true },
+                new ColumnModel { Name = "amount", DataType = "decimal", IsNullable = true }
+            ]);
+
+        public Task<TableKeys> GetKeysAsync(DbObjectRef table, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new TableKeys());
     }
 
     private sealed class EmptySource : IAiSchemaSource

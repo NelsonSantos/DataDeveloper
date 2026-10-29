@@ -8,13 +8,20 @@ public static class AiPromptComposer
 {
     public const int MaxAttachmentCharacters = 60_000;
 
-    /// <summary>Appends text attachments (as fenced blocks, truncated when huge) to the user's message.</summary>
-    public static string Compose(string userText, IReadOnlyList<AiTextAttachment> attachments)
+    /// <summary>
+    /// Appends text attachments (as fenced blocks, truncated when huge) to the user's message, after the structure of the
+    /// relevant database objects when there is any.
+    /// </summary>
+    public static string Compose(string userText, IReadOnlyList<AiTextAttachment> attachments, string? structureContext = null)
     {
-        if (attachments.Count == 0)
+        if (attachments.Count == 0 && string.IsNullOrWhiteSpace(structureContext))
             return userText;
 
-        var builder = new StringBuilder(userText);
+        var builder = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(structureContext))
+            builder.AppendLine(structureContext.TrimEnd()).AppendLine();
+
+        builder.Append(userText);
         foreach (var attachment in attachments)
         {
             var content = attachment.Content;

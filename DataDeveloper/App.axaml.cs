@@ -97,7 +97,10 @@ public partial class App : Application
         services.AddSingleton<ISessionTabStore, SessionTabStore>();
         services.AddSingleton<DatabaseProviderFactoryService>();
         services.AddSingleton<ICliProcessRunner, CliProcessRunner>();
-        services.AddSingleton<AiProviderFactoryService>();
+        // Each connection gets its own folder under ai-sessions, where the CLI keeps that connection's chats.
+        services.AddSingleton(provider => new AiProviderFactoryService(
+            provider.GetRequiredService<ICliProcessRunner>(),
+            System.IO.Path.Combine(AppDataFileService.AppDataDirectory, "ai-sessions")));
         services.AddSingleton<IAiSettingsRepository, SqliteAiSettingsRepository>();
         services.AddSingleton<IAiChatHistoryRepository, SqliteAiChatHistoryRepository>();
         services.AddTransient<PreferencesViewModel>();

@@ -37,6 +37,8 @@ public partial class AiChatViewModel : ViewModelBase
     private CancellationTokenSource? _cancellation;
     private AiUsage? _sessionUsage;
     private AiUsage? _lastUsage;
+    private bool _sessionStarted;
+    private bool _redescribeSchema;
     private long? _contextWindow;
     private readonly Dictionary<string, AiRateLimit> _rateLimits = new(StringComparer.OrdinalIgnoreCase);
 
@@ -177,6 +179,9 @@ public partial class AiChatViewModel : ViewModelBase
     {
         _contextBuilder.Invalidate();
         _allObjects = [];
+
+        // Structures the conversation already holds may be out of date now, so the next message describes them again.
+        _redescribeSchema = true;
     }
 
     /// <summary>Stops a running request; called when the connection closes.</summary>
@@ -301,6 +306,7 @@ public partial class AiChatViewModel : ViewModelBase
     {
         _isApplyingChat = true;
         _chatId = chat?.Id;
+        _sessionStarted = chat?.SessionStarted ?? false;
         ChatTitle = chat?.Title ?? AiChatTitles.Default;
         Model = !string.IsNullOrWhiteSpace(chat?.Model) ? chat.Model
             : !string.IsNullOrWhiteSpace(_settingsRepository.Load(ProviderType).Model) ? _settingsRepository.Load(ProviderType).Model!
@@ -369,6 +375,7 @@ public partial class AiChatViewModel : ViewModelBase
             return;
 
         _historyRepository.DeleteChat(item.Id);
+        ForgetCliSession(item.Id);
         if (item.Id == _chatId)
             LoadChat(_historyRepository.ListChats(_connection.Id).FirstOrDefault());
 
@@ -378,7 +385,13 @@ public partial class AiChatViewModel : ViewModelBase
     private void ClearHistory()
     {
         if (_chatId is { } chatId)
+        {
+            // The CLI session remembers the messages that are being cleared, so it has to go too.
             _historyRepository.Clear(chatId);
+            ForgetCliSession(chatId);
+            _sessionStarted = false;
+        }
+
         _history.Clear();
         Messages.Clear();
         this.RaisePropertyChanged(nameof(HasMessages));
@@ -400,12 +413,18 @@ public partial class AiChatViewModel : ViewModelBase
         StatusText = string.Empty;
 
         var previous = AiTranscriptFormatter.TrimHistory(_history);
-        var prompt = AiPromptComposer.Compose(text, files);
 
-        // Keep what the model saw (the attached files inlined) so later turns still have it; the chat shows only the names.
-        var modelContent = files.Count > 0 ? prompt : null;
-        AddMessage(new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow, modelContent), persist: true);
-        NameChatAfterFirstQuestion(text);
+        // Structures already in the conversation (in an earlier message the model saw) are not sent again.
+        var knownStructure = _redescribeSchema
+            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : AiSqlContextBuilder.FindDescribedObjects(_history.Select(m => m.ModelContent));
+        _redescribeSchema = false;
+
+        // The question shows at once; it is stored when the model's view of it is known.
+        var userMessage = new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow);
+        Messages.Add(new AiChatMessageViewModel(AiChatRole.User, historyText, false, InsertCode));
+        this.RaisePropertyChanged(nameof(HasMessages));
+        var remembered = false;
 
         IsBusy = true;
         _cancellation = new CancellationTokenSource();
@@ -419,18 +438,46 @@ public partial class AiChatViewModel : ViewModelBase
 
             var provider = _providerFactory.Create(settings);
 
-            // Tables mentioned or attached in recent turns stay relevant, so their structure keeps being sent.
+            // Tables mentioned or attached in recent turns stay relevant, so their structure keeps being offered.
             var recentText = string.Join("\n", previous.TakeLast(RelevantHistoryMessages).Select(m => m.ModelContent ?? m.Content));
             var relevantText = text + "\n" + string.Join("\n", files.Select(f => f.Content)) + "\n" + recentText;
-            var systemPrompt = await _contextBuilder.BuildSystemPromptAsync(relevantText, objects, cancellationToken);
 
-            var response = await provider.SendMessageAsync(new AiChatRequest(prompt, systemPrompt, previous), cancellationToken);
+            // The system prompt is the same on every call (the CLI caches it); the structure of the relevant objects
+            // goes with the message instead, and only what the conversation doesn't have yet.
+            var systemPrompt = await _contextBuilder.BuildStableSystemPromptAsync(cancellationToken);
+            var newStructure = await _contextBuilder.BuildStructureContextAsync(relevantText, objects, knownStructure, cancellationToken);
+            var prompt = AiPromptComposer.Compose(text, files, newStructure);
+
+            // A call that starts from nothing (a new session, a lost one, or no session at all) needs every structure.
+            var freshPrompt = knownStructure.Count == 0
+                ? prompt
+                : AiPromptComposer.Compose(text, files, await _contextBuilder.BuildStructureContextAsync(relevantText, objects, null, cancellationToken));
+
+            // Keep what the model saw, so later turns and a rebuilt session still have the attachments and structures.
+            var modelContent = files.Count > 0 || newStructure.Length > 0 ? prompt : null;
+            Remember(userMessage with { ModelContent = modelContent });
+            remembered = true;
+            NameChatAfterFirstQuestion(text);
+
+            var session = CreateSession();
+            var request = new AiChatRequest(session is null ? freshPrompt : prompt, systemPrompt, previous, session, freshPrompt);
+            var response = await provider.SendMessageAsync(request, cancellationToken);
             RecordUsage(response);
 
             if (response.Success)
+            {
+                if (session is not null && !_sessionStarted)
+                {
+                    _sessionStarted = true;
+                    _historyRepository.SetSessionStarted(session.Id, true);
+                }
+
                 AddMessage(new AiChatMessage(AiChatRole.Assistant, response.Content, DateTime.UtcNow), persist: true);
+            }
             else
+            {
                 AddError($"{response.ErrorMessage} (Check Preferences > AI Assistant.)");
+            }
         }
         catch (OperationCanceledException)
         {
@@ -442,9 +489,34 @@ public partial class AiChatViewModel : ViewModelBase
         }
         finally
         {
+            if (!remembered)
+            {
+                Remember(userMessage);
+                NameChatAfterFirstQuestion(text);
+            }
+
             IsBusy = false;
             _cancellation.Dispose();
             _cancellation = null;
+        }
+    }
+
+    // The CLI keeps the conversation under the chat's id, in a folder of its own for the connection.
+    private AiSession? CreateSession()
+    {
+        var folder = _providerFactory.GetSessionFolder(_connection.Id);
+        return folder is null || _chatId is not { } chatId ? null : new AiSession(chatId, _sessionStarted, folder);
+    }
+
+    private void ForgetCliSession(Guid chatId)
+    {
+        try
+        {
+            _providerFactory.Create(_settingsRepository.Load(ProviderType)).ForgetSession(chatId);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // The stored session is only a cache of the conversation; failing to remove it must not block the user.
         }
     }
 
@@ -516,14 +588,20 @@ public partial class AiChatViewModel : ViewModelBase
             UsageLimits.Add(new AiUsageLimitItem(label, _rateLimits.Count == 0 ? NoUsageYet : "Not reported by the CLI.", false));
     }
 
-    private void AddMessage(AiChatMessage message, bool persist)
+    // Adds the message to the conversation the model sees and stores it, creating the chat on first use.
+    private void Remember(AiChatMessage message)
     {
         _history.Add(message);
+        _chatId ??= _historyRepository.CreateChat(_connection.Id, model: Model).Id;
+        _historyRepository.Append(_chatId.Value, message);
+    }
+
+    private void AddMessage(AiChatMessage message, bool persist)
+    {
         if (persist)
-        {
-            _chatId ??= _historyRepository.CreateChat(_connection.Id, model: Model).Id;
-            _historyRepository.Append(_chatId.Value, message);
-        }
+            Remember(message);
+        else
+            _history.Add(message);
 
         Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
         this.RaisePropertyChanged(nameof(HasMessages));

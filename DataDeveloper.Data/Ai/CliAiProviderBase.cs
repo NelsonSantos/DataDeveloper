@@ -24,8 +24,21 @@ public abstract class CliAiProviderBase : IAiProvider
     public abstract string DisplayName { get; }
 
     protected abstract string CommandName { get; }
-    protected abstract IReadOnlyList<string> BuildArguments(AiChatRequest request);
+    protected abstract IReadOnlyList<string> BuildArguments(AiChatRequest request, AiSessionMode mode);
     protected abstract AiChatResponse ParseOutput(string standardOutput);
+
+    /// <summary>True when the CLI can keep a conversation between calls (resume a session by id).</summary>
+    protected virtual bool SupportsSessions => false;
+
+    /// <summary>True when the failure means the CLI has no session with the id that was asked to resume.</summary>
+    protected virtual bool IsMissingSession(AiChatResponse response) => false;
+
+    /// <summary>True when the failure means a session with the id to create already exists.</summary>
+    protected virtual bool IsSessionInUse(AiChatResponse response) => false;
+
+    public virtual void ForgetSession(Guid sessionId)
+    {
+    }
 
     protected virtual IReadOnlyList<string> VersionArguments => ["--version"];
 
@@ -34,8 +47,16 @@ public abstract class CliAiProviderBase : IAiProvider
 
     public bool SupportsSignIn => LoginArguments is not null;
 
-    /// <summary>The prompt goes through stdin so its size and content never reach the command line.</summary>
-    protected virtual string? BuildStandardInput(AiChatRequest request) => AiTranscriptFormatter.Format(request);
+    /// <summary>
+    /// The prompt goes through stdin so its size and content never reach the command line. A resumed session already
+    /// holds the conversation, so only the new message is sent; otherwise the earlier turns go with it.
+    /// </summary>
+    protected virtual string? BuildStandardInput(AiChatRequest request, AiSessionMode mode) => mode switch
+    {
+        AiSessionMode.Resume => request.Prompt,
+        AiSessionMode.Create => AiTranscriptFormatter.Format(request with { Prompt = request.FreshPrompt ?? request.Prompt }),
+        _ => AiTranscriptFormatter.Format(request)
+    };
 
     public async Task<AiProviderAvailability> CheckAvailabilityAsync(CancellationToken cancellationToken = default)
     {
@@ -89,7 +110,39 @@ public abstract class CliAiProviderBase : IAiProvider
             return AiChatResponse.Fail(NotFoundMessage());
 
         var timeout = TimeSpan.FromSeconds(AiProviderSettings.NormalizeTimeout(Settings.TimeoutSeconds));
-        var result = await RunAsync(executable, BuildArguments(request), BuildStandardInput(request), timeout, cancellationToken);
+
+        if (request.Session is not { } session || !SupportsSessions)
+            return await RunChatAsync(executable, request, AiSessionMode.None, timeout, cancellationToken);
+
+        if (session.Started)
+        {
+            var resumed = await RunChatAsync(executable, request, AiSessionMode.Resume, timeout, cancellationToken);
+            if (resumed.Success || !IsMissingSession(resumed))
+                return resumed;
+
+            // The CLI lost the session (cleaned up, moved): start a new one that is told the whole conversation again.
+        }
+
+        var created = await RunChatAsync(executable, request, AiSessionMode.Create, timeout, cancellationToken);
+        if (!created.Success && IsSessionInUse(created))
+        {
+            // Our records said there was no session but the CLI has one (an earlier call died half way): replace it.
+            ForgetSession(session.Id);
+            created = await RunChatAsync(executable, request, AiSessionMode.Create, timeout, cancellationToken);
+        }
+
+        return created;
+    }
+
+    private async Task<AiChatResponse> RunChatAsync(
+        string executable,
+        AiChatRequest request,
+        AiSessionMode mode,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        var workingDirectory = mode == AiSessionMode.None ? null : request.Session?.WorkingDirectory;
+        var result = await RunAsync(executable, BuildArguments(request, mode), BuildStandardInput(request, mode), timeout, cancellationToken, workingDirectory);
 
         if (!result.Started)
             return AiChatResponse.Fail(result.StartError ?? $"{DisplayName} could not be started.");
@@ -112,7 +165,8 @@ public abstract class CliAiProviderBase : IAiProvider
         IReadOnlyList<string> arguments,
         string? standardInput,
         TimeSpan timeout,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? workingDirectory = null)
     {
         var fileName = executable;
         var processArguments = arguments;
@@ -126,9 +180,17 @@ public abstract class CliAiProviderBase : IAiProvider
             processArguments = ["/c", executable, .. arguments];
         }
 
-        // A neutral folder keeps the CLI from picking up project files (e.g. CLAUDE.md) from the app's folder.
+        // A neutral folder keeps the CLI from picking up project files (e.g. CLAUDE.md) from the app's folder. A session's
+        // own folder is neutral too, and it is what keeps the CLI's stored sessions apart from the user's projects.
+        var folder = Path.GetTempPath();
+        if (!string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            Directory.CreateDirectory(workingDirectory);
+            folder = workingDirectory;
+        }
+
         return _runner.RunAsync(
-            new CliProcessRequest(fileName, processArguments, standardInput, Path.GetTempPath(), timeout),
+            new CliProcessRequest(fileName, processArguments, standardInput, folder, timeout),
             cancellationToken);
     }
 
