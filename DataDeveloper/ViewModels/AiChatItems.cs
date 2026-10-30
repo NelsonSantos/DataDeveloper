@@ -10,15 +10,30 @@ using ReactiveUI.SourceGenerators;
 
 namespace DataDeveloper.ViewModels;
 
-public sealed class AiMessageSegmentViewModel : ViewModelBase
+public sealed partial class AiMessageSegmentViewModel : ViewModelBase
 {
-    public AiMessageSegmentViewModel(AiMessageSegment segment, Action<string>? insert)
+    /// <param name="assessRisk">Returns what is dangerous about the code (shown before it can be inserted), or null when nothing is.</param>
+    public AiMessageSegmentViewModel(AiMessageSegment segment, Action<string>? insert, Func<string, string?>? assessRisk = null)
     {
         Text = segment.Text;
         IsCode = segment.IsCode;
         Language = segment.Language;
         CanInsert = segment.IsCode && insert is not null;
-        InsertCommand = ReactiveCommand.Create(() => insert?.Invoke(Text));
+        RiskText = segment.IsCode && CanInsert ? assessRisk?.Invoke(Text) : null;
+
+        // Risky code is only inserted after a second, explicit click.
+        InsertCommand = ReactiveCommand.Create(() =>
+        {
+            if (HasRisk && !IsConfirmingInsert)
+            {
+                IsConfirmingInsert = true;
+                return;
+            }
+
+            IsConfirmingInsert = false;
+            insert?.Invoke(Text);
+        });
+        CancelInsertCommand = ReactiveCommand.Create(() => { IsConfirmingInsert = false; });
     }
 
     public string Text { get; }
@@ -26,18 +41,24 @@ public sealed class AiMessageSegmentViewModel : ViewModelBase
     public bool IsProse => !IsCode;
     public string? Language { get; }
     public bool CanInsert { get; }
+    public string? RiskText { get; }
+    public bool HasRisk => RiskText is not null;
     public ReactiveCommand<Unit, Unit> InsertCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelInsertCommand { get; }
+
+    [Reactive] private bool _isConfirmingInsert;
 }
 
 public sealed class AiChatMessageViewModel : ViewModelBase
 {
-    public AiChatMessageViewModel(AiChatRole role, string content, bool isError, Action<string>? insert)
+    public AiChatMessageViewModel(
+        AiChatRole role, string content, bool isError, Action<string>? insert, Func<string, string?>? assessRisk = null)
     {
         Role = role;
         Content = content;
         IsError = isError;
         Segments = role == AiChatRole.Assistant && !isError
-            ? AiMessageSegments.Parse(content).Select(segment => new AiMessageSegmentViewModel(segment, insert)).ToList()
+            ? AiMessageSegments.Parse(content).Select(segment => new AiMessageSegmentViewModel(segment, insert, assessRisk)).ToList()
             : [new AiMessageSegmentViewModel(new AiMessageSegment(false, content), insert)];
     }
 

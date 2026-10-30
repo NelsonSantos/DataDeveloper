@@ -40,6 +40,14 @@
     </UserControl.Resources>
 
     <UserControl.Styles>
+        <Style Selector="Border.risk">
+            <Setter Property="Background" Value="#33E5A03C" />
+            <Setter Property="BorderBrush" Value="#E5A03C" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Margin" Value="0,4" />
+        </Style>
         <Style Selector="Border.bubble">
             <Setter Property="Margin" Value="8,4" />
             <Setter Property="Padding" Value="8" />
@@ -148,13 +156,25 @@
                                                     <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" IsVisible="{Binding IsProse}" />
                                                     <Border Classes="code" IsVisible="{Binding IsCode}">
                                                         <StackPanel>
-                                                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                                                                 <TextBlock Text="{Binding Language}" FontSize="11" Opacity="0.6" VerticalAlignment="Center" />
                                                                 <Button Grid.Column="1" Content="Copy" Classes="small" Click="OnCopyCodeClick" />
                                                                 <Button Grid.Column="2" Content="Insert in editor" Classes="small"
                                                                         IsVisible="{Binding CanInsert}"
-                                                                        Command="{Binding InsertCommand}" />
+                                                                        Command="{Binding InsertCommand}"
+                                                                        ToolTip.Tip="Put this script in the current query tab. Nothing is executed." />
+                                                                <Button Grid.Column="3" Content="Cancel" Classes="small"
+                                                                        IsVisible="{Binding IsConfirmingInsert}"
+                                                                        Command="{Binding CancelInsertCommand}" />
                                                             </Grid>
+                                                            <Border Classes="risk" IsVisible="{Binding HasRisk}">
+                                                                <StackPanel Spacing="4">
+                                                                    <TextBlock Text="{Binding RiskText, StringFormat='Careful: {0}'}" TextWrapping="Wrap" FontSize="12" />
+                                                                    <TextBlock Text="Click Insert in editor again to confirm. The script is only placed in the editor; you still run it yourself."
+                                                                               TextWrapping="Wrap" FontSize="11" Opacity="0.75"
+                                                                               IsVisible="{Binding IsConfirmingInsert}" />
+                                                                </StackPanel>
+                                                            </Border>
                                                             <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap"
                                                                                  FontFamily="Menlo,Consolas,Monospace" FontSize="12" />
                                                         </StackPanel>

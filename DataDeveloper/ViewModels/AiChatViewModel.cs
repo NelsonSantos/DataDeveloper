@@ -11,6 +11,7 @@ using DataDeveloper.Core;
 using DataDeveloper.Data.Ai;
 using DataDeveloper.Data.Interfaces;
 using DataDeveloper.Data.Models;
+using DataDeveloper.Data.Services;
 using DataDeveloper.Interfaces;
 using ReactiveUI;
 using ReactiveUI.Reactive;
@@ -261,6 +262,16 @@ public partial class AiChatViewModel : ViewModelBase
         ApplyObjectFilter();
     }
 
+    /// <summary>
+    /// The warning to show on a suggested script that can lose data (DROP, TRUNCATE, DELETE/UPDATE without a real WHERE,
+    /// ALTER TABLE ... DROP), or null. Checked locally, per the connection's dialect; the model is not involved.
+    /// </summary>
+    public string? AssessRisk(string code)
+    {
+        var risks = DestructiveSqlDetector.Find(code, _connection.DatabaseType);
+        return risks.Count == 0 ? null : string.Join(" ", risks.Select(risk => risk.Description).Distinct());
+    }
+
     public void InsertCode(string code)
     {
         if (InsertIntoEditor?.Invoke(code) != true)
@@ -327,7 +338,7 @@ public partial class AiChatViewModel : ViewModelBase
             foreach (var message in _historyRepository.LoadMessages(chat.Id, MaxLoadedMessages))
             {
                 _history.Add(message);
-                Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
+                Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode, AssessRisk));
             }
         }
 
@@ -422,7 +433,7 @@ public partial class AiChatViewModel : ViewModelBase
 
         // The question shows at once; it is stored when the model's view of it is known.
         var userMessage = new AiChatMessage(AiChatRole.User, historyText, DateTime.UtcNow);
-        Messages.Add(new AiChatMessageViewModel(AiChatRole.User, historyText, false, InsertCode));
+        Messages.Add(new AiChatMessageViewModel(AiChatRole.User, historyText, false, InsertCode, AssessRisk));
         this.RaisePropertyChanged(nameof(HasMessages));
         var remembered = false;
 
@@ -603,7 +614,7 @@ public partial class AiChatViewModel : ViewModelBase
         else
             _history.Add(message);
 
-        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode));
+        Messages.Add(new AiChatMessageViewModel(message.Role, message.Content, false, InsertCode, AssessRisk));
         this.RaisePropertyChanged(nameof(HasMessages));
     }
 
