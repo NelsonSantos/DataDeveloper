@@ -54,7 +54,7 @@ DataDeveloper currently supports SQL Server, Oracle, MySQL, PostgreSQL, and SQLi
 - Export a query result grid to CSV or XLSX, remembering the last format used per connection
 - Resize columns and navigate results with keyboard shortcuts
 - Track query execution and previous-result cleanup from the status bar
-- Chat with an AI assistant per connection, using the Claude Code CLI you already have signed in (no API key to configure): ask for queries, explain or fix a statement from the editor's context menu, or send a failed statement and its error straight to the chat. Only the structure of the relevant tables (names, columns, types) is sent, never row data, and the assistant only suggests: nothing is executed on your database until you review and run it yourself
+- Chat with an AI assistant per connection, using the Claude Code CLI you already have signed in (no API key to configure): ask for queries, explain or fix a statement from the editor's context menu, or send a failed statement and its error straight to the chat. Only the structure of the relevant tables (names, columns, types) is sent, never row data, and the assistant only suggests: nothing is executed on your database until you review and run it yourself. Suggested scripts that can lose data (DROP, TRUNCATE, DELETE or UPDATE without a real WHERE) are flagged and need a second click before they are placed in the editor
 - Run on macOS, Windows, and Linux
 
 ## Releases

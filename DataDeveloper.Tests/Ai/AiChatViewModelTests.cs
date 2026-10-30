@@ -538,6 +538,50 @@ public class AiChatViewModelTests : IDisposable
     }
 
     [Fact]
+    public void AssessRisk_FlagsScriptsThatCanLoseData_OnlyFromTheModelsAnswer()
+    {
+        var viewModel = CreateViewModel();
+
+        Assert.Null(viewModel.AssessRisk("select * from orders where id = 1"));
+        Assert.Contains("DROP", viewModel.AssessRisk("drop table orders")!);
+        Assert.Contains("every row", viewModel.AssessRisk("update orders set total = 0")!);
+    }
+
+    [Fact]
+    public void RiskyCode_NeedsASecondClickToBeInserted_AndCanBeCancelled()
+    {
+        var inserted = new List<string>();
+        var segment = new AiMessageSegmentViewModel(new AiMessageSegment(true, "delete from orders", "sql"), inserted.Add, _ => "careful");
+
+        Assert.True(segment.HasRisk);
+
+        segment.InsertCommand.Execute().Subscribe();
+        Assert.True(segment.IsConfirmingInsert);
+        Assert.Empty(inserted);
+
+        segment.CancelInsertCommand.Execute().Subscribe();
+        Assert.False(segment.IsConfirmingInsert);
+        Assert.Empty(inserted);
+
+        segment.InsertCommand.Execute().Subscribe();
+        segment.InsertCommand.Execute().Subscribe();
+        Assert.Equal(["delete from orders"], inserted);
+        Assert.False(segment.IsConfirmingInsert);
+    }
+
+    [Fact]
+    public void SafeCode_IsInsertedWithASingleClick()
+    {
+        var inserted = new List<string>();
+        var segment = new AiMessageSegmentViewModel(new AiMessageSegment(true, "select 1", "sql"), inserted.Add, _ => null);
+
+        Assert.False(segment.HasRisk);
+        segment.InsertCommand.Execute().Subscribe();
+
+        Assert.Equal(["select 1"], inserted);
+    }
+
+    [Fact]
     public void AttachQuery_AsksTheProviderForTheWholeQueryOrTheSelection()
     {
         var viewModel = CreateViewModel();

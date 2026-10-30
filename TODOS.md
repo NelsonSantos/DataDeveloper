@@ -57,7 +57,8 @@ Assistente de IA.
 
 - [ ] Idioma da resposta: com uma pergunta em inglês e tabelas com nomes em português (`teste`), o modelo respondeu em português. Reforçar a regra do prompt fixo (idioma da última mensagem, ignorando nomes de tabelas, colunas e anexos) e validar na CLI; avaliar uma configuração de idioma nas Preferências e pedidos prontos do app (Explain, Fix, Optimize, erro) no idioma da interface
 - [ ] Anexar arquivos e imagens na pasta da conexão (`ai-sessions/<id>`) com `Read` restrito, validando que a restrição se mantém
-- [ ] Avisar antes de inserir no editor um SQL destrutivo sugerido pela IA (DROP, DELETE/UPDATE sem WHERE, TRUNCATE)
+- [x] Avisar antes de inserir no editor um SQL destrutivo sugerido pela IA (DROP, TRUNCATE, DELETE/UPDATE sem WHERE, ALTER TABLE ... DROP)
+- [ ] Estender o aviso de SQL destrutivo ao que o usuário digita e executa (hoje só vale para o que vem da IA)
 - [ ] Anexar definições de procedures, functions e views, e diagnósticos somente leitura (sessões bloqueadas, queries lentas, índices ausentes, planos) para os cinco bancos
 - [ ] Codex e Gemini CLI (PR C), anexo de imagens, janela flutuante e arrastar objetos do Schema Explorer para o chat
 - [ ] Porcentagem de uso da sessão e da semana: a CLI só informa estado e horário de reset, sem consumo
